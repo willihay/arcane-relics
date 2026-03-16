@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "arcane-relics",
+	"version": "${version}",
+	"name": "Arcane Relics",
+	"description": "A collection of powerful relics from crafty wizards",
+	"authors": [
+		"Willow the Wisp"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/willihay/arcane-relics"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/arcane-relics/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"org.bensam.arcanerelics.ArcaneRelics"
+		],
+		"client": [
+			"org.bensam.arcanerelics.ArcaneRelicsClient"
+		],
+		"fabric-datagen": [
+			"org.bensam.arcanerelics.ArcaneRelicsDataGenerator"
+		]
+	},
+	"mixins": [
+		"arcane-relics.mixins.json",
+		{
+			"config": "arcane-relics.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
