@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " GT",
+    " RG",
+    "S  "
+  ],
+  "key": {
+    "T": "minecraft:ghast_tear",
+    "G": "minecraft:gold_ingot",
+    "R": "minecraft:redstone",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "arcane-relics:fire_wand"
+  }
+}

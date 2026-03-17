@@ -6,6 +6,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import org.bensam.arcanerelics.item.ItemFireWand;
 import org.bensam.arcanerelics.item.ItemLightningWand;
 
 import java.util.function.Function;
@@ -14,12 +15,35 @@ import java.util.function.Supplier;
 public final class ModItems {
     private ModItems() {}
 
+    private static ItemFireWand fireWandInternal;
     private static ItemLightningWand lightningWandInternal;
 
+    public static final Supplier<ItemFireWand> FIRE_WAND = () -> fireWandInternal;
     public static final Supplier<ItemLightningWand> LIGHTNING_WAND = () -> lightningWandInternal;
 
     public static void initialize() {
         // Register mod items.
+        fireWandInternal = register(
+                "fire_wand",
+                ItemFireWand::new,
+                new Item.Properties()
+                        .component(
+                                ModComponents.WAND_CHARGES_COMPONENT,
+                                new ModComponents.WandChargesComponent(ItemFireWand.INITIAL_CHARGES)
+                        )
+                        .component(
+                                ModComponents.WAND_MAX_CHARGES_COMPONENT,
+                                ItemFireWand.MAX_CHARGES
+                        )
+                        .component(
+                                ModComponents.WAND_TOOLTIP_COMPONENT,
+                                new ModComponents.WandTooltipComponent(
+                                        "item." + ArcaneRelics.MOD_ID + ".fire_wand.info",
+                                        3
+                                )
+                        )
+        );
+
         lightningWandInternal = register(
                 "lightning_wand",
                 ItemLightningWand::new,

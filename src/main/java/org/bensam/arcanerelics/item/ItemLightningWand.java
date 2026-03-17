@@ -22,33 +22,31 @@ public class ItemLightningWand extends AbstractChargedWandItem {
     public static final int WAND_RANGE = 100;
     public static final int INITIAL_CHARGES = 20;
     public static final int MAX_CHARGES = 40;
+    private static final int FULL_CHARGE_TICKS = 60;
 
     private static final int NORMAL_CAST_COST = 1;
     private static final int FULL_POWER_CAST_COST = 2;
-    private static final int BLAZE_ROD_RECHARGE_AMOUNT = 20;
-    private static final int BLAZE_ROD_RECHARGE_THRESHOLD = MAX_CHARGES - BLAZE_ROD_RECHARGE_AMOUNT;
 
-    private static final int FULL_CHARGE_TICKS = 60;
-    private static final int LIGHTNING_ROD_ATTRACTION_RADIUS = 12;
     public static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
+    private static final int BLAZE_ROD_RECHARGE_AMOUNT = 20;
+    private static final int BLAZE_ROD_RECHARGE_THRESHOLD = MAX_CHARGES - (BLAZE_ROD_RECHARGE_AMOUNT / 2);
 
     public static final float BASE_EXPLOSION_POWER = 0.75f;
     public static final float MAX_EXPLOSION_POWER = 2.5f;
-
-    public ItemLightningWand(Properties properties) {
-        super(properties, INITIAL_CHARGES, MAX_CHARGES);
-    }
 
     public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
     private enum RechargeResult {
         LIGHTNING_ROD_SUCCESS,
         BLAZE_ROD_SUCCESS,
-        NO_LIGHTNING_ROD,
         NO_THUNDER,
         TOO_CHARGED_FOR_BLAZE_ROD,
         NO_BLAZE_ROD,
         ALREADY_FULL
+    }
+
+    public ItemLightningWand(Properties properties) {
+        super(properties, INITIAL_CHARGES, MAX_CHARGES);
     }
 
     @Override
@@ -119,7 +117,7 @@ public class ItemLightningWand extends AbstractChargedWandItem {
         // Check if wand has enough charges remaining to complete the cast.
         if (chargeCost > 0 && !this.hasAtLeastCharges(stack, chargeCost)) {
             player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.cast.no_charges"),
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges"),
                     true
             );
             return true;
@@ -163,6 +161,32 @@ public class ItemLightningWand extends AbstractChargedWandItem {
         }
 
         return blazeRodResult;
+    }
+
+    private static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center, int radius) {
+        BlockPos closestRod = null;
+        double closestDistanceSq = Double.MAX_VALUE;
+
+        for (BlockPos pos : BlockPos.betweenClosed(
+                center.offset(-radius, -radius, -radius),
+                center.offset(radius, radius, radius)
+        )) {
+            if (!level.getBlockState(pos).is(Blocks.LIGHTNING_ROD)) {
+                continue;
+            }
+
+            if (!level.canSeeSky(pos.above())) {
+                continue;
+            }
+
+            double distanceSq = pos.distSqr(center);
+            if (distanceSq < closestDistanceSq) {
+                closestDistanceSq = distanceSq;
+                closestRod = pos.immutable();
+            }
+        }
+
+        return closestRod;
     }
 
     private RechargeResult tryBlazeRodRecharge(Player player, ItemStack stack) {
@@ -213,12 +237,8 @@ public class ItemLightningWand extends AbstractChargedWandItem {
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_thunder"),
                     true
             );
-            case NO_LIGHTNING_ROD -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_lightning_rod"),
-                    true
-            );
             case ALREADY_FULL -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.fully_charged"),
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.fully_charged"),
                     true
             );
         }
@@ -243,50 +263,6 @@ public class ItemLightningWand extends AbstractChargedWandItem {
         level.explode(player, strikePos.x, strikePos.y, strikePos.z, explosionPower, false, interaction);
 
         return true;
-    }
-
-    private static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center, int radius) {
-        BlockPos closestRod = null;
-        double closestDistanceSq = Double.MAX_VALUE;
-
-        for (BlockPos pos : BlockPos.betweenClosed(
-                center.offset(-radius, -radius, -radius),
-                center.offset(radius, radius, radius)
-        )) {
-            if (!level.getBlockState(pos).is(Blocks.LIGHTNING_ROD)) {
-                continue;
-            }
-
-            if (!level.canSeeSky(pos.above())) {
-                continue;
-            }
-
-            double distanceSq = pos.distSqr(center);
-            if (distanceSq < closestDistanceSq) {
-                closestDistanceSq = distanceSq;
-                closestRod = pos.immutable();
-            }
-        }
-
-        return closestRod;
-    }
-
-    private static EntityHitResult raycastEntities(Player player, double distance) {
-        Vec3 start = player.getEyePosition();
-        Vec3 look = player.getLookAngle();
-        Vec3 end = start.add(look.scale(distance));
-
-        AABB box = player.getBoundingBox().expandTowards(look.scale(distance)).inflate(1.0);
-
-        // Note: This Minecraft utility expects the square of the distance to be passed in as distance.
-        return ProjectileUtil.getEntityHitResult(
-                player,
-                start,
-                end,
-                box,
-                entity -> !entity.isSpectator() && entity.isPickable(),
-                distance * distance
-        );
     }
 
     public static TargetResult getTarget(Player player, double distance) {
@@ -320,5 +296,23 @@ public class ItemLightningWand extends AbstractChargedWandItem {
         }
 
         return null;
+    }
+
+    private static EntityHitResult raycastEntities(Player player, double distance) {
+        Vec3 start = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+        Vec3 end = start.add(look.scale(distance));
+
+        AABB box = player.getBoundingBox().expandTowards(look.scale(distance)).inflate(1.0);
+
+        // Note: This Minecraft utility expects the square of the distance to be passed in as distance.
+        return ProjectileUtil.getEntityHitResult(
+                player,
+                start,
+                end,
+                box,
+                entity -> !entity.isSpectator() && entity.isPickable(),
+                distance * distance
+        );
     }
 }
