@@ -1,10 +1,21 @@
 
 {
-  "item.arcane-relics.wand.charges": "%1$s charges remaining",
+  "item.arcane-relics.wand.charges": "%1$s / %2$s charges",
+  "item.arcane-relics.wand.charges.fallback": "%1$s charges remaining",
   "item.arcane-relics.lightning_wand": "Lightning Wand",
   "item.arcane-relics.lightning_wand.info.1": "Summons lightning at your target.",
   "item.arcane-relics.lightning_wand.info.2": "Hold use to build charge strength for more damage.",
   "item.arcane-relics.lightning_wand.info.3": "A full charge causes a block-breaking explosion.",
+  "item.arcane-relics.lightning_wand.info.4": "Sneak-use with a blaze rod or near a lightning rod to recharge.",
+
+  "message.arcane-relics.lightning_wand.recharge.lightning_rod": "Recharged to full from nearby lightning rod.",
+  "message.arcane-relics.lightning_wand.recharge.blaze_rod": "Recharged with blaze rod as arcane fuel.",
+  "message.arcane-relics.lightning_wand.recharge.fully_charged": "The wand is already fully charged.",
+  "message.arcane-relics.lightning_wand.recharge.too_charged": "The wand is too charged to use a blaze rod.",
+  "message.arcane-relics.lightning_wand.recharge.no_blaze_rod": "No blaze rod arcane fuel found.",
+  "message.arcane-relics.lightning_wand.recharge.no_lightning_rod": "No lightning rod nearby.",
+  "message.arcane-relics.lightning_wand.recharge.no_thunder": "Lightning rod recharge requires a thunderstorm.",
+  "message.arcane-relics.lightning_wand.cast.no_charges": "Not enough charges.",
 
   "itemGroup.arcane-relics": "Arcane Relics"
 }

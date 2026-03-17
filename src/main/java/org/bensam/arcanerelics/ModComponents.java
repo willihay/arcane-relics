@@ -26,6 +26,14 @@ public final class ModComponents {
                     .build()
     );
 
+    public static final DataComponentType<Integer> WAND_MAX_CHARGES_COMPONENT = Registry.register(
+            BuiltInRegistries.DATA_COMPONENT_TYPE,
+            Identifier.fromNamespaceAndPath(ArcaneRelics.MOD_ID, "wand_max_charges"),
+            DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .build()
+    );
+
     public static final DataComponentType<WandTooltipComponent> WAND_TOOLTIP_COMPONENT = Registry.register(
             BuiltInRegistries.DATA_COMPONENT_TYPE,
             Identifier.fromNamespaceAndPath(ArcaneRelics.MOD_ID, "wand_tooltip"),
@@ -45,8 +53,27 @@ public final class ModComponents {
                 TooltipFlag type,
                 DataComponentGetter components
         ) {
-            textConsumer.accept(Component.translatable("item." + ArcaneRelics.MOD_ID + ".wand.charges", this.charges)
-                    .withStyle(ChatFormatting.GOLD));
+            Integer maxCharges = components.get(WAND_MAX_CHARGES_COMPONENT);
+            if (maxCharges == null) {
+                ArcaneRelics.LOGGER.warn("Missing wand_max_charges component for tooltip rendering");
+                textConsumer.accept(
+                        Component.translatable(
+                                "item." + ArcaneRelics.MOD_ID + ".wand.charges.fallback",
+                                        this.charges
+                                )
+                                .withStyle(ChatFormatting.GOLD)
+                );
+                return;
+            }
+
+            textConsumer.accept(
+                    Component.translatable(
+                            "item." + ArcaneRelics.MOD_ID + ".wand.charges",
+                                this.charges,
+                                maxCharges
+                            )
+                            .withStyle(ChatFormatting.GOLD)
+            );
         }
     }
 

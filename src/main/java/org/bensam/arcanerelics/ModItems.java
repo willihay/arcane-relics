@@ -6,7 +6,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import org.bensam.arcanerelics.item.ItemLightningWand;
 
 import java.util.function.Function;
@@ -27,13 +26,17 @@ public final class ModItems {
                 new Item.Properties()
                         .component(
                                 ModComponents.WAND_CHARGES_COMPONENT,
-                                new ModComponents.WandChargesComponent(ItemLightningWand.INITIAL_WAND_CHARGES)
+                                new ModComponents.WandChargesComponent(ItemLightningWand.INITIAL_CHARGES)
+                        )
+                        .component(
+                                ModComponents.WAND_MAX_CHARGES_COMPONENT,
+                                ItemLightningWand.MAX_CHARGES
                         )
                         .component(
                                 ModComponents.WAND_TOOLTIP_COMPONENT,
                                 new ModComponents.WandTooltipComponent(
                                         "item." + ArcaneRelics.MOD_ID + ".lightning_wand.info",
-                                        3
+                                        4
                                 )
                         )
         );
