@@ -1,7 +1,8 @@
 package org.bensam.arcanerelics;
 
 import net.fabricmc.api.ModInitializer;
-
+import net.fabricmc.fabric.api.item.v1.ComponentTooltipAppenderRegistry;
+import net.minecraft.core.component.DataComponents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,15 @@ public class ArcaneRelics implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
+		LOGGER.info("onInitialize start");
 
-		LOGGER.info("Hello Fabric world!");
+		ModComponents.initialize();
+		ModItems.initialize();
+
+		ComponentTooltipAppenderRegistry.addAfter(DataComponents.DAMAGE, ModComponents.WAND_CHARGES_COMPONENT);
+		ComponentTooltipAppenderRegistry.addAfter(ModComponents.WAND_CHARGES_COMPONENT, ModComponents.WAND_TOOLTIP_COMPONENT);
+
+		ModCreativeTab.initialize();
+		LOGGER.info("onInitialize complete");
 	}
 }

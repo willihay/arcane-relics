@@ -1,0 +1,10 @@
+
+{
+  "item.arcane-relics.wand.charges": "%1$s charges remaining",
+  "item.arcane-relics.lightning_wand": "Lightning Wand",
+  "item.arcane-relics.lightning_wand.info.1": "Summons lightning at your target.",
+  "item.arcane-relics.lightning_wand.info.2": "Hold use to build charge strength for more damage.",
+  "item.arcane-relics.lightning_wand.info.3": "A full charge causes a block-breaking explosion.",
+
+  "itemGroup.arcane-relics": "Arcane Relics"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " CB",
+    " RC",
+    "S  "
+  ],
+  "key": {
+    "B": "minecraft:blaze_rod",
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "arcane-relics:lightning_wand"
+  }
+}
