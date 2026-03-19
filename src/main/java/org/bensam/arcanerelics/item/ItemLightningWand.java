@@ -1,16 +1,12 @@
 package org.bensam.arcanerelics.item;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -18,25 +14,52 @@ import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.Nullable;
 
-public class ItemLightningWand extends AbstractChargedWandItem {
-    public static final int WAND_RANGE = 100;
+public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand.LightningRechargeResult> {
     public static final int INITIAL_CHARGES = 20;
     public static final int MAX_CHARGES = 40;
-    private static final int FULL_CHARGE_TICKS = 60;
 
     private static final int NORMAL_CAST_COST = 1;
+    private static final int FULL_POWER_TICKS = 60;
     private static final int FULL_POWER_CAST_COST = 2;
+    private static final int WAND_RANGE = 60;
 
-    public static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
+    private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
     private static final int BLAZE_ROD_RECHARGE_AMOUNT = 20;
     private static final int BLAZE_ROD_RECHARGE_THRESHOLD = MAX_CHARGES - (BLAZE_ROD_RECHARGE_AMOUNT / 2);
 
-    public static final float BASE_EXPLOSION_POWER = 0.75f;
-    public static final float MAX_EXPLOSION_POWER = 2.5f;
+    private static final float BASE_EXPLOSION_POWER = 0.75f;
+    private static final float MAX_EXPLOSION_POWER = 2.5f;
 
     public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
-    private enum RechargeResult {
+    public ItemLightningWand(Properties properties) {
+        super(properties, INITIAL_CHARGES, MAX_CHARGES);
+    }
+
+    //region Helper Functions
+    @Override
+    protected int getFullPowerCastCost() {
+        return FULL_POWER_CAST_COST;
+    }
+
+    @Override
+    protected int getFullPowerTicks() {
+        return FULL_POWER_TICKS;
+    }
+
+    @Override
+    protected int getNormalCastCost() {
+        return NORMAL_CAST_COST;
+    }
+
+    @Override
+    protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyCharged) {
+        return level.isThundering() ? 0 : super.getPowerUpCost(level, player, stack, chargeTicks, fullyCharged);
+    }
+    //endregion
+
+    //region Recharge Functions
+    public enum LightningRechargeResult implements RechargeResult {
         LIGHTNING_ROD_SUCCESS,
         BLAZE_ROD_SUCCESS,
         NO_THUNDER,
@@ -45,101 +68,10 @@ public class ItemLightningWand extends AbstractChargedWandItem {
         ALREADY_FULL
     }
 
-    public ItemLightningWand(Properties properties) {
-        super(properties, INITIAL_CHARGES, MAX_CHARGES);
-    }
-
     @Override
-    public ItemUseAnimation getUseAnimation(ItemStack stack) {
-        return ItemUseAnimation.BOW;
-    }
-
-    @Override
-    public int getUseDuration(ItemStack stack, LivingEntity entity) {
-        return 72000; // same as bow; effectively as long as you want
-    }
-
-    @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        ItemStack stack = player.getItemInHand(hand);
-
-        // If sneaking, try to recharge.
-        if (player.isShiftKeyDown()) {
-            if (!level.isClientSide()) {
-                RechargeResult result = this.tryRecharge(level, player, stack);
-                this.sendRechargeFeedback(player, result);
-            }
-            return InteractionResult.SUCCESS;
-        }
-
-        // If not sneaking, start normal charge-up behavior.
-        player.startUsingItem(hand);
-        return InteractionResult.CONSUME;
-    }
-
-    @Override
-    public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
-        super.onUseTick(level, livingEntity, stack, remainingUseDuration);
-
-        int elapsed = this.getUseDuration(stack, livingEntity) - remainingUseDuration;
-        boolean fullyCharged = elapsed >= FULL_CHARGE_TICKS;
-
-        if (fullyCharged) {
-            stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
-        } else {
-            stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
-        }
-    }
-
-    @Override
-    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
-        stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
-
-        // The remaining logic is for server-side only.
-        if (level.isClientSide())
-            return true;
-
-        // Players are the only entities who will use a lightning wand.
-        if (!(entity instanceof Player player))
-            return false;
-
-        // Determine charge status.
-        int useDuration = this.getUseDuration(stack, entity);
-        int chargeTicks = useDuration - timeLeft; // how long they held right-click
-        boolean fullyCharged = chargeTicks >= FULL_CHARGE_TICKS;
-        boolean stormCastingIsFree = level.isThundering();
-
-        // Calculate charge cost.
-        int chargeCost = stormCastingIsFree
-                ? 0
-                : (fullyCharged ? FULL_POWER_CAST_COST : NORMAL_CAST_COST);
-
-        // Check if wand has enough charges remaining to complete the cast.
-        if (chargeCost > 0 && !this.hasAtLeastCharges(stack, chargeCost)) {
-            player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges"),
-                    true
-            );
-            return true;
-        }
-
-        // Clamp charge between 0.0 and 1.0.
-        float charge = Mth.clamp((float) chargeTicks / FULL_CHARGE_TICKS, 0.0f, 1.0f);
-
-        // Scale lightning damage by charge.
-        float explosionPower = Mth.lerp(charge, BASE_EXPLOSION_POWER, MAX_EXPLOSION_POWER);
-
-        // Summon charged lightning and consume charges.
-        if (summonChargedLightning(level, player, explosionPower, fullyCharged) && chargeCost > 0) {
-            this.consumeCharges(stack, chargeCost);
-        }
-
-        return true;
-    }
-
-    private RechargeResult tryRecharge(Level level, Player player, ItemStack wandStack) {
+    protected LightningRechargeResult tryRecharge(Level level, Player player, ItemStack wandStack) {
         if (this.isFullyCharged(wandStack)) {
-            return RechargeResult.ALREADY_FULL;
+            return LightningRechargeResult.ALREADY_FULL;
         }
 
         boolean isThundering = level.isThundering();
@@ -148,16 +80,16 @@ public class ItemLightningWand extends AbstractChargedWandItem {
         boolean foundLightningRod = lightningRodPos != null;
         if (foundLightningRod && isThundering) {
             this.setCharges(wandStack, this.getMaxCharges());
-            return RechargeResult.LIGHTNING_ROD_SUCCESS;
+            return LightningRechargeResult.LIGHTNING_ROD_SUCCESS;
         }
 
-        RechargeResult blazeRodResult = this.tryBlazeRodRecharge(player, wandStack);
-        if (blazeRodResult == RechargeResult.BLAZE_ROD_SUCCESS || blazeRodResult == RechargeResult.NO_BLAZE_ROD) {
+        LightningRechargeResult blazeRodResult = this.tryBlazeRodRecharge(player, wandStack);
+        if (blazeRodResult == LightningRechargeResult.BLAZE_ROD_SUCCESS || blazeRodResult == LightningRechargeResult.NO_BLAZE_ROD) {
             return blazeRodResult;
         }
 
         if (foundLightningRod) {
-            return RechargeResult.NO_THUNDER;
+            return LightningRechargeResult.NO_THUNDER;
         }
 
         return blazeRodResult;
@@ -189,33 +121,21 @@ public class ItemLightningWand extends AbstractChargedWandItem {
         return closestRod;
     }
 
-    private RechargeResult tryBlazeRodRecharge(Player player, ItemStack stack) {
+    private LightningRechargeResult tryBlazeRodRecharge(Player player, ItemStack stack) {
         if (this.getCharges(stack) > BLAZE_ROD_RECHARGE_THRESHOLD) {
-            return RechargeResult.TOO_CHARGED_FOR_BLAZE_ROD;
+            return LightningRechargeResult.TOO_CHARGED_FOR_BLAZE_ROD;
         }
 
-        if (!consumeOneBlazeRodFromInventory(player)) {
-            return RechargeResult.NO_BLAZE_ROD;
+        if (!consumeArcaneFuelFromInventory(player, Items.BLAZE_ROD)) {
+            return LightningRechargeResult.NO_BLAZE_ROD;
         }
 
         this.addCharges(stack, BLAZE_ROD_RECHARGE_AMOUNT);
-        return RechargeResult.BLAZE_ROD_SUCCESS;
+        return LightningRechargeResult.BLAZE_ROD_SUCCESS;
     }
 
-    private boolean consumeOneBlazeRodFromInventory(Player player) {
-        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
-            ItemStack inventoryStack = player.getInventory().getItem(slot);
-            if (inventoryStack.is(Items.BLAZE_ROD)) {
-                inventoryStack.shrink(1);
-                player.getInventory().setChanged();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void sendRechargeFeedback(Player player, RechargeResult result) {
+    @Override
+    protected void sendRechargeFeedback(Player player, LightningRechargeResult result) {
         switch (result) {
             case LIGHTNING_ROD_SUCCESS -> player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.lightning_rod"),
@@ -238,10 +158,18 @@ public class ItemLightningWand extends AbstractChargedWandItem {
                     true
             );
             case ALREADY_FULL -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.fully_charged"),
+                    this.getFullyChargedMessage(),
                     true
             );
         }
+    }
+    //endregion
+
+    //region Cast Methods
+    @Override
+    protected boolean performCast(Level level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
+        float explosionPower = Mth.lerp(powerUpPercentage, BASE_EXPLOSION_POWER, MAX_EXPLOSION_POWER);
+        return this.summonChargedLightning(level, player, explosionPower, isFullyPowered);
     }
 
     private boolean summonChargedLightning(Level level, Player player, float explosionPower, boolean withBlockBreak) {
@@ -315,4 +243,5 @@ public class ItemLightningWand extends AbstractChargedWandItem {
                 distance * distance
         );
     }
+    //endregion
 }

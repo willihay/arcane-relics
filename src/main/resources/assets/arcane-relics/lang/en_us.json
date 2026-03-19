@@ -12,6 +12,7 @@
   "item.arcane-relics.lightning_wand.info.3": "A full charge causes a block-breaking explosion.",
   "item.arcane-relics.lightning_wand.info.4": "Sneak-use with a blaze rod or nearby lightning rod to recharge.",
 
+  "message.arcane-relics.wand.charges": "%1$s / %2$s charges",
   "message.arcane-relics.wand.cast.no_charges": "Not enough charges",
   "message.arcane-relics.wand.recharge.fully_charged": "The wand is already fully charged",
   "message.arcane-relics.fire_wand.recharge.ghast": "Recharged to full from nearby ghast",
