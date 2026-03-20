@@ -1,2 +1,2 @@
 # arcane-relics
-Minecraft Fabric mod containing some useful items
+Fabric mod for Minecraft that adds elemental magic wands
