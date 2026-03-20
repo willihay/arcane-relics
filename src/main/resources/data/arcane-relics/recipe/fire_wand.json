@@ -1,12 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " GT",
+    " GB",
     " RG",
     "S  "
   ],
   "key": {
-    "T": "minecraft:ghast_tear",
+    "B": "minecraft:blaze_rod",
     "G": "minecraft:gold_ingot",
     "R": "minecraft:redstone",
     "S": "minecraft:stick"

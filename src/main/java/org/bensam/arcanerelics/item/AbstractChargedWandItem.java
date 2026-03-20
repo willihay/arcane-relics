@@ -3,6 +3,8 @@ package org.bensam.arcanerelics.item;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -11,6 +13,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModComponents;
@@ -70,6 +74,10 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
     }
 
+    public Component getNoRechargeFuelMessage() {
+        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.no_fuel");
+    }
+
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyCharged) {
         return fullyCharged ? this.getFullPowerCastCost() : this.getNormalCastCost();
     }
@@ -120,6 +128,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
                 R result = this.tryRecharge(level, player, stack);
+                this.playRechargeSuccessEffects((ServerLevel) level, player, stack, result);
                 this.sendRechargeFeedback(player, result);
             }
             return InteractionResult.SUCCESS;
@@ -175,6 +184,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
 
         // Consume charges.
         if (castSucceeded && chargeCost > 0) {
+            this.playCastSuccessEffects((ServerLevel) level, player, stack);
             this.consumeCharges(stack, chargeCost);
         }
 
@@ -184,6 +194,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     protected boolean consumeArcaneFuelFromInventory(Player player, Item item) {
         var inventory = player.getInventory();
         int inventorySize = inventory.getContainerSize();
+
         for (int slot = 0; slot < inventorySize; slot++) {
             ItemStack stack = inventory.getItem(slot);
             if (stack.is(item)) {
@@ -192,8 +203,35 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
                 return true;
             }
         }
+
         return false;
     }
+
+    protected boolean consumeArcaneFuelFromInventory(Player player, Item item, ResourceKey<Enchantment> enchantmentKey) {
+        var inventory = player.getInventory();
+        int inventorySize = inventory.getContainerSize();
+
+        for (int slot = 0; slot < inventorySize; slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (stack.is(item)) {
+                var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+
+                for (var entry : enchantments.entrySet()) {
+                    var key = entry.getKey().unwrapKey();
+
+                    if (key.isPresent() && key.get() == enchantmentKey) {
+                        stack.shrink(1);
+                        inventory.setChanged();
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {}
 
     //region Abstract Functions
     protected abstract int getFullPowerTicks();
@@ -201,6 +239,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     protected abstract int getFullPowerCastCost();
 
     protected abstract R tryRecharge(Level level, Player player, ItemStack wandStack);
+    protected abstract void playRechargeSuccessEffects(ServerLevel level, Player player, ItemStack stack, R result);
     protected abstract void sendRechargeFeedback(Player player, R result);
 
     protected abstract boolean performCast(

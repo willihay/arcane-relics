@@ -1,12 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " CB",
+    " CT",
     " RC",
     "S  "
   ],
   "key": {
-    "B": "minecraft:blaze_rod",
+    "T": "minecraft:trident",
     "C": "minecraft:copper_ingot",
     "R": "minecraft:redstone",
     "S": "minecraft:stick"

@@ -1,13 +1,18 @@
 package org.bensam.arcanerelics.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.*;
@@ -24,8 +29,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     private static final int WAND_RANGE = 60;
 
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
-    private static final int BLAZE_ROD_RECHARGE_AMOUNT = 20;
-    private static final int BLAZE_ROD_RECHARGE_THRESHOLD = MAX_CHARGES - (BLAZE_ROD_RECHARGE_AMOUNT / 2);
+    private static final int CHANNELING_BOOK_RECHARGE_AMOUNT = 20;
 
     private static final float BASE_EXPLOSION_POWER = 0.75f;
     private static final float MAX_EXPLOSION_POWER = 2.5f;
@@ -60,12 +64,11 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
 
     //region Recharge Functions
     public enum LightningRechargeResult implements RechargeResult {
+        ALREADY_FULL,
         LIGHTNING_ROD_SUCCESS,
-        BLAZE_ROD_SUCCESS,
         NO_THUNDER,
-        TOO_CHARGED_FOR_BLAZE_ROD,
-        NO_BLAZE_ROD,
-        ALREADY_FULL
+        CHANNELING_BOOK_SUCCESS,
+        NO_FUEL
     }
 
     @Override
@@ -76,15 +79,15 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
 
         boolean isThundering = level.isThundering();
 
-        BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition(), LIGHTNING_ROD_RECHARGE_RADIUS);
+        BlockPos lightningRodPos = this.findNearbyLightningRod(level, player.blockPosition());
         boolean foundLightningRod = lightningRodPos != null;
         if (foundLightningRod && isThundering) {
             this.setCharges(wandStack, this.getMaxCharges());
             return LightningRechargeResult.LIGHTNING_ROD_SUCCESS;
         }
 
-        LightningRechargeResult blazeRodResult = this.tryBlazeRodRecharge(player, wandStack);
-        if (blazeRodResult == LightningRechargeResult.BLAZE_ROD_SUCCESS || blazeRodResult == LightningRechargeResult.NO_BLAZE_ROD) {
+        LightningRechargeResult blazeRodResult = tryBookOfChannelingRecharge(player, wandStack); // this.tryBlazeRodRecharge(player, wandStack);
+        if (blazeRodResult == LightningRechargeResult.CHANNELING_BOOK_SUCCESS || blazeRodResult == LightningRechargeResult.NO_FUEL) {
             return blazeRodResult;
         }
 
@@ -95,9 +98,10 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         return blazeRodResult;
     }
 
-    private static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center, int radius) {
+    private @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center) {
         BlockPos closestRod = null;
         double closestDistanceSq = Double.MAX_VALUE;
+        int radius = LIGHTNING_ROD_RECHARGE_RADIUS;
 
         for (BlockPos pos : BlockPos.betweenClosed(
                 center.offset(-radius, -radius, -radius),
@@ -121,47 +125,76 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         return closestRod;
     }
 
-    private LightningRechargeResult tryBlazeRodRecharge(Player player, ItemStack stack) {
-        if (this.getCharges(stack) > BLAZE_ROD_RECHARGE_THRESHOLD) {
-            return LightningRechargeResult.TOO_CHARGED_FOR_BLAZE_ROD;
+    private LightningRechargeResult tryBookOfChannelingRecharge(Player player, ItemStack stack) {
+        if (this.consumeArcaneFuelFromInventory(player, Items.ENCHANTED_BOOK, Enchantments.CHANNELING)) {
+            this.addCharges(stack, CHANNELING_BOOK_RECHARGE_AMOUNT);
+            return LightningRechargeResult.CHANNELING_BOOK_SUCCESS;
         }
 
-        if (!consumeArcaneFuelFromInventory(player, Items.BLAZE_ROD)) {
-            return LightningRechargeResult.NO_BLAZE_ROD;
-        }
-
-        this.addCharges(stack, BLAZE_ROD_RECHARGE_AMOUNT);
-        return LightningRechargeResult.BLAZE_ROD_SUCCESS;
+        return LightningRechargeResult.NO_FUEL;
     }
 
     @Override
     protected void sendRechargeFeedback(Player player, LightningRechargeResult result) {
         switch (result) {
+            case ALREADY_FULL -> player.displayClientMessage(
+                    this.getFullyChargedMessage(),
+                    true
+            );
             case LIGHTNING_ROD_SUCCESS -> player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.lightning_rod"),
-                    true
-            );
-            case BLAZE_ROD_SUCCESS -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.blaze_rod"),
-                    true
-            );
-            case TOO_CHARGED_FOR_BLAZE_ROD -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.too_charged"),
-                    true
-            );
-            case NO_BLAZE_ROD -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_blaze_rod"),
                     true
             );
             case NO_THUNDER -> player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_thunder"),
                     true
             );
-            case ALREADY_FULL -> player.displayClientMessage(
-                    this.getFullyChargedMessage(),
+            case CHANNELING_BOOK_SUCCESS -> player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.fuel"),
+                    true
+            );
+            case NO_FUEL -> player.displayClientMessage(
+                    this.getNoRechargeFuelMessage(),
                     true
             );
         }
+    }
+
+    @Override
+    protected void playRechargeSuccessEffects(ServerLevel level, Player player, ItemStack stack, LightningRechargeResult result) {
+        // Play sound effects.
+        if (result == LightningRechargeResult.CHANNELING_BOOK_SUCCESS) {
+            level.playSound(
+                    null,
+                    player.blockPosition(),
+                    SoundEvents.ENCHANTMENT_TABLE_USE,
+                    SoundSource.PLAYERS,
+                    1.0f, // volume
+                    1.0f // pitch
+            );
+
+            // Create recharge particles.
+            Vec3 tipPos = player.getEyePosition()
+                    .add(0.0, -0.15, 0.0)
+                    .add(player.getLookAngle().scale(0.7));
+            level.sendParticles(
+                    ParticleTypes.ELECTRIC_SPARK,
+                    tipPos.x, tipPos.y, tipPos.z, // position
+                    5, // # of particles
+                    0.05,0.05,0.05, // particle spread
+                    0.02 // particle speed
+            );
+        }
+
+        // Always play default sound effect.
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.CAMPFIRE_CRACKLE,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
     }
     //endregion
 
