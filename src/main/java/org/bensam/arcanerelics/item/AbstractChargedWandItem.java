@@ -1,7 +1,9 @@
 package org.bensam.arcanerelics.item;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -16,12 +18,17 @@ import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModComponents;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult> extends Item {
     private final int initialCharges;
     private final int maxCharges;
+
+    public record RechargeContext<R extends Enum<R> & RechargeResult> (R result, @Nullable BlockPos sourcePos) {}
 
     public AbstractChargedWandItem(Properties properties, int initialCharges, int maxCharges) {
         super(properties);
@@ -35,6 +42,46 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         int newCharges = Math.min(currentCharges + amount, this.getMaxCharges());
         this.setCharges(stack, newCharges);
         return newCharges;
+    }
+
+    protected boolean consumeArcaneFuelFromInventory(Player player, Item item) {
+        var inventory = player.getInventory();
+        int inventorySize = inventory.getContainerSize();
+
+        for (int slot = 0; slot < inventorySize; slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (stack.is(item)) {
+                stack.shrink(1);
+                inventory.setChanged();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected boolean consumeArcaneFuelFromInventory(Player player, Item item, ResourceKey<Enchantment> enchantmentKey) {
+        var inventory = player.getInventory();
+        int inventorySize = inventory.getContainerSize();
+
+        for (int slot = 0; slot < inventorySize; slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (stack.is(item)) {
+                var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+
+                for (var entry : enchantments.entrySet()) {
+                    var key = entry.getKey().unwrapKey();
+
+                    if (key.isPresent() && key.get() == enchantmentKey) {
+                        stack.shrink(1);
+                        inventory.setChanged();
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     public void consumeCharges(ItemStack stack, int amount) {
@@ -96,6 +143,17 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return 72000; // same as bow; effectively as long as you want
     }
 
+    protected static Vec3 getWandTipPosition(Player player, InteractionHand hand) {
+        Vec3 look = player.getLookAngle().normalize();
+        Vec3 right = look.cross(Vec3.Y_AXIS).normalize();
+        double sideOffset = (hand == InteractionHand.MAIN_HAND) ? 0.25 : -0.25;
+
+        return player.getEyePosition(1.0f)
+                .add(look.scale(0.70)) // forward offset towards tip
+                .add(right.scale(sideOffset)) // side offset towards interaction hand
+                .add(0.0, -0.20, 0.0); // downwards offset towards hand level
+    }
+
     public boolean hasAtLeastCharges(ItemStack stack, int amount) {
         return this.getCharges(stack) >= amount;
     }
@@ -118,6 +176,33 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
                 new ModComponents.WandChargesComponent(Math.max(0, Math.min(charges, this.maxCharges)))
         );
     }
+
+    protected void spawnParticleTrail(
+            ServerLevel level,
+            ParticleOptions particle,
+            Vec3 startPos,
+            Vec3 endPos,
+            int steps,
+            int particlesPerStep,
+            double spread
+    ) {
+        if (steps <= 0 || particlesPerStep <= 0) {
+            return;
+        }
+
+        for (int i = 0; i < steps; i++) {
+            double t = (double) i / steps;
+            Vec3 pos = startPos.lerp(endPos, t);
+
+            level.sendParticles(
+                    particle,
+                    pos.x, pos.y, pos.z,
+                    particlesPerStep,
+                    spread, spread, spread,
+                    0.0
+            );
+        }
+    }
     //endregion
 
     @Override
@@ -127,9 +212,9 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         // If sneaking, try to recharge.
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
-                R result = this.tryRecharge(level, player, stack);
-                this.playRechargeSuccessEffects((ServerLevel) level, player, stack, result);
-                this.sendRechargeFeedback(player, result);
+                RechargeContext<R> rechargeContext = this.tryRecharge(level, player, stack);
+                this.playRechargeSuccessEffects((ServerLevel) level, player, hand, stack, rechargeContext);
+                this.sendRechargeFeedback(player, rechargeContext.result());
             }
             return InteractionResult.SUCCESS;
         }
@@ -191,46 +276,6 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return true;
     }
 
-    protected boolean consumeArcaneFuelFromInventory(Player player, Item item) {
-        var inventory = player.getInventory();
-        int inventorySize = inventory.getContainerSize();
-
-        for (int slot = 0; slot < inventorySize; slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (stack.is(item)) {
-                stack.shrink(1);
-                inventory.setChanged();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected boolean consumeArcaneFuelFromInventory(Player player, Item item, ResourceKey<Enchantment> enchantmentKey) {
-        var inventory = player.getInventory();
-        int inventorySize = inventory.getContainerSize();
-
-        for (int slot = 0; slot < inventorySize; slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (stack.is(item)) {
-                var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
-
-                for (var entry : enchantments.entrySet()) {
-                    var key = entry.getKey().unwrapKey();
-
-                    if (key.isPresent() && key.get() == enchantmentKey) {
-                        stack.shrink(1);
-                        inventory.setChanged();
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
     protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {}
 
     //region Abstract Functions
@@ -238,8 +283,8 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     protected abstract int getNormalCastCost();
     protected abstract int getFullPowerCastCost();
 
-    protected abstract R tryRecharge(Level level, Player player, ItemStack wandStack);
-    protected abstract void playRechargeSuccessEffects(ServerLevel level, Player player, ItemStack stack, R result);
+    protected abstract RechargeContext<R> tryRecharge(Level level, Player player, ItemStack wandStack);
+    protected abstract void playRechargeSuccessEffects(ServerLevel level, Player player, InteractionHand hand, ItemStack stack, @NonNull RechargeContext<R> rechargeContext);
     protected abstract void sendRechargeFeedback(Player player, R result);
 
     protected abstract boolean performCast(

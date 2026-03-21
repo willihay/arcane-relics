@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand.LightningRechargeResult> {
@@ -72,33 +74,33 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     }
 
     @Override
-    protected LightningRechargeResult tryRecharge(Level level, Player player, ItemStack wandStack) {
+    protected RechargeContext<LightningRechargeResult> tryRecharge(Level level, Player player, ItemStack wandStack) {
         if (this.isFullyCharged(wandStack)) {
-            return LightningRechargeResult.ALREADY_FULL;
+            return new RechargeContext<>(LightningRechargeResult.ALREADY_FULL, null);
         }
 
         boolean isThundering = level.isThundering();
 
-        BlockPos lightningRodPos = this.findNearbyLightningRod(level, player.blockPosition());
+        BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition());
         boolean foundLightningRod = lightningRodPos != null;
         if (foundLightningRod && isThundering) {
             this.setCharges(wandStack, this.getMaxCharges());
-            return LightningRechargeResult.LIGHTNING_ROD_SUCCESS;
+            return new RechargeContext<>(LightningRechargeResult.LIGHTNING_ROD_SUCCESS, lightningRodPos);
         }
 
-        LightningRechargeResult blazeRodResult = tryBookOfChannelingRecharge(player, wandStack); // this.tryBlazeRodRecharge(player, wandStack);
+        LightningRechargeResult blazeRodResult = this.tryBookOfChannelingRecharge(player, wandStack);
         if (blazeRodResult == LightningRechargeResult.CHANNELING_BOOK_SUCCESS || blazeRodResult == LightningRechargeResult.NO_FUEL) {
-            return blazeRodResult;
+            return new RechargeContext<>(blazeRodResult, null);
         }
 
         if (foundLightningRod) {
-            return LightningRechargeResult.NO_THUNDER;
+            return new RechargeContext<>(LightningRechargeResult.NO_THUNDER, null);
         }
 
-        return blazeRodResult;
+        return new RechargeContext<>(blazeRodResult, null);
     }
 
-    private @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center) {
+    protected static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center) {
         BlockPos closestRod = null;
         double closestDistanceSq = Double.MAX_VALUE;
         int radius = LIGHTNING_ROD_RECHARGE_RADIUS;
@@ -135,6 +137,60 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     }
 
     @Override
+    protected void playRechargeSuccessEffects(ServerLevel level, Player player, InteractionHand hand, ItemStack stack, @NonNull RechargeContext<LightningRechargeResult> rechargeContext) {
+        if (rechargeContext.result() == LightningRechargeResult.LIGHTNING_ROD_SUCCESS) {
+            level.playSound(
+                    null,
+                    player.blockPosition(),
+                    SoundEvents.LIGHTNING_BOLT_THUNDER,
+                    SoundSource.PLAYERS,
+                    1.0f, // volume
+                    1.0f // pitch
+            );
+
+            if (rechargeContext.sourcePos() != null) {
+                // Create recharge particle trail from sky to rod.
+                Vec3 skyStart = Vec3.atBottomCenterOf(rechargeContext.sourcePos()).add(0.0, 12.0, 0.0);
+                Vec3 rodTop = Vec3.atBottomCenterOf(rechargeContext.sourcePos()).add(Vec3.Y_AXIS);
+                this.spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, skyStart, rodTop, 12, 4, 0.05);
+
+                // Create recharge particle trail from rod to player's wand.
+                Vec3 wandTip = getWandTipPosition(player, hand);
+                this.spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, rodTop, wandTip, 12, 4, 0.04);
+            }
+        } else if (rechargeContext.result() == LightningRechargeResult.CHANNELING_BOOK_SUCCESS) {
+            level.playSound(
+                    null,
+                    player.blockPosition(),
+                    SoundEvents.ENCHANTMENT_TABLE_USE,
+                    SoundSource.PLAYERS,
+                    1.0f, // volume
+                    1.0f // pitch
+            );
+
+            // Create recharge particles.
+            Vec3 wandTip = getWandTipPosition(player, hand);
+            level.sendParticles(
+                    ParticleTypes.ELECTRIC_SPARK,
+                    wandTip.x, wandTip.y, wandTip.z, // position
+                    5, // # of particles
+                    0.05,0.05,0.05, // particle spread
+                    0.02 // particle speed
+            );
+        }
+
+        // Always play default sound effect.
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.CAMPFIRE_CRACKLE,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
+    }
+
+    @Override
     protected void sendRechargeFeedback(Player player, LightningRechargeResult result) {
         switch (result) {
             case ALREADY_FULL -> player.displayClientMessage(
@@ -159,43 +215,6 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
             );
         }
     }
-
-    @Override
-    protected void playRechargeSuccessEffects(ServerLevel level, Player player, ItemStack stack, LightningRechargeResult result) {
-        // Play sound effects.
-        if (result == LightningRechargeResult.CHANNELING_BOOK_SUCCESS) {
-            level.playSound(
-                    null,
-                    player.blockPosition(),
-                    SoundEvents.ENCHANTMENT_TABLE_USE,
-                    SoundSource.PLAYERS,
-                    1.0f, // volume
-                    1.0f // pitch
-            );
-
-            // Create recharge particles.
-            Vec3 tipPos = player.getEyePosition()
-                    .add(0.0, -0.15, 0.0)
-                    .add(player.getLookAngle().scale(0.7));
-            level.sendParticles(
-                    ParticleTypes.ELECTRIC_SPARK,
-                    tipPos.x, tipPos.y, tipPos.z, // position
-                    5, // # of particles
-                    0.05,0.05,0.05, // particle spread
-                    0.02 // particle speed
-            );
-        }
-
-        // Always play default sound effect.
-        level.playSound(
-                null,
-                player.blockPosition(),
-                SoundEvents.CAMPFIRE_CRACKLE,
-                SoundSource.PLAYERS,
-                1.0f, // volume
-                1.0f // pitch
-        );
-    }
     //endregion
 
     //region Cast Methods
@@ -205,7 +224,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         return this.summonChargedLightning(level, player, explosionPower, isFullyPowered);
     }
 
-    private boolean summonChargedLightning(Level level, Player player, float explosionPower, boolean withBlockBreak) {
+    protected boolean summonChargedLightning(Level level, Player player, float explosionPower, boolean withBlockBreak) {
         TargetResult target = getTarget(player, WAND_RANGE);
         if (target == null) {
             return false;
@@ -226,7 +245,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         return true;
     }
 
-    public static TargetResult getTarget(Player player, double distance) {
+    private static TargetResult getTarget(Player player, double distance) {
         // 1. Raycast for blocks.
         HitResult blockHit = player.pick(distance, 0.0f, true);
 

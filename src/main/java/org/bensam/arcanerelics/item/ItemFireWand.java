@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.happyghast.HappyGhast;
 import net.minecraft.world.entity.monster.Blaze;
@@ -21,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
+import org.jspecify.annotations.NonNull;
 
 public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRechargeResult> {
     public static final int INITIAL_CHARGES = 30;
@@ -69,40 +71,40 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
     }
 
     @Override
-    protected FireRechargeResult tryRecharge(Level level, Player player, ItemStack wandStack) {
+    protected RechargeContext<FireRechargeResult> tryRecharge(Level level, Player player, ItemStack wandStack) {
         if (this.isFullyCharged(wandStack)) {
-            return FireRechargeResult.ALREADY_FULL;
+            return new RechargeContext<>(FireRechargeResult.ALREADY_FULL, null);
         }
 
-        FireRechargeResult mobFuelSearchResult = this.findNearbyMobFuel(level, player.blockPosition());
-        if (mobFuelSearchResult != FireRechargeResult.NO_MOB_FUEL) {
+        RechargeContext<FireRechargeResult> mobFuelSearchResult = findNearbyMobFuel(level, player.blockPosition());
+        if (mobFuelSearchResult.result() != FireRechargeResult.NO_MOB_FUEL) {
             this.setCharges(wandStack, this.getMaxCharges());
             return mobFuelSearchResult;
         }
 
-        return this.tryBlazeRodRecharge(player, wandStack);
+        return new RechargeContext<>(this.tryBlazeRodRecharge(player, wandStack), null);
     }
 
-    private FireRechargeResult findNearbyMobFuel(Level level, BlockPos center) {
-        BlockPos closestMob = this.findClosestMobOfType(level, center, GHAST_EXTRACTION_RECHARGE_RADIUS, Ghast.class);
+    protected static RechargeContext<FireRechargeResult> findNearbyMobFuel(Level level, BlockPos center) {
+        BlockPos closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RECHARGE_RADIUS, Ghast.class);
         if (closestMob != null) {
-            return FireRechargeResult.GHAST_EXTRACTION_SUCCESS;
+            return new RechargeContext<>(FireRechargeResult.GHAST_EXTRACTION_SUCCESS, closestMob);
         }
 
-        closestMob = this.findClosestMobOfType(level, center, GHAST_EXTRACTION_RECHARGE_RADIUS, HappyGhast.class);
+        closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RECHARGE_RADIUS, HappyGhast.class);
         if (closestMob != null) {
-            return FireRechargeResult.GHAST_EXTRACTION_SUCCESS;
+            return new RechargeContext<>(FireRechargeResult.GHAST_EXTRACTION_SUCCESS, closestMob);
         }
 
-        closestMob = this.findClosestMobOfType(level, center, BLAZE_EXTRACTION_RECHARGE_RADIUS, Blaze.class);
+        closestMob = findClosestMobOfType(level, center, BLAZE_EXTRACTION_RECHARGE_RADIUS, Blaze.class);
         if (closestMob != null) {
-            return FireRechargeResult.BLAZE_EXTRACTION_SUCCESS;
+            return new RechargeContext<>(FireRechargeResult.BLAZE_EXTRACTION_SUCCESS, closestMob);
         }
 
-        return FireRechargeResult.NO_MOB_FUEL;
+        return new RechargeContext<>(FireRechargeResult.NO_MOB_FUEL, null);
     }
 
-    private <T extends Entity> BlockPos findClosestMobOfType(Level level, BlockPos center, int radius, Class<T> mobType) {
+    protected static <T extends Entity> BlockPos findClosestMobOfType(Level level, BlockPos center, int radius, Class<T> mobType) {
         BlockPos closestMob = null;
         double closestDistanceSq = Double.MAX_VALUE;
 
@@ -136,6 +138,60 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
     }
 
     @Override
+    protected void playRechargeSuccessEffects(ServerLevel level, Player player, InteractionHand hand, ItemStack stack, @NonNull RechargeContext<FireRechargeResult> rechargeContext) {
+        // Play sound effects.
+        SoundEvent soundRechargeEvent = null;
+        switch (rechargeContext.result()) {
+            case BLAZE_EXTRACTION_SUCCESS -> soundRechargeEvent = SoundEvents.BLAZE_AMBIENT;
+            case GHAST_EXTRACTION_SUCCESS -> soundRechargeEvent = SoundEvents.GHAST_SCREAM; // HARNESS_GOGGLES_DOWN
+            case BLAZE_ROD_SUCCESS -> soundRechargeEvent = SoundEvents.ENCHANTMENT_TABLE_USE;
+        }
+        if (soundRechargeEvent != null) {
+            level.playSound(
+                    null,
+                    player.blockPosition(),
+                    soundRechargeEvent,
+                    SoundSource.PLAYERS,
+                    1.0f, // volume
+                    1.0f // pitch
+            );
+        }
+
+        // Create recharge particle effects.
+        switch (rechargeContext.result()) {
+            case BLAZE_EXTRACTION_SUCCESS, GHAST_EXTRACTION_SUCCESS -> {
+                if (rechargeContext.sourcePos() != null) {
+                    // Create recharge particle trail from mob to player's wand.
+                    Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
+                    Vec3 wandTip = getWandTipPosition(player, hand);
+                    this.spawnParticleTrail(level, ParticleTypes.SMALL_FLAME, mobStart, wandTip, 12, 5, 0.04);
+                }
+            }
+
+            case BLAZE_ROD_SUCCESS -> {
+                Vec3 wandTip = getWandTipPosition(player, hand);
+                level.sendParticles(
+                        ParticleTypes.SMALL_FLAME,
+                        wandTip.x, wandTip.y, wandTip.z, // position
+                        10, // # of particles
+                        0.05,0.05,0.05, // particle spread
+                        0.05 // particle speed
+                );
+            }
+        }
+
+        // Always play default sound effect.
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.CAMPFIRE_CRACKLE,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
+    }
+
+    @Override
     protected void sendRechargeFeedback(Player player, FireRechargeResult result) {
         switch (result) {
             case FireRechargeResult.ALREADY_FULL -> player.displayClientMessage(
@@ -160,49 +216,6 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
             );
         }
     }
-
-    @Override
-    protected void playRechargeSuccessEffects(ServerLevel level, Player player, ItemStack stack, FireRechargeResult result) {
-        // Play sound effects.
-        SoundEvent soundRechargeEvent = null;
-        switch (result) {
-            case BLAZE_EXTRACTION_SUCCESS -> soundRechargeEvent = SoundEvents.BLAZE_AMBIENT;
-            case GHAST_EXTRACTION_SUCCESS -> soundRechargeEvent = SoundEvents.GHAST_SCREAM; // HARNESS_GOGGLES_DOWN
-            case BLAZE_ROD_SUCCESS -> soundRechargeEvent = SoundEvents.ENCHANTMENT_TABLE_USE;
-        }
-        if (soundRechargeEvent != null) {
-            level.playSound(
-                    null,
-                    player.blockPosition(),
-                    soundRechargeEvent,
-                    SoundSource.PLAYERS,
-                    1.0f, // volume
-                    1.0f // pitch
-            );
-
-            // Create recharge particles.
-            Vec3 tipPos = player.getEyePosition()
-                    .add(0.0, -0.15, 0.0)
-                    .add(player.getLookAngle().scale(0.7));
-            level.sendParticles(
-                    ParticleTypes.WAX_ON,
-                    tipPos.x, tipPos.y, tipPos.z, // position
-                    5, // # of particles
-                    0.05,0.05,0.05, // particle spread
-                    0.02 // particle speed
-            );
-        }
-
-        // Always play default sound effect.
-        level.playSound(
-                null,
-                player.blockPosition(),
-                SoundEvents.CAMPFIRE_CRACKLE,
-                SoundSource.PLAYERS,
-                1.0f, // volume
-                1.0f // pitch
-        );
-    }
     //endregion
 
     //region Cast Methods
@@ -213,10 +226,9 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         return true;
     }
 
-    private void shootFireball(Level level, Player player, int explosionPower, boolean isFullyPowered) {
+    protected void shootFireball(Level level, Player player, int explosionPower, boolean isFullyPowered) {
         Vec3 look = player.getLookAngle().normalize();
-        Vec3 fireballPos = player.getRopeHoldPosition(1);
-        fireballPos = fireballPos.add(look.scale(2));
+        Vec3 fireballPos = player.getEyePosition(1.0f).add(look.scale(2));
 
         if (isFullyPowered) {
             LargeFireball fireball = new LargeFireball(level, player, look, explosionPower);
