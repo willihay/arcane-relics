@@ -4,9 +4,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -143,23 +146,21 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return 72000; // same as bow; effectively as long as you want
     }
 
-    protected static Vec3 getWandTipPosition(Player player, InteractionHand hand) {
+    protected static Vec3 getWandTipPosition(Player player, @Nullable InteractionHand hand) {
         Vec3 look = player.getLookAngle().normalize();
         Vec3 right = look.cross(Vec3.Y_AXIS).normalize();
-        double sideOffset = (hand == InteractionHand.MAIN_HAND) ? 0.25 : -0.25;
+        double sideOffset = hand != null
+                ? (hand == InteractionHand.MAIN_HAND) ? 0.25 : -0.25
+                : 0.0;
 
         return player.getEyePosition(1.0f)
-                .add(look.scale(0.70)) // forward offset towards tip
+                .add(look) // forward offset towards tip
                 .add(right.scale(sideOffset)) // side offset towards interaction hand
                 .add(0.0, -0.20, 0.0); // downwards offset towards hand level
     }
 
     public boolean hasAtLeastCharges(ItemStack stack, int amount) {
         return this.getCharges(stack) >= amount;
-    }
-
-    public boolean hasCharges(ItemStack stack) {
-        return this.getCharges(stack) > 0;
     }
 
     public boolean isFullyCharged(ItemStack stack) {
@@ -213,7 +214,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
                 RechargeContext<R> rechargeContext = this.tryRecharge(level, player, stack);
-                this.playRechargeSuccessEffects((ServerLevel) level, player, hand, stack, rechargeContext);
+                this.playRechargeContextEffects((ServerLevel) level, player, hand, stack, rechargeContext);
                 this.sendRechargeFeedback(player, rechargeContext.result());
             }
             return InteractionResult.SUCCESS;
@@ -245,7 +246,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
             return true;
         }
 
-        // Players are the only entities who will use a lightning wand.
+        // Players are the only entities who will use an arcane wand.
         if (!(entity instanceof Player player)) {
             return false;
         }
@@ -267,16 +268,49 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         // Perform cast.
         boolean castSucceeded = this.performCast(level, player, stack, powerUpPercentage, isFullyPowered);
 
-        // Consume charges.
-        if (castSucceeded && chargeCost > 0) {
+        if (castSucceeded) {
             this.playCastSuccessEffects((ServerLevel) level, player, stack);
-            this.consumeCharges(stack, chargeCost);
+            if (chargeCost > 0) {
+                this.consumeCharges(stack, chargeCost);
+            }
+        }
+        else {
+            this.playCastFailEffects((ServerLevel) level, player, stack);
         }
 
         return true;
     }
 
+    protected void playRechargeContextEffects(
+            ServerLevel level,
+            Player player,
+            InteractionHand hand,
+            ItemStack stack,
+            @NonNull RechargeContext<R> rechargeContext
+    ) {
+        // Default sound effect. Can be combined with other effects.
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.CAMPFIRE_CRACKLE,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
+    }
+
     protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {}
+
+    protected void playCastFailEffects(ServerLevel level, Player player, ItemStack stack) {
+        Vec3 frontOfPlayer = getWandTipPosition(player, null);
+        level.sendParticles(
+                ParticleTypes.WHITE_SMOKE,
+                frontOfPlayer.x, frontOfPlayer.y, frontOfPlayer.z, // position
+                5, // # of particles
+                0.05,0.05,0.05, // particle spread
+                0.02 // particle speed
+        );
+    }
 
     //region Abstract Functions
     protected abstract int getFullPowerTicks();
@@ -284,7 +318,6 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     protected abstract int getFullPowerCastCost();
 
     protected abstract RechargeContext<R> tryRecharge(Level level, Player player, ItemStack wandStack);
-    protected abstract void playRechargeSuccessEffects(ServerLevel level, Player player, InteractionHand hand, ItemStack stack, @NonNull RechargeContext<R> rechargeContext);
     protected abstract void sendRechargeFeedback(Player player, R result);
 
     protected abstract boolean performCast(

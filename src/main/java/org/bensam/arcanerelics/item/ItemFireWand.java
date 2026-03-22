@@ -138,7 +138,12 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
     }
 
     @Override
-    protected void playRechargeSuccessEffects(ServerLevel level, Player player, InteractionHand hand, ItemStack stack, @NonNull RechargeContext<FireRechargeResult> rechargeContext) {
+    protected void playRechargeContextEffects(
+            ServerLevel level,
+            Player player,
+            InteractionHand hand,
+            ItemStack stack, @NonNull RechargeContext<FireRechargeResult> rechargeContext
+    ) {
         // Play sound effects.
         SoundEvent soundRechargeEvent = null;
         switch (rechargeContext.result()) {
@@ -180,15 +185,7 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
             }
         }
 
-        // Always play default sound effect.
-        level.playSound(
-                null,
-                player.blockPosition(),
-                SoundEvents.CAMPFIRE_CRACKLE,
-                SoundSource.PLAYERS,
-                1.0f, // volume
-                1.0f // pitch
-        );
+        super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
     }
 
     @Override

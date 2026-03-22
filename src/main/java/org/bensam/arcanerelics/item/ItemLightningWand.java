@@ -137,7 +137,13 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     }
 
     @Override
-    protected void playRechargeSuccessEffects(ServerLevel level, Player player, InteractionHand hand, ItemStack stack, @NonNull RechargeContext<LightningRechargeResult> rechargeContext) {
+    protected void playRechargeContextEffects(
+            ServerLevel level,
+            Player player,
+            InteractionHand hand,
+            ItemStack stack,
+            @NonNull RechargeContext<LightningRechargeResult> rechargeContext
+    ) {
         if (rechargeContext.result() == LightningRechargeResult.LIGHTNING_ROD_SUCCESS) {
             level.playSound(
                     null,
@@ -179,15 +185,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
             );
         }
 
-        // Always play default sound effect.
-        level.playSound(
-                null,
-                player.blockPosition(),
-                SoundEvents.CAMPFIRE_CRACKLE,
-                SoundSource.PLAYERS,
-                1.0f, // volume
-                1.0f // pitch
-        );
+        super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
     }
 
     @Override

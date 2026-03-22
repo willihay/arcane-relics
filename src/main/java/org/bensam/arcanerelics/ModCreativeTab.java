@@ -26,9 +26,10 @@ public final class ModCreativeTab {
     public static void initialize() {
         // Build the custom creative tab.
         tabInternal = FabricItemGroup.builder()
-                .icon(() -> new ItemStack(ModItems.LIGHTNING_WAND.get()))
+                .icon(() -> new ItemStack(ModItems.ARCANE_WAND.get()))
                 .title(Component.translatable("itemGroup." + ArcaneRelics.MOD_ID))
                 .displayItems((params, output) -> {
+                    output.accept(ModItems.ARCANE_WAND.get());
                     output.accept(ModItems.FIRE_WAND.get());
                     output.accept(ModItems.LIGHTNING_WAND.get());
                 })

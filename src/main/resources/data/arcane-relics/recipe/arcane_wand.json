@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " LE",
+    " RL",
+    "S  "
+  ],
+  "key": {
+    "E": "minecraft:ender_eye",
+    "L": "minecraft:lapis_lazuli",
+    "R": "minecraft:redstone",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "arcane-relics:arcane_wand"
+  }
+}
