@@ -1,0 +1,12 @@
+{ 
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "arcane-relics:block/wand_enchanting_table_bottom",
+    "down": "arcane-relics:block/wand_enchanting_table_bottom",
+    "up": "arcane-relics:block/wand_enchanting_table_top",
+    "north": "arcane-relics:block/wand_enchanting_table_side",
+    "south": "arcane-relics:block/wand_enchanting_table_side",
+    "west": "arcane-relics:block/wand_enchanting_table_side",
+    "east": "arcane-relics:block/wand_enchanting_table_side"
+  }
+}

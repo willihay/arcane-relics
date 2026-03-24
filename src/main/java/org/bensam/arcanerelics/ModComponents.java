@@ -99,7 +99,7 @@ public final class ModComponents {
         }
     }
 
-    protected static void initialize() {
+    public static void initialize() {
         ArcaneRelics.LOGGER.info("Registering components");
     }
 }

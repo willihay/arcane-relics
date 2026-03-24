@@ -21,7 +21,7 @@ public class ItemArcaneWand extends AbstractChargedWandItem<ItemArcaneWand.Arcan
 
     public ItemArcaneWand(Properties properties) { super(properties, 0, 0); }
 
-    //region Helper Functions
+    //region Helper Methods
     @Override
     protected int getFullPowerCastCost() {
         return FULL_POWER_CAST_COST;
@@ -43,7 +43,7 @@ public class ItemArcaneWand extends AbstractChargedWandItem<ItemArcaneWand.Arcan
     }
     //endregion
 
-    //region Recharge Functions
+    //region Recharge Methods
     public enum ArcaneRechargeResult implements RechargeResult {
         NO_POWER
     }

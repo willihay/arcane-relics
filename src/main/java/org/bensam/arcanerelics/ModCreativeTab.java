@@ -29,6 +29,7 @@ public final class ModCreativeTab {
                 .icon(() -> new ItemStack(ModItems.ARCANE_WAND.get()))
                 .title(Component.translatable("itemGroup." + ArcaneRelics.MOD_ID))
                 .displayItems((params, output) -> {
+                    output.accept(ModBlocks.WAND_ENCHANTING_TABLE.get().asItem());
                     output.accept(ModItems.ARCANE_WAND.get());
                     output.accept(ModItems.FIRE_WAND.get());
                     output.accept(ModItems.LIGHTNING_WAND.get());

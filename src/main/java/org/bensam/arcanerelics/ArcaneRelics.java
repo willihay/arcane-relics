@@ -23,6 +23,8 @@ public class ArcaneRelics implements ModInitializer {
 
 		ModComponents.initialize();
 		ModItems.initialize();
+		ModBlocks.initialize();
+		ModBlockEntities.initialize();
 
 		ComponentTooltipAppenderRegistry.addAfter(DataComponents.DAMAGE, ModComponents.WAND_CHARGES_COMPONENT);
 		ComponentTooltipAppenderRegistry.addAfter(ModComponents.WAND_CHARGES_COMPONENT, ModComponents.WAND_TOOLTIP_COMPONENT);

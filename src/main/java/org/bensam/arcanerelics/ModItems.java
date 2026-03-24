@@ -104,8 +104,6 @@ public final class ModItems {
         T item = itemFactory.apply(settings.setId(itemKey));
 
         // Register the item.
-        Registry.register(BuiltInRegistries.ITEM, itemKey, item);
-
-        return item;
+        return Registry.register(BuiltInRegistries.ITEM, itemKey, item);
     }
 }

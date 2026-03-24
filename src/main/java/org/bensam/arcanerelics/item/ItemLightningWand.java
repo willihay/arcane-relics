@@ -42,7 +42,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         super(properties, INITIAL_CHARGES, MAX_CHARGES);
     }
 
-    //region Helper Functions
+    //region Helper Methods
     @Override
     protected int getFullPowerCastCost() {
         return FULL_POWER_CAST_COST;
@@ -64,7 +64,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     }
     //endregion
 
-    //region Recharge Functions
+    //region Recharge Methods
     public enum LightningRechargeResult implements RechargeResult {
         ALREADY_FULL,
         LIGHTNING_ROD_SUCCESS,

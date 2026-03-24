@@ -1,5 +1,8 @@
-
 {
+  "block.arcane-relics.wand_enchanting_table": "Wand Enchanting Table",
+
+  "container.arcane-relics.wand_enchanting": "Enchanting",
+
   "item.arcane-relics.wand.charges": "%1$s / %2$s charges",
   "item.arcane-relics.wand.charges.fallback": "%1$s charges remaining",
   "item.arcane-relics.arcane_wand": "Arcane Wand",
@@ -14,6 +17,8 @@
   "item.arcane-relics.lightning_wand.info.3": "A full charge causes a block-breaking explosion.",
   "item.arcane-relics.lightning_wand.info.4": "Sneak-use with a Book of Channeling or nearby lightning rod to recharge.",
 
+  "itemGroup.arcane-relics": "Arcane Relics",
+
   "message.arcane-relics.wand.charges": "%1$s / %2$s charges",
   "message.arcane-relics.wand.cast.no_charges": "Not enough charges",
   "message.arcane-relics.wand.recharge.fully_charged": "The wand is already fully charged",
@@ -25,7 +30,5 @@
   "message.arcane-relics.fire_wand.recharge.fuel": "Recharged with blaze rod as arcane fuel",
   "message.arcane-relics.lightning_wand.recharge.lightning_rod": "Recharged to full from nearby lightning rod",
   "message.arcane-relics.lightning_wand.recharge.no_thunder": "Lightning rod recharge requires a thunderstorm",
-  "message.arcane-relics.lightning_wand.recharge.fuel": "Recharged with Book of Channeling as arcane fuel",
-
-  "itemGroup.arcane-relics": "Arcane Relics"
+  "message.arcane-relics.lightning_wand.recharge.fuel": "Recharged with Book of Channeling as arcane fuel"
 }

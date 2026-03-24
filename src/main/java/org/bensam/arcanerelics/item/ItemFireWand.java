@@ -43,7 +43,7 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         super(properties, INITIAL_CHARGES, MAX_CHARGES);
     }
 
-    //region Helper Functions
+    //region Helper Methods
     @Override
     protected int getFullPowerCastCost() {
         return FULL_POWER_CAST_COST;
@@ -60,7 +60,7 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
     }
     //endregion
 
-    //region Recharge Functions
+    //region Recharge Methods
     public enum FireRechargeResult implements RechargeResult {
         ALREADY_FULL,
         BLAZE_EXTRACTION_SUCCESS,

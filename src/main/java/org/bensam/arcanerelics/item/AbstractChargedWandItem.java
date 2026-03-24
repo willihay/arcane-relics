@@ -39,7 +39,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         this.maxCharges = maxCharges;
     }
 
-    //region Helper Functions
+    //region Helper Methods
     public int addCharges(ItemStack stack, int amount) {
         int currentCharges = this.getCharges(stack);
         int newCharges = Math.min(currentCharges + amount, this.getMaxCharges());
@@ -312,7 +312,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         );
     }
 
-    //region Abstract Functions
+    //region Abstract Methods
     protected abstract int getFullPowerTicks();
     protected abstract int getNormalCastCost();
     protected abstract int getFullPowerCastCost();
