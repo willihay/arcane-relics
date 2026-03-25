@@ -5,12 +5,15 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.bensam.arcanerelics.ModBlockEntities;
+import org.bensam.arcanerelics.menu.WandEnchantingContainerData;
 
 public class BlockEntityWandEnchantingTable extends BlockEntity implements Container {
     // --- Slot layout ---
@@ -18,12 +21,17 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     // Slot 1: arcane enchantment item
     // Slot 2: lapis input
     // Slot 3: result/output
-    private static final int INVENTORY_SIZE = 4;
+    private static final int WAND_INPUT_SLOT = 0;
+    private static final int ARCANE_ITEM_SLOT = 1;
+    private static final int LAPIS_INPUT_SLOT = 2;
+    private static final int WAND_OUTPUT_SLOT = 3;
+    public static final int INVENTORY_SIZE = 4;
 
     // slot storage
     private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
 
     // state sync data
+    public final WandEnchantingContainerData containerData = new WandEnchantingContainerData();
     private int xpCost;
     private boolean hasLapis;
     private boolean canEnchant;
@@ -39,8 +47,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         for (int i = 0; i < INVENTORY_SIZE; i++) {
             this.items.add(ItemStack.EMPTY);
         }
-
-        setChanged();
+        this.recomputeState();
     }
 
     @Override
@@ -49,8 +56,8 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
 
     @Override
-    public ItemStack getItem(int slot) {
-        return this.items.get(slot);
+    public ItemStack getItem(int slotIndex) {
+        return this.items.get(slotIndex);
     }
 
     @Override
@@ -59,43 +66,112 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
 
     @Override
-    public ItemStack removeItem(int slot, int amount) {
-        ItemStack result = ContainerHelper.removeItem(this.items, slot, amount);
+    public ItemStack removeItem(int slotIndex, int amount) {
+        ItemStack result = ContainerHelper.removeItem(this.items, slotIndex, amount);
         if (!result.isEmpty()) {
-            setChanged();
+            this.recomputeState();
         }
-
         return result;
     }
 
     @Override
-    public ItemStack removeItemNoUpdate(int slot) {
-        return ContainerHelper.takeItem(this.items, slot);
+    public ItemStack removeItemNoUpdate(int slotIndex) {
+        ItemStack result = ContainerHelper.takeItem(this.items, slotIndex);
+        this.recomputeState();
+        return result;
     }
 
     @Override
-    public void setItem(int slot, ItemStack itemStack) {
-        this.items.set(slot, itemStack); // TODO: menu should enforce specific items in specific slots and max stack size of 1 for all items except lapis, which is 64
+    public void setItem(int slotIndex, ItemStack itemStack) {
+        this.items.set(slotIndex, itemStack);
 
         if (itemStack.getCount() > this.getMaxStackSize()) {
             itemStack.setCount(this.getMaxStackSize());
         }
 
-        setChanged();
+        this.recomputeState();
     }
 
     @Override
     public boolean stillValid(Player player) {
-        return true; // TODO: replace with a real distance/block-state check to prevent "remote access shenanigans"
+        return true; // TODO: replace with a real distance/block-state check (see ItemCombinerMenu)
     }
     //endregion
 
-    //region Persistence Methods
+    //region Container Data Helper Methods
+    public ContainerData getMenuData() {
+        return this.containerData;
+    }
 
+    public int getXpCost() {
+        return this.xpCost;
+    }
+
+    public boolean hasLapis() {
+        return this.hasLapis;
+    }
+
+    public boolean canEnchant() {
+        return this.canEnchant;
+    }
+    //endregion
+
+    public void recomputeState() {
+        ItemStack wandStack = getItem(WAND_INPUT_SLOT);
+        ItemStack arcaneStack = getItem(ARCANE_ITEM_SLOT);
+        ItemStack lapisStack = getItem(LAPIS_INPUT_SLOT);
+
+        boolean validWand = !wandStack.isEmpty(); // TODO: replace with wand predicate
+        boolean validArcaneItem = !arcaneStack.isEmpty(); // TODO: replace with arcane-item predicate
+        this.hasLapis = !lapisStack.isEmpty() && lapisStack.is(Items.LAPIS_LAZULI);
+        this.canEnchant = validWand && validArcaneItem && this.hasLapis;
+
+        // TODO: compute real cost from wand + arcane item + lapis rules
+        this.xpCost = this.canEnchant ? 1 : 0;
+
+        this.recomputeContainerData();
+        this.recomputeWandOutput();
+
+        setChanged();
+    }
+
+    private void recomputeContainerData() {
+        this.containerData.setXpCost(this.xpCost);
+        this.containerData.setHasLapis(this.hasLapis);
+        this.containerData.setCanEnchant(this.canEnchant);
+    }
+
+    private void recomputeWandOutput() {
+        // TODO: compute wand output based on wand and arcane item
+        // - inspect wand input
+        // - inspect arcane item input
+        // - inspect lapis availability
+        // - compute the output ItemStack
+        // - place the output into WAND_OUTPUT_SLOT
+
+        ItemStack currentOutput = getItem(WAND_OUTPUT_SLOT);
+        ItemStack newOutput = currentOutput.copy();
+
+        if (!this.canEnchant) {
+            newOutput = ItemStack.EMPTY;
+        } else {
+            // TODO: create the actual enchanted/recharged wand result
+            // newOutput = computedResultStack;
+        }
+
+        // Only write if the stack actually changed.
+        if (!ItemStack.isSameItemSameComponents(currentOutput, newOutput)) {
+            this.items.set(WAND_OUTPUT_SLOT, newOutput);
+        }
+    }
+
+    //region Persistence Methods
     @Override
     protected void loadAdditional(ValueInput valueInput) {
         super.loadAdditional(valueInput);
         ContainerHelper.loadAllItems(valueInput, this.items);
+
+        this.recomputeState();
     }
 
     @Override
@@ -103,5 +179,5 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         super.saveAdditional(valueOutput);
         ContainerHelper.saveAllItems(valueOutput, this.items);
     }
-//endregion
+    //endregion
 }

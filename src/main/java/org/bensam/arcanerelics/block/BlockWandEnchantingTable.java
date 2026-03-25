@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
+import org.bensam.arcanerelics.menu.WandEnchantingMenu;
 import org.jspecify.annotations.Nullable;
 
 public class BlockWandEnchantingTable extends BaseEntityBlock {
@@ -51,12 +52,14 @@ public class BlockWandEnchantingTable extends BaseEntityBlock {
     protected @Nullable MenuProvider getMenuProvider(BlockState blockState, Level level, BlockPos blockPos) {
         if (level.getBlockEntity(blockPos) instanceof BlockEntityWandEnchantingTable blockEntityWandEnchantingTable) {
             return new SimpleMenuProvider(
-                    (i, inventory, player) -> new AnvilMenu(
-                            i,
+                    (containerId, inventory, player) -> new WandEnchantingMenu(
+                            containerId,
                             inventory,
-                            ContainerLevelAccess.create(level, blockPos)),
+                            blockEntityWandEnchantingTable,
+                            blockEntityWandEnchantingTable.getMenuData()),
                     CONTAINER_TITLE
             );
+            // not passed: ContainerLevelAccess.create(level, blockPos)
         }
 
         return null;
