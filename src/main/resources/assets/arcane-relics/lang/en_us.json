@@ -1,7 +1,8 @@
 {
   "block.arcane-relics.wand_enchanting_table": "Wand Enchanting Table",
 
-  "container.arcane-relics.wand_enchanting": "Enchanting",
+  "container.arcane-relics.wand_enchanting.title": "Enchant Wand",
+  "container.arcane-relics.wand_enchanting.cost": "Enchantment Cost: %1$s",
 
   "item.arcane-relics.wand.charges": "%1$s / %2$s charges",
   "item.arcane-relics.wand.charges.fallback": "%1$s charges remaining",

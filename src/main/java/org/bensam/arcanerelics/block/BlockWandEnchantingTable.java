@@ -8,7 +8,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -22,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 public class BlockWandEnchantingTable extends BaseEntityBlock {
     public static final MapCodec<BlockWandEnchantingTable> CODEC = simpleCodec(BlockWandEnchantingTable::new);
-    private static final Component CONTAINER_TITLE = Component.translatable("container." + ArcaneRelics.MOD_ID + ".wand_enchanting");
+    private static final Component CONTAINER_TITLE = Component.translatable("container." + ArcaneRelics.MOD_ID + ".wand_enchanting.title");
 
     public BlockWandEnchantingTable(Properties properties) {
         super(properties);
@@ -56,10 +55,11 @@ public class BlockWandEnchantingTable extends BaseEntityBlock {
                             containerId,
                             inventory,
                             blockEntityWandEnchantingTable,
-                            blockEntityWandEnchantingTable.getMenuData()),
+                            blockEntityWandEnchantingTable.getMenuData(),
+                            ContainerLevelAccess.create(level, blockPos)
+                    ),
                     CONTAINER_TITLE
             );
-            // not passed: ContainerLevelAccess.create(level, blockPos)
         }
 
         return null;

@@ -7,23 +7,31 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.state.BlockState;
+import org.bensam.arcanerelics.ModBlocks;
 import org.bensam.arcanerelics.ModMenus;
 import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
 import org.bensam.arcanerelics.item.AbstractChargedWandItem;
 
 public class WandEnchantingMenu extends AbstractContainerMenu {
-    // --- Slot layout ---
+    // --- Combiner slot layout ---
     private static final int WAND_INPUT_SLOT = 0;
+    public static final int WAND_INPUT_SLOT_X = 8;
     private static final int ARCANE_ITEM_SLOT = 1;
+    private static final int ARCANE_ITEM_SLOT_X = 26;
     private static final int LAPIS_INPUT_SLOT = 2;
+    public static final int LAPIS_INPUT_SLOT_X = 44;
     private static final int WAND_OUTPUT_SLOT = 3;
+    private static final int WAND_OUTPUT_SLOT_X = 98;
+    public static final int COMBINER_ROW_Y = 48;
     private static final int SLOT_COUNT = 4;
 
     // --- Synced data layout ---
     private static final int DATA_XP_COST = 0;
     private static final int DATA_HAS_LAPIS = 1;
-    private static final int DATA_CAN_ENCHANT = 2;
-    private static final int DATA_COUNT = 3;
+    private static final int DATA_HAS_RECIPE_ERROR = 2;
+    private static final int DATA_HAS_WAND = 3;
+    private static final int DATA_COUNT = 4;
 
     private final Container blockInventory;
     private final ContainerData data;
@@ -37,22 +45,22 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
                 containerId,
                 playerInventory,
                 new SimpleContainer(SLOT_COUNT),
-                new SimpleContainerData(DATA_COUNT)
+                new SimpleContainerData(DATA_COUNT),
+                ContainerLevelAccess.NULL
         );
     }
 
     // Server-side constructor:
-    public WandEnchantingMenu(int containerId, Inventory playerInventory, Container blockInventory, ContainerData data) {
+    public WandEnchantingMenu(int containerId, Inventory playerInventory, Container blockInventory, ContainerData data, ContainerLevelAccess access) {
         super(ModMenus.WAND_ENCHANTING_MENU.get(), containerId);
 
         this.blockInventory = blockInventory;
         this.data = data;
-        this.access = ContainerLevelAccess.NULL;
-        //this.access = ContainerLevelAccess.create(playerInventory.player.level(), blockEntity.getBlockPos());
+        this.access = access;
 
         // Add block entity slots.
         // Slot 0: Wand input
-        this.addSlot(new Slot(blockInventory, WAND_INPUT_SLOT, 27, 47) {
+        this.addSlot(new Slot(blockInventory, WAND_INPUT_SLOT, WAND_INPUT_SLOT_X, COMBINER_ROW_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.getItem() instanceof AbstractChargedWandItem<?>;
@@ -65,7 +73,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         });
 
         // Slot 1: Arcane item input
-        this.addSlot(new Slot(blockInventory, ARCANE_ITEM_SLOT, 49, 47) {
+        this.addSlot(new Slot(blockInventory, ARCANE_ITEM_SLOT, ARCANE_ITEM_SLOT_X, COMBINER_ROW_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return true; // TODO: implement helper function to check if item is a valid arcane item
@@ -78,7 +86,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         });
 
         // Slot 2: Lapis input
-        this.addSlot(new Slot(blockInventory, LAPIS_INPUT_SLOT, 71, 47) {
+        this.addSlot(new Slot(blockInventory, LAPIS_INPUT_SLOT, LAPIS_INPUT_SLOT_X, COMBINER_ROW_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(Items.LAPIS_LAZULI);
@@ -91,7 +99,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         });
 
         // Slot 3: Result wand
-        this.addSlot(new Slot(blockInventory, WAND_OUTPUT_SLOT, 133, 47) {
+        this.addSlot(new Slot(blockInventory, WAND_OUTPUT_SLOT, WAND_OUTPUT_SLOT_X, COMBINER_ROW_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
@@ -124,8 +132,16 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         return this.data.get(DATA_HAS_LAPIS) != 0;
     }
 
-    public boolean canEnchant() {
-        return this.data.get(DATA_CAN_ENCHANT) != 0;
+    public boolean hasWand() {
+        return this.data.get(DATA_HAS_WAND) != 0;
+    }
+
+    public boolean hasRecipeError() {
+        return this.data.get(DATA_HAS_RECIPE_ERROR) != 0;
+    }
+
+    protected boolean isValidBlock(BlockState blockState) {
+        return blockState.is(ModBlocks.WAND_ENCHANTING_TABLE.get());
     }
 
     @Override
@@ -179,7 +195,11 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        // TODO: Use a proper access check: return blockEntity.stillValid(player);
-        return this.blockInventory.stillValid(player);
+        return this.access
+                .evaluate((level, blockPos) ->
+                        this.isValidBlock(level.getBlockState(blockPos))
+                        && player.isWithinBlockInteractionRange(blockPos, 4.0),
+                        true
+                );
     }
 }

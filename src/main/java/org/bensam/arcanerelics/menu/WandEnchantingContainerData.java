@@ -3,18 +3,20 @@ package org.bensam.arcanerelics.menu;
 import net.minecraft.world.inventory.ContainerData;
 
 public class WandEnchantingContainerData implements ContainerData {
-    private static final int SIZE = 3;
+    private static final int SIZE = 4;
 
     private int xpCost;
     private int hasLapis;
-    private int canEnchant;
+    private int hasRecipeError;
+    private int hasWand;
 
     @Override
     public int get(int i) {
         return switch (i) {
             case 0 -> this.xpCost;
             case 1 -> this.hasLapis;
-            case 2 -> this.canEnchant;
+            case 2 -> this.hasRecipeError;
+            case 3 -> this.hasWand;
             default -> throw new IndexOutOfBoundsException("Invalid container data index: " + i);
         };
     }
@@ -24,7 +26,8 @@ public class WandEnchantingContainerData implements ContainerData {
         switch (i) {
             case 0 -> this.xpCost = value;
             case 1 -> this.hasLapis = value;
-            case 2 -> this.canEnchant = value;
+            case 2 -> this.hasRecipeError = value;
+            case 3 -> this.hasWand = value;
             default -> throw new IndexOutOfBoundsException("Invalid container data index: " + i);
         }
     }
@@ -42,7 +45,9 @@ public class WandEnchantingContainerData implements ContainerData {
         this.hasLapis = hasLapis ? 1 : 0;
     }
 
-    public void setCanEnchant(boolean canEnchant) {
-        this.canEnchant = canEnchant ? 1 : 0;
+    public void setHasRecipeError(boolean hasRecipeError) {
+        this.hasRecipeError = hasRecipeError ? 1 : 0;
     }
+
+    public void setHasWand(boolean hasWand) { this.hasWand = hasWand ? 1 : 0; }
 }

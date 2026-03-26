@@ -34,7 +34,8 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     public final WandEnchantingContainerData containerData = new WandEnchantingContainerData();
     private int xpCost;
     private boolean hasLapis;
-    private boolean canEnchant;
+    private boolean hasRecipeError;
+    private boolean hasWand;
 
     public BlockEntityWandEnchantingTable(BlockPos blockPos, BlockState blockState) {
         super(ModBlockEntities.WAND_ENCHANTING_TABLE.get(), blockPos, blockState);
@@ -111,8 +112,11 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         return this.hasLapis;
     }
 
-    public boolean canEnchant() {
-        return this.canEnchant;
+    public boolean hasRecipeError() {
+        return this.hasRecipeError;
+    }
+
+    public boolean hasWand() { return this.hasWand;
     }
     //endregion
 
@@ -123,11 +127,12 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
 
         boolean validWand = !wandStack.isEmpty(); // TODO: replace with wand predicate
         boolean validArcaneItem = !arcaneStack.isEmpty(); // TODO: replace with arcane-item predicate
+        this.hasWand = validWand;
         this.hasLapis = !lapisStack.isEmpty() && lapisStack.is(Items.LAPIS_LAZULI);
-        this.canEnchant = validWand && validArcaneItem && this.hasLapis;
+        this.hasRecipeError = !validWand || !validArcaneItem || !this.hasLapis;
 
         // TODO: compute real cost from wand + arcane item + lapis rules
-        this.xpCost = this.canEnchant ? 1 : 0;
+        this.xpCost = this.hasRecipeError ? 0 : 1;
 
         this.recomputeContainerData();
         this.recomputeWandOutput();
@@ -138,7 +143,8 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     private void recomputeContainerData() {
         this.containerData.setXpCost(this.xpCost);
         this.containerData.setHasLapis(this.hasLapis);
-        this.containerData.setCanEnchant(this.canEnchant);
+        this.containerData.setHasRecipeError(this.hasRecipeError);
+        this.containerData.setHasWand(this.hasWand);
     }
 
     private void recomputeWandOutput() {
@@ -152,7 +158,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         ItemStack currentOutput = getItem(WAND_OUTPUT_SLOT);
         ItemStack newOutput = currentOutput.copy();
 
-        if (!this.canEnchant) {
+        if (this.hasRecipeError) {
             newOutput = ItemStack.EMPTY;
         } else {
             // TODO: create the actual enchanted/recharged wand result
