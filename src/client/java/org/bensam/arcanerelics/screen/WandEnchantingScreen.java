@@ -74,6 +74,7 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
     }
 
     protected void renderEmptySlots(GuiGraphics guiGraphics, int i, int j) {
+        // blit() takes: renderLayer, texture, x, y, u, v, width, height, textureWidth, textureHeight
         if (this.hasMissingWand()) {
             guiGraphics.blit(
                     RenderPipelines.GUI_TEXTURED,
