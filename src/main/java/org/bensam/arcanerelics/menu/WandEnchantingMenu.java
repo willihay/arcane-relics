@@ -24,7 +24,11 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     private static final int WAND_OUTPUT_SLOT = 3;
     private static final int WAND_OUTPUT_SLOT_X = 98;
     public static final int COMBINER_ROW_Y = 48;
-    private static final int SLOT_COUNT = 4;
+    private static final int BLOCK_SLOT_COUNT = 4;
+
+    // --- Other slot layout ---
+    private static final int FIRST_PLAYER_SLOT = BLOCK_SLOT_COUNT;
+    private static final int FIRST_HOTBAR_SLOT = FIRST_PLAYER_SLOT + 27;
 
     // --- Synced data layout ---
     private static final int DATA_XP_COST = 0;
@@ -44,7 +48,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         this(
                 containerId,
                 playerInventory,
-                new SimpleContainer(SLOT_COUNT),
+                new SimpleContainer(BLOCK_SLOT_COUNT),
                 new SimpleContainerData(DATA_COUNT),
                 ContainerLevelAccess.NULL
         );
@@ -76,7 +80,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         this.addSlot(new Slot(blockInventory, ARCANE_ITEM_SLOT, ARCANE_ITEM_SLOT_X, COMBINER_ROW_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return true; // TODO: implement helper function to check if item is a valid arcane item
+                return !(stack.getItem() instanceof AbstractChargedWandItem<?> || stack.is(Items.LAPIS_LAZULI));
             }
 
             @Override
@@ -106,10 +110,13 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
             }
 
             @Override
+            public boolean mayPickup(Player player) {
+                return player.hasInfiniteMaterials() || player.experienceLevel >= WandEnchantingMenu.this.getXpCost();
+            }
+
+            @Override
             public void onTake(Player player, ItemStack stack) {
-                // TODO: consume XP
-                // TODO: consume lapis and arcane item
-                // TODO: update wand result state
+                WandEnchantingMenu.this.onResultTake(player, stack);
                 super.onTake(player, stack);
             }
         });
@@ -121,7 +128,21 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         this.addDataSlots(data);
 
         // Initialize result state.
-        // TODO: recomputeResult();
+        if (this.blockInventory instanceof BlockEntityWandEnchantingTable blockEntity) {
+            blockEntity.recomputeState();
+        }
+    }
+
+    protected boolean canMoveIntoInputSlots(ItemStack itemStack) {
+        if (isArcaneWand(itemStack))
+        {
+            return !this.getSlot(WAND_INPUT_SLOT).hasItem();
+        }
+        else if (itemStack.is(Items.LAPIS_LAZULI))
+        {
+            return this.getSlot(LAPIS_INPUT_SLOT).getItem().getCount() < this.getSlot(LAPIS_INPUT_SLOT).getMaxStackSize();
+        }
+        return true;
     }
 
     public int getXpCost() {
@@ -140,40 +161,75 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         return this.data.get(DATA_HAS_RECIPE_ERROR) != 0;
     }
 
+    protected boolean isArcaneWand(ItemStack stack) {
+        return stack.getItem() instanceof AbstractChargedWandItem<?>;
+    }
+
     protected boolean isValidBlock(BlockState blockState) {
         return blockState.is(ModBlocks.WAND_ENCHANTING_TABLE.get());
     }
 
+    protected void onResultTake(Player player, ItemStack stack) {
+        // TODO: consume XP
+        // TODO: consume lapis and arcane item
+        // TODO: update wand result state
+    }
+
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
-        // TODO:
-        // - handle shift-clicking between player inventory and table slots
-        // - move wand to wand slot
-        // - move lapis to lapis slot
-        // - move arcane item to arcane item slot
-        // - move result to player inventory
         Slot slot = this.slots.get(slotIndex);
 
-        if (slot == null || !slot.hasItem()) {
+        if (!slot.hasItem()) {
             return ItemStack.EMPTY;
         }
 
-        ItemStack stackInSlot = slot.getItem();
-        ItemStack copy = stackInSlot.copy();
+        int inventorySize = this.slots.size();
+        ItemStack sourceStack = slot.getItem();
+        ItemStack returnStack = sourceStack.copy();
 
         // Result slot -> player inventory
         if (slotIndex == WAND_OUTPUT_SLOT) {
-            if (!this.moveItemStackTo(stackInSlot, 4, this.slots.size(), true)) {
+            if (!this.moveItemStackTo(sourceStack, FIRST_PLAYER_SLOT, inventorySize, true)) {
                 return ItemStack.EMPTY;
             }
-
-            slot.onQuickCraft(stackInSlot, copy);
+            slot.onTake(player, sourceStack);
         }
-        // Block inventory -> player inventory
-
+        // Input slot inventory -> player inventory
+        else if (slotIndex < WAND_OUTPUT_SLOT) {
+            if (!this.moveItemStackTo(sourceStack, FIRST_PLAYER_SLOT, inventorySize, false)) {
+                return ItemStack.EMPTY;
+            }
+        }
         // Player inventory -> block inventory
+        else if (canMoveIntoInputSlots(sourceStack)) {
+            if (!this.moveItemStackTo(sourceStack, 0, BLOCK_SLOT_COUNT - 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        }
+        // Standard player inventory -> hotbar
+        else if (slotIndex < FIRST_HOTBAR_SLOT) {
+            if (!this.moveItemStackTo(sourceStack, FIRST_HOTBAR_SLOT, inventorySize, false)) {
+                return ItemStack.EMPTY;
+            }
+        }
+        // Hotbar -> standard player inventory
+        else {
+            if (!this.moveItemStackTo(sourceStack, FIRST_PLAYER_SLOT, FIRST_HOTBAR_SLOT, false)) {
+                return ItemStack.EMPTY;
+            }
+        }
 
-        return ItemStack.EMPTY;
+        if (sourceStack.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+
+        if (sourceStack.getCount() == returnStack.getCount()) {
+            return ItemStack.EMPTY;
+        }
+
+        return returnStack;
     }
 
     @Override

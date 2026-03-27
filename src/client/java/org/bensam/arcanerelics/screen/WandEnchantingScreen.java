@@ -7,7 +7,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.menu.WandEnchantingMenu;

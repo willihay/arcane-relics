@@ -95,7 +95,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
 
     @Override
     public boolean stillValid(Player player) {
-        return true; // TODO: replace with a real distance/block-state check (see ItemCombinerMenu)
+        return player.isWithinBlockInteractionRange(this.getBlockPos(), 4.0);
     }
     //endregion
 

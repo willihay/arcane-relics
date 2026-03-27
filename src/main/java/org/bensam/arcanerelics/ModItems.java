@@ -65,6 +65,7 @@ public final class ModItems {
                                         3
                                 )
                         )
+                        .stacksTo(1)
         );
 
         lightningWandInternal = register(
@@ -86,6 +87,7 @@ public final class ModItems {
                                         4
                                 )
                         )
+                        .stacksTo(1)
         );
     }
 
