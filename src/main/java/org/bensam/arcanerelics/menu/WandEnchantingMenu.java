@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import org.bensam.arcanerelics.ModBlocks;
+import org.bensam.arcanerelics.ModItems;
 import org.bensam.arcanerelics.ModMenus;
 import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
 import org.bensam.arcanerelics.item.AbstractChargedWandItem;
@@ -33,7 +34,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     // --- Synced data layout ---
     private static final int DATA_XP_COST = 0;
     private static final int DATA_HAS_LAPIS = 1;
-    private static final int DATA_HAS_RECIPE_ERROR = 2;
+    private static final int DATA_HAS_VALID_RECIPE = 2;
     private static final int DATA_HAS_WAND = 3;
     private static final int DATA_COUNT = 4;
 
@@ -67,12 +68,12 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         this.addSlot(new Slot(blockInventory, WAND_INPUT_SLOT, WAND_INPUT_SLOT_X, COMBINER_ROW_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.getItem() instanceof AbstractChargedWandItem<?>;
+                return BlockEntityWandEnchantingTable.isArcaneWand(stack);
             }
 
             @Override
             public int getMaxStackSize() {
-                return 1;
+                return 64;
             }
         });
 
@@ -80,12 +81,12 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         this.addSlot(new Slot(blockInventory, ARCANE_ITEM_SLOT, ARCANE_ITEM_SLOT_X, COMBINER_ROW_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return !(stack.getItem() instanceof AbstractChargedWandItem<?> || stack.is(Items.LAPIS_LAZULI));
+                return ModItems.isArcaneEnchantmentItem(stack);
             }
 
             @Override
             public int getMaxStackSize() {
-                return 1;
+                return 64;
             }
         });
 
@@ -111,7 +112,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
 
             @Override
             public boolean mayPickup(Player player) {
-                return player.hasInfiniteMaterials() || player.experienceLevel >= WandEnchantingMenu.this.getXpCost();
+                return WandEnchantingMenu.this.canPickupResult(player);
             }
 
             @Override
@@ -134,35 +135,45 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     }
 
     protected boolean canMoveIntoInputSlots(ItemStack itemStack) {
-        if (isArcaneWand(itemStack))
+        if (BlockEntityWandEnchantingTable.isArcaneWand(itemStack))
         {
-            return !this.getSlot(WAND_INPUT_SLOT).hasItem();
+            if (itemStack.isStackable()) {
+                return this.getSlot(WAND_INPUT_SLOT).getItem().getCount() < this.getSlot(WAND_INPUT_SLOT).getMaxStackSize();
+            }
+            else {
+                return !this.getSlot(WAND_INPUT_SLOT).hasItem();
+            }
         }
         else if (itemStack.is(Items.LAPIS_LAZULI))
         {
             return this.getSlot(LAPIS_INPUT_SLOT).getItem().getCount() < this.getSlot(LAPIS_INPUT_SLOT).getMaxStackSize();
         }
-        return true;
+
+        return ModItems.isArcaneEnchantmentItem(itemStack) && this.getSlot(ARCANE_ITEM_SLOT).getItem().getCount() < this.getSlot(ARCANE_ITEM_SLOT).getMaxStackSize();
+    }
+
+    public boolean canPickupResult(Player player) {
+        return player.hasInfiniteMaterials() || player.experienceLevel >= this.getXpCost();
     }
 
     public int getXpCost() {
         return this.data.get(DATA_XP_COST);
     }
 
+    public boolean hasAnyInputItems() {
+        return this.getSlot(WAND_INPUT_SLOT).hasItem() || this.getSlot(ARCANE_ITEM_SLOT).hasItem() || this.getSlot(LAPIS_INPUT_SLOT).hasItem();
+    }
+
     public boolean hasLapis() {
-        return this.data.get(DATA_HAS_LAPIS) != 0;
+        return this.getSlot(LAPIS_INPUT_SLOT).hasItem();
     }
 
     public boolean hasWand() {
-        return this.data.get(DATA_HAS_WAND) != 0;
+        return this.getSlot(WAND_INPUT_SLOT).hasItem();
     }
 
-    public boolean hasRecipeError() {
-        return this.data.get(DATA_HAS_RECIPE_ERROR) != 0;
-    }
-
-    protected boolean isArcaneWand(ItemStack stack) {
-        return stack.getItem() instanceof AbstractChargedWandItem<?>;
+    public boolean hasValidRecipe() {
+        return this.data.get(DATA_HAS_VALID_RECIPE) != 0;
     }
 
     protected boolean isValidBlock(BlockState blockState) {
@@ -170,9 +181,22 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     }
 
     protected void onResultTake(Player player, ItemStack stack) {
-        // TODO: consume XP
-        // TODO: consume lapis and arcane item
-        // TODO: update wand result state
+        stack.onCraftedBy(player, stack.getCount());
+
+        // Consume player XP.
+        if (!player.hasInfiniteMaterials()) {
+            player.giveExperienceLevels(-this.getXpCost());
+        }
+
+        // Consume input wand, enchantment item, and lapis.
+        this.shrinkStackInSlot(WAND_INPUT_SLOT);
+        this.shrinkStackInSlot(ARCANE_ITEM_SLOT);
+        this.shrinkStackInSlot(LAPIS_INPUT_SLOT);
+
+        // Refresh result and synced flags immediately.
+        if (this.blockInventory instanceof BlockEntityWandEnchantingTable blockEntity) {
+            blockEntity.recomputeState();
+        }
     }
 
     @Override
@@ -200,7 +224,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
         }
-        // Player inventory -> block inventory
+        // Player inventory -> input slot
         else if (canMoveIntoInputSlots(sourceStack)) {
             if (!this.moveItemStackTo(sourceStack, 0, BLOCK_SLOT_COUNT - 1, false)) {
                 return ItemStack.EMPTY;
@@ -230,6 +254,15 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         }
 
         return returnStack;
+    }
+
+    private void shrinkStackInSlot(int i) {
+        Slot slot = this.slots.get(i);
+        ItemStack itemStack = slot.getItem();
+        if (!itemStack.isEmpty()) {
+            itemStack.shrink(1);
+            slot.setChanged();
+        }
     }
 
     @Override

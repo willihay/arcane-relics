@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.menu.WandEnchantingMenu;
 
@@ -17,9 +18,15 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
     private static final Identifier EMPTY_SLOT_LAPIS_TEXTURE = Identifier.fromNamespaceAndPath(ArcaneRelics.MOD_ID, "textures/gui/wand_enchanting_empty_slot_lapis.png");
     private static final Identifier EMPTY_SLOT_WAND_TEXTURE = Identifier.fromNamespaceAndPath(ArcaneRelics.MOD_ID, "textures/gui/wand_enchanting_empty_slot_wand.png");
     private static final Identifier ERROR_SPRITE = Identifier.fromNamespaceAndPath(ArcaneRelics.MOD_ID, "textures/gui/wand_enchanting_error.png");
+    private final Player player;
 
     public WandEnchantingScreen(WandEnchantingMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
+        player = inventory.player;
+    }
+
+    private boolean hasAnyInputItems() {
+        return this.menu.hasAnyInputItems();
     }
 
     private boolean hasMissingLapis() {
@@ -30,8 +37,8 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
         return !this.menu.hasWand();
     }
 
-    private boolean hasRecipeError() {
-        return this.menu.hasRecipeError();
+    private boolean hasValidRecipe() {
+        return this.menu.hasValidRecipe();
     }
 
     @Override
@@ -96,7 +103,7 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
     }
 
     protected void renderErrorIcon(GuiGraphics guiGraphics, int i, int j) {
-        if (this.hasRecipeError()) {
+        if (!this.hasValidRecipe() && this.hasAnyInputItems()) {
             guiGraphics.blit(
                     RenderPipelines.GUI_TEXTURED,
                     ERROR_SPRITE,
@@ -104,6 +111,36 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
                     j + 46,
                     0, 0, 28, 21, 28, 21
             );
+        }
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int i, int j) {
+        super.renderLabels(guiGraphics, i, j);
+
+        int xpCost = this.menu.getXpCost();
+        if (xpCost > 0) {
+            int textColor = 0xFF80FF20; // Light green
+            if (!this.menu.canPickupResult(this.player)) {
+                textColor = 0xFFFF6060; // Light red
+            }
+            Component costComponent = Component.translatable(
+                    "container.arcane-relics.wand_enchanting.cost",
+                    new Object[]{xpCost});
+
+            int rectangleTopY = 69;
+            int rectangleRightX = this.imageWidth - 8;
+            int rectangleLeftX = rectangleRightX - this.font.width(costComponent) - 4;
+            int textX = rectangleLeftX + 2;
+            int textY = rectangleTopY + 2;
+            int rectangleHeight = this.font.lineHeight + 2;
+            guiGraphics.fill(
+                    rectangleLeftX,
+                    rectangleTopY,
+                    rectangleRightX,
+                    rectangleTopY + rectangleHeight,
+                    0x4F000000); // Dark gray transparent
+            guiGraphics.drawString(this.font, costComponent, textX, textY, textColor);
         }
     }
 }

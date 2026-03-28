@@ -6,6 +6,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
@@ -41,6 +43,16 @@ public class ItemArcaneWand extends AbstractChargedWandItem<ItemArcaneWand.Arcan
     public Component getNoChargesMessage() {
         return Component.translatable("message." + ArcaneRelics.MOD_ID + ".arcane_wand.cast.no_power");
     }
+
+    @Override
+    public int getRechargeChargeAmount() { return 0; }
+
+    @Override
+    public int getRechargeXpCost() { return 0; }
+
+    @Override
+    public int getNewWandXpCost() { return 0; }
+
     //endregion
 
     //region Recharge Methods

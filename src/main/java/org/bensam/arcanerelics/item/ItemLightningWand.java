@@ -21,7 +21,7 @@ import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand.LightningRechargeResult> {
+public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand.LightningRechargeResult> implements WandEnchantingTableOutput {
     public static final int INITIAL_CHARGES = 20;
     public static final int MAX_CHARGES = 40;
 
@@ -62,6 +62,9 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyCharged) {
         return level.isThundering() ? 0 : super.getPowerUpCost(level, player, stack, chargeTicks, fullyCharged);
     }
+
+    @Override
+    public int getRechargeChargeAmount() { return CHANNELING_BOOK_RECHARGE_AMOUNT; }
     //endregion
 
     //region Recharge Methods
@@ -71,6 +74,13 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         NO_THUNDER,
         CHANNELING_BOOK_SUCCESS,
         NO_FUEL
+    }
+
+    @Override
+    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
+        if (stack.isEmpty()) { return false; }
+
+        return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.CHANNELING);
     }
 
     @Override

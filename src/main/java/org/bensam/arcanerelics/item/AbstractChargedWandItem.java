@@ -136,6 +136,10 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return Mth.clamp((float) elapsedTicks / this.getFullPowerTicks(), 0.0f, 1.0f);
     }
 
+    public int getNewWandXpCost() { return 2; }
+
+    public int getRechargeXpCost() { return 1; }
+
     @Override
     public ItemUseAnimation getUseAnimation(ItemStack stack) {
         return ItemUseAnimation.BOW;
@@ -163,6 +167,20 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return this.getCharges(stack) >= amount;
     }
 
+    public static boolean hasEnchantment(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+
+        for (var entry : enchantments.entrySet()) {
+            var key = entry.getKey().unwrapKey();
+
+            if (key.isPresent() && key.get() == enchantmentKey) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public boolean isFullyCharged(ItemStack stack) {
         return this.getCharges(stack) >= this.getMaxCharges();
     }
@@ -171,7 +189,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return elapsedTicks >= this.getFullPowerTicks();
     }
 
-    protected void setCharges(ItemStack stack, int charges) {
+    public void setCharges(ItemStack stack, int charges) {
         stack.set(
                 ModComponents.WAND_CHARGES_COMPONENT,
                 new ModComponents.WandChargesComponent(Math.max(0, Math.min(charges, this.maxCharges)))
@@ -316,6 +334,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     protected abstract int getFullPowerTicks();
     protected abstract int getNormalCastCost();
     protected abstract int getFullPowerCastCost();
+    public abstract int getRechargeChargeAmount();
 
     protected abstract RechargeContext<R> tryRecharge(Level level, Player player, ItemStack wandStack);
     protected abstract void sendRechargeFeedback(Player player, R result);

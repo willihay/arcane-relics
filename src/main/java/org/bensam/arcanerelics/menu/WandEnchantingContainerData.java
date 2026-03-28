@@ -7,7 +7,7 @@ public class WandEnchantingContainerData implements ContainerData {
 
     private int xpCost;
     private int hasLapis;
-    private int hasRecipeError;
+    private int hasValidRecipe;
     private int hasWand;
 
     @Override
@@ -15,7 +15,7 @@ public class WandEnchantingContainerData implements ContainerData {
         return switch (i) {
             case 0 -> this.xpCost;
             case 1 -> this.hasLapis;
-            case 2 -> this.hasRecipeError;
+            case 2 -> this.hasValidRecipe;
             case 3 -> this.hasWand;
             default -> throw new IndexOutOfBoundsException("Invalid container data index: " + i);
         };
@@ -26,7 +26,7 @@ public class WandEnchantingContainerData implements ContainerData {
         switch (i) {
             case 0 -> this.xpCost = value;
             case 1 -> this.hasLapis = value;
-            case 2 -> this.hasRecipeError = value;
+            case 2 -> this.hasValidRecipe = value;
             case 3 -> this.hasWand = value;
             default -> throw new IndexOutOfBoundsException("Invalid container data index: " + i);
         }
@@ -45,8 +45,8 @@ public class WandEnchantingContainerData implements ContainerData {
         this.hasLapis = hasLapis ? 1 : 0;
     }
 
-    public void setHasRecipeError(boolean hasRecipeError) {
-        this.hasRecipeError = hasRecipeError ? 1 : 0;
+    public void setHasValidRecipe(boolean hasValidRecipe) {
+        this.hasValidRecipe = hasValidRecipe ? 1 : 0;
     }
 
     public void setHasWand(boolean hasWand) { this.hasWand = hasWand ? 1 : 0; }

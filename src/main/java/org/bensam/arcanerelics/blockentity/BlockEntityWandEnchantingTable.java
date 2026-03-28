@@ -2,6 +2,7 @@ package org.bensam.arcanerelics.blockentity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +14,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.bensam.arcanerelics.ModBlockEntities;
+import org.bensam.arcanerelics.ModItems;
+import org.bensam.arcanerelics.item.AbstractChargedWandItem;
 import org.bensam.arcanerelics.menu.WandEnchantingContainerData;
 
 public class BlockEntityWandEnchantingTable extends BlockEntity implements Container {
@@ -34,7 +37,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     public final WandEnchantingContainerData containerData = new WandEnchantingContainerData();
     private int xpCost;
     private boolean hasLapis;
-    private boolean hasRecipeError;
+    private boolean hasValidRecipe;
     private boolean hasWand;
 
     public BlockEntityWandEnchantingTable(BlockPos blockPos, BlockState blockState) {
@@ -59,6 +62,16 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     @Override
     public ItemStack getItem(int slotIndex) {
         return this.items.get(slotIndex);
+    }
+
+    public static boolean isArcaneWand(ItemStack stack) {
+        return !stack.isEmpty() && stack.getItem() instanceof AbstractChargedWandItem<?>;
+    }
+
+    public static boolean isArcaneEnchantmentItem(ItemStack stack) {
+        if (stack.isEmpty()) { return false; }
+
+        return ModItems.isArcaneEnchantmentItem(stack);
     }
 
     @Override
@@ -112,8 +125,8 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         return this.hasLapis;
     }
 
-    public boolean hasRecipeError() {
-        return this.hasRecipeError;
+    public boolean hasValidRecipe() {
+        return this.hasValidRecipe;
     }
 
     public boolean hasWand() { return this.hasWand;
@@ -125,17 +138,13 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         ItemStack arcaneStack = getItem(ARCANE_ITEM_SLOT);
         ItemStack lapisStack = getItem(LAPIS_INPUT_SLOT);
 
-        boolean validWand = !wandStack.isEmpty(); // TODO: replace with wand predicate
-        boolean validArcaneItem = !arcaneStack.isEmpty(); // TODO: replace with arcane-item predicate
-        this.hasWand = validWand;
+        this.hasWand = isArcaneWand(wandStack);
+        boolean validEnchantmentItem = isArcaneEnchantmentItem(arcaneStack);
         this.hasLapis = !lapisStack.isEmpty() && lapisStack.is(Items.LAPIS_LAZULI);
-        this.hasRecipeError = !validWand || !validArcaneItem || !this.hasLapis;
+        this.hasValidRecipe = this.hasWand && validEnchantmentItem && this.hasLapis;
 
-        // TODO: compute real cost from wand + arcane item + lapis rules
-        this.xpCost = this.hasRecipeError ? 0 : 1;
-
-        this.recomputeContainerData();
         this.recomputeWandOutput();
+        this.recomputeContainerData();
 
         setChanged();
     }
@@ -143,31 +152,50 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     private void recomputeContainerData() {
         this.containerData.setXpCost(this.xpCost);
         this.containerData.setHasLapis(this.hasLapis);
-        this.containerData.setHasRecipeError(this.hasRecipeError);
+        this.containerData.setHasValidRecipe(this.hasValidRecipe);
         this.containerData.setHasWand(this.hasWand);
     }
 
+    // Assumes hasValidRecipe is up-to-date.
     private void recomputeWandOutput() {
-        // TODO: compute wand output based on wand and arcane item
-        // - inspect wand input
-        // - inspect arcane item input
-        // - inspect lapis availability
-        // - compute the output ItemStack
-        // - place the output into WAND_OUTPUT_SLOT
+        ItemStack inputWand = getItem(WAND_INPUT_SLOT);
+        ItemStack currentOutputWand = getItem(WAND_OUTPUT_SLOT);
+        ItemStack newOutputWand = ItemStack.EMPTY;
+        this.xpCost = 0;
 
-        ItemStack currentOutput = getItem(WAND_OUTPUT_SLOT);
-        ItemStack newOutput = currentOutput.copy();
+        if (this.hasValidRecipe) {
+            ItemStack recipeWand = ModItems.getArcaneEnchantmentItem(getItem(ARCANE_ITEM_SLOT));
 
-        if (this.hasRecipeError) {
-            newOutput = ItemStack.EMPTY;
-        } else {
-            // TODO: create the actual enchanted/recharged wand result
-            // newOutput = computedResultStack;
+            // Verify we're dealing with wands.
+            if (!recipeWand.isEmpty()
+                    && recipeWand.getItem() instanceof AbstractChargedWandItem<?> newOutputWandItem
+                    && inputWand.getItem() instanceof AbstractChargedWandItem<?> inputWandItem) {
+                // Make the output wand and set charges.
+                newOutputWand = recipeWand.copy();
+                newOutputWand.setCount(1);
+
+                // If input and output are same wand type, carry charges and any custom name over and recharge.
+                if (inputWand.is(newOutputWand.getItem())) {
+                    // Preserve the custom name if the input wand was named.
+                    if (inputWand.has(DataComponents.CUSTOM_NAME)) {
+                        newOutputWand.set(DataComponents.CUSTOM_NAME, inputWand.getCustomName());
+                    }
+
+                    newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand));
+                    newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount());
+
+                    this.xpCost = newOutputWandItem.getRechargeXpCost();
+                }
+                // (Otherwise, leave the default number of charges in the new wand.)
+                else {
+                    this.xpCost = newOutputWandItem.getNewWandXpCost();
+                }
+            }
         }
 
         // Only write if the stack actually changed.
-        if (!ItemStack.isSameItemSameComponents(currentOutput, newOutput)) {
-            this.items.set(WAND_OUTPUT_SLOT, newOutput);
+        if (!ItemStack.isSameItemSameComponents(currentOutputWand, newOutputWand)) {
+            this.items.set(WAND_OUTPUT_SLOT, newOutputWand);
         }
     }
 

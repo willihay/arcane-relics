@@ -6,15 +6,22 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.bensam.arcanerelics.item.ItemArcaneWand;
 import org.bensam.arcanerelics.item.ItemFireWand;
 import org.bensam.arcanerelics.item.ItemLightningWand;
+import org.bensam.arcanerelics.item.WandEnchantingTableOutput;
+import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class ModItems {
     private ModItems() {}
+
+    private static final List<Item> WAND_ENCHANTING_TABLE_OUTPUTS = new ArrayList<>();
 
     private static ItemArcaneWand arcaneWandInternal;
     private static ItemFireWand fireWandInternal;
@@ -106,6 +113,31 @@ public final class ModItems {
         T item = itemFactory.apply(settings.setId(itemKey));
 
         // Register the item.
-        return Registry.register(BuiltInRegistries.ITEM, itemKey, item);
+        T registered = Registry.register(BuiltInRegistries.ITEM, itemKey, item);
+
+        if (registered instanceof WandEnchantingTableOutput) {
+            WAND_ENCHANTING_TABLE_OUTPUTS.add(registered);
+        }
+
+        return registered;
+    }
+
+    public static ItemStack getArcaneEnchantmentItem(@NonNull ItemStack stack) {
+        if (stack.isEmpty()) { return ItemStack.EMPTY; }
+
+        for (Item item : WAND_ENCHANTING_TABLE_OUTPUTS) {
+            if (item instanceof WandEnchantingTableOutput outputItem
+                    && outputItem.canBeProducedOrRechargedBy(stack)) {
+                return new ItemStack(item);
+            }
+        }
+
+        return ItemStack.EMPTY;
+    }
+
+    public static boolean isArcaneEnchantmentItem(@NonNull ItemStack stack) {
+        if (stack.isEmpty()) { return false; }
+
+        return !getArcaneEnchantmentItem(stack).isEmpty();
     }
 }

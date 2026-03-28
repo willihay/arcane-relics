@@ -18,13 +18,14 @@ import net.minecraft.world.entity.projectile.hurtingprojectile.LargeFireball;
 import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.NonNull;
 
-public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRechargeResult> {
+public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRechargeResult> implements WandEnchantingTableOutput {
     public static final int INITIAL_CHARGES = 30;
     public static final int MAX_CHARGES = 50;
 
@@ -58,6 +59,9 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
     protected int getNormalCastCost() {
         return NORMAL_CAST_COST;
     }
+
+    @Override
+    public int getRechargeChargeAmount() { return BLAZE_ROD_RECHARGE_AMOUNT; }
     //endregion
 
     //region Recharge Methods
@@ -68,6 +72,13 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         NO_MOB_FUEL,
         BLAZE_ROD_SUCCESS,
         NO_FUEL
+    }
+
+    @Override
+    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
+        if (stack.isEmpty()) { return false; }
+
+        return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.FLAME);
     }
 
     @Override
