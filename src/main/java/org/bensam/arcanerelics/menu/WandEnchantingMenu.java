@@ -12,7 +12,7 @@ import org.bensam.arcanerelics.ModBlocks;
 import org.bensam.arcanerelics.ModItems;
 import org.bensam.arcanerelics.ModMenus;
 import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
-import org.bensam.arcanerelics.item.AbstractChargedWandItem;
+import org.jspecify.annotations.NonNull;
 
 public class WandEnchantingMenu extends AbstractContainerMenu {
     // --- Combiner slot layout ---
@@ -33,10 +33,8 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
 
     // --- Synced data layout ---
     private static final int DATA_XP_COST = 0;
-    private static final int DATA_HAS_LAPIS = 1;
-    private static final int DATA_HAS_VALID_RECIPE = 2;
-    private static final int DATA_HAS_WAND = 3;
-    private static final int DATA_COUNT = 4;
+    private static final int DATA_HAS_VALID_RECIPE = 1;
+    private static final int DATA_COUNT = 2;
 
     private final Container blockInventory;
     private final ContainerData data;
@@ -67,7 +65,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         // Slot 0: Wand input
         this.addSlot(new Slot(blockInventory, WAND_INPUT_SLOT, WAND_INPUT_SLOT_X, COMBINER_ROW_Y) {
             @Override
-            public boolean mayPlace(ItemStack stack) {
+            public boolean mayPlace(@NonNull ItemStack stack) {
                 return BlockEntityWandEnchantingTable.isArcaneWand(stack);
             }
 
@@ -80,7 +78,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         // Slot 1: Arcane item input
         this.addSlot(new Slot(blockInventory, ARCANE_ITEM_SLOT, ARCANE_ITEM_SLOT_X, COMBINER_ROW_Y) {
             @Override
-            public boolean mayPlace(ItemStack stack) {
+            public boolean mayPlace(@NonNull ItemStack stack) {
                 return ModItems.isArcaneEnchantmentItem(stack);
             }
 
@@ -93,7 +91,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         // Slot 2: Lapis input
         this.addSlot(new Slot(blockInventory, LAPIS_INPUT_SLOT, LAPIS_INPUT_SLOT_X, COMBINER_ROW_Y) {
             @Override
-            public boolean mayPlace(ItemStack stack) {
+            public boolean mayPlace(@NonNull ItemStack stack) {
                 return stack.is(Items.LAPIS_LAZULI);
             }
 
@@ -106,17 +104,17 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         // Slot 3: Result wand
         this.addSlot(new Slot(blockInventory, WAND_OUTPUT_SLOT, WAND_OUTPUT_SLOT_X, COMBINER_ROW_Y) {
             @Override
-            public boolean mayPlace(ItemStack stack) {
+            public boolean mayPlace(@NonNull ItemStack stack) {
                 return false;
             }
 
             @Override
-            public boolean mayPickup(Player player) {
+            public boolean mayPickup(@NonNull Player player) {
                 return WandEnchantingMenu.this.canPickupResult(player);
             }
 
             @Override
-            public void onTake(Player player, ItemStack stack) {
+            public void onTake(@NonNull Player player, @NonNull ItemStack stack) {
                 WandEnchantingMenu.this.onResultTake(player, stack);
                 super.onTake(player, stack);
             }
@@ -128,7 +126,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         // Data sync.
         this.addDataSlots(data);
 
-        // Initialize result state.
+        // Initialize the result state on the server.
         if (this.blockInventory instanceof BlockEntityWandEnchantingTable blockEntity) {
             blockEntity.recomputeState();
         }
@@ -200,7 +198,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int slotIndex) {
+    public @NonNull ItemStack quickMoveStack(@NonNull Player player, int slotIndex) {
         Slot slot = this.slots.get(slotIndex);
 
         if (!slot.hasItem()) {
@@ -266,24 +264,18 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public void slotsChanged(Container container) {
+    public void slotsChanged(@NonNull Container container) {
         super.slotsChanged(container);
 
         // Only the real block inventory should drive recomputation.
         if (container == this.blockInventory && this.blockInventory instanceof BlockEntityWandEnchantingTable blockEntity) {
             // Recompute the derived state on the server side.
-            // This should update:
-            // - XP cost
-            // - lapis present flag
-            // - enchantability flag
-            // - output slot contents
-            //
             blockEntity.recomputeState();
         }
     }
 
     @Override
-    public boolean stillValid(Player player) {
+    public boolean stillValid(@NonNull Player player) {
         return this.access
                 .evaluate((level, blockPos) ->
                         this.isValidBlock(level.getBlockState(blockPos))

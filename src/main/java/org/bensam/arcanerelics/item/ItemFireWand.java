@@ -28,13 +28,13 @@ import org.jspecify.annotations.NonNull;
 public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRechargeResult> implements WandEnchantingTableOutput {
     public static final int INITIAL_CHARGES = 30;
     public static final int MAX_CHARGES = 50;
+    private static final int RECHARGE_AMOUNT = 20;
 
     private static final int NORMAL_CAST_COST = 1;
-    private static final int FULL_POWER_TICKS = 20;
     private static final int FULL_POWER_CAST_COST = 2;
+    private static final int FULL_POWER_TICKS = 20;
 
     private static final int BLAZE_EXTRACTION_RECHARGE_RADIUS = 8;
-    private static final int BLAZE_ROD_RECHARGE_AMOUNT = 20;
     private static final int GHAST_EXTRACTION_RECHARGE_RADIUS = 20;
 
     private static final float BASE_EXPLOSION_POWER = 0.5f;
@@ -61,7 +61,7 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
     }
 
     @Override
-    public int getRechargeChargeAmount() { return BLAZE_ROD_RECHARGE_AMOUNT; }
+    public int getRechargeChargeAmount() { return RECHARGE_AMOUNT; }
     //endregion
 
     //region Recharge Methods
@@ -69,15 +69,11 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         ALREADY_FULL,
         BLAZE_EXTRACTION_SUCCESS,
         GHAST_EXTRACTION_SUCCESS,
-        NO_MOB_FUEL,
-        BLAZE_ROD_SUCCESS,
-        NO_FUEL
+        NO_MOB_FUEL
     }
 
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        if (stack.isEmpty()) { return false; }
-
         return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.FLAME);
     }
 
@@ -93,7 +89,7 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
             return mobFuelSearchResult;
         }
 
-        return new RechargeContext<>(this.tryBlazeRodRecharge(player, wandStack), null);
+        return mobFuelSearchResult;
     }
 
     protected static RechargeContext<FireRechargeResult> findNearbyMobFuel(Level level, BlockPos center) {
@@ -139,15 +135,6 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         return closestMob;
     }
 
-    private FireRechargeResult tryBlazeRodRecharge(Player player, ItemStack stack) {
-        if (this.consumeArcaneFuelFromInventory(player, Items.BLAZE_ROD)) {
-            this.addCharges(stack, BLAZE_ROD_RECHARGE_AMOUNT);
-            return FireRechargeResult.BLAZE_ROD_SUCCESS;
-        }
-
-        return FireRechargeResult.NO_FUEL;
-    }
-
     @Override
     protected void playRechargeContextEffects(
             ServerLevel level,
@@ -160,7 +147,6 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         switch (rechargeContext.result()) {
             case BLAZE_EXTRACTION_SUCCESS -> soundRechargeEvent = SoundEvents.BLAZE_AMBIENT;
             case GHAST_EXTRACTION_SUCCESS -> soundRechargeEvent = SoundEvents.GHAST_SCREAM; // HARNESS_GOGGLES_DOWN
-            case BLAZE_ROD_SUCCESS -> soundRechargeEvent = SoundEvents.ENCHANTMENT_TABLE_USE;
         }
         if (soundRechargeEvent != null) {
             level.playSound(
@@ -174,26 +160,13 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         }
 
         // Create recharge particle effects.
-        switch (rechargeContext.result()) {
-            case BLAZE_EXTRACTION_SUCCESS, GHAST_EXTRACTION_SUCCESS -> {
-                if (rechargeContext.sourcePos() != null) {
-                    // Create recharge particle trail from mob to player's wand.
-                    Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
-                    Vec3 wandTip = getWandTipPosition(player, hand);
-                    this.spawnParticleTrail(level, ParticleTypes.SMALL_FLAME, mobStart, wandTip, 12, 5, 0.04);
-                }
-            }
-
-            case BLAZE_ROD_SUCCESS -> {
-                Vec3 wandTip = getWandTipPosition(player, hand);
-                level.sendParticles(
-                        ParticleTypes.SMALL_FLAME,
-                        wandTip.x, wandTip.y, wandTip.z, // position
-                        10, // # of particles
-                        0.05,0.05,0.05, // particle spread
-                        0.05 // particle speed
-                );
-            }
+        if ((rechargeContext.result() == FireRechargeResult.BLAZE_EXTRACTION_SUCCESS
+                || rechargeContext.result() == FireRechargeResult.GHAST_EXTRACTION_SUCCESS)
+                && rechargeContext.sourcePos() != null) {
+            // Create recharge particle trail from mob to player's wand.
+            Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
+            Vec3 wandTip = getWandTipPosition(player, hand);
+            this.spawnParticleTrail(level, ParticleTypes.SMALL_FLAME, mobStart, wandTip, 12, 5, 0.04);
         }
 
         super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
@@ -214,12 +187,8 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".fire_wand.recharge.ghast"),
                     true
             );
-            case FireRechargeResult.BLAZE_ROD_SUCCESS -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".fire_wand.recharge.fuel"),
-                    true
-            );
-            case FireRechargeResult.NO_FUEL -> player.displayClientMessage(
-                    this.getNoRechargeFuelMessage(),
+            case FireRechargeResult.NO_MOB_FUEL -> player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".fire_wand.recharge.no_mob_fuel"),
                     true
             );
         }

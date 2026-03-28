@@ -136,8 +136,6 @@ public final class ModItems {
     }
 
     public static boolean isArcaneEnchantmentItem(@NonNull ItemStack stack) {
-        if (stack.isEmpty()) { return false; }
-
         return !getArcaneEnchantmentItem(stack).isEmpty();
     }
 }

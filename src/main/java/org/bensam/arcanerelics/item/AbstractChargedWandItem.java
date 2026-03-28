@@ -124,10 +124,6 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
     }
 
-    public Component getNoRechargeFuelMessage() {
-        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.no_fuel");
-    }
-
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyCharged) {
         return fullyCharged ? this.getFullPowerCastCost() : this.getNormalCastCost();
     }
@@ -279,6 +275,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
 
         // Check if wand has enough charges remaining to complete the cast.
         if (chargeCost > 0 && !this.hasAtLeastCharges(stack, chargeCost)) {
+            this.playCastFailEffects((ServerLevel) level, player, stack);
             player.displayClientMessage(this.getNoChargesMessage(), true);
             return true;
         }
@@ -327,6 +324,14 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
                 5, // # of particles
                 0.05,0.05,0.05, // particle spread
                 0.02 // particle speed
+        );
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.FIRE_EXTINGUISH,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
         );
     }
 

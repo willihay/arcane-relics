@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DED",
+    "LRL",
+    "OOO"
+  ],
+  "key": {
+    "D": "minecraft:diamond",
+    "E": "minecraft:ender_eye",
+    "L": "minecraft:lapis_lazuli",
+    "R": "minecraft:redstone",
+    "O": "minecraft:obsidian"
+  },
+  "result": {
+    "id": "arcane-relics:wand_enchanting_table"
+  }
+}

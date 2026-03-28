@@ -17,6 +17,7 @@ import org.bensam.arcanerelics.ModBlockEntities;
 import org.bensam.arcanerelics.ModItems;
 import org.bensam.arcanerelics.item.AbstractChargedWandItem;
 import org.bensam.arcanerelics.menu.WandEnchantingContainerData;
+import org.jspecify.annotations.NonNull;
 
 public class BlockEntityWandEnchantingTable extends BlockEntity implements Container {
     // --- Slot layout ---
@@ -36,9 +37,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     // state sync data
     public final WandEnchantingContainerData containerData = new WandEnchantingContainerData();
     private int xpCost;
-    private boolean hasLapis;
     private boolean hasValidRecipe;
-    private boolean hasWand;
 
     public BlockEntityWandEnchantingTable(BlockPos blockPos, BlockState blockState) {
         super(ModBlockEntities.WAND_ENCHANTING_TABLE.get(), blockPos, blockState);
@@ -60,8 +59,12 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
 
     @Override
-    public ItemStack getItem(int slotIndex) {
+    public @NonNull ItemStack getItem(int slotIndex) {
         return this.items.get(slotIndex);
+    }
+
+    public ContainerData getMenuData() {
+        return this.containerData;
     }
 
     public static boolean isArcaneWand(ItemStack stack) {
@@ -69,8 +72,6 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
 
     public static boolean isArcaneEnchantmentItem(ItemStack stack) {
-        if (stack.isEmpty()) { return false; }
-
         return ModItems.isArcaneEnchantmentItem(stack);
     }
 
@@ -80,7 +81,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
 
     @Override
-    public ItemStack removeItem(int slotIndex, int amount) {
+    public @NonNull ItemStack removeItem(int slotIndex, int amount) {
         ItemStack result = ContainerHelper.removeItem(this.items, slotIndex, amount);
         if (!result.isEmpty()) {
             this.recomputeState();
@@ -89,14 +90,14 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
 
     @Override
-    public ItemStack removeItemNoUpdate(int slotIndex) {
+    public @NonNull ItemStack removeItemNoUpdate(int slotIndex) {
         ItemStack result = ContainerHelper.takeItem(this.items, slotIndex);
         this.recomputeState();
         return result;
     }
 
     @Override
-    public void setItem(int slotIndex, ItemStack itemStack) {
+    public void setItem(int slotIndex, @NonNull ItemStack itemStack) {
         this.items.set(slotIndex, itemStack);
 
         if (itemStack.getCount() > this.getMaxStackSize()) {
@@ -112,36 +113,14 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
     //endregion
 
-    //region Container Data Helper Methods
-    public ContainerData getMenuData() {
-        return this.containerData;
-    }
-
-    public int getXpCost() {
-        return this.xpCost;
-    }
-
-    public boolean hasLapis() {
-        return this.hasLapis;
-    }
-
-    public boolean hasValidRecipe() {
-        return this.hasValidRecipe;
-    }
-
-    public boolean hasWand() { return this.hasWand;
-    }
-    //endregion
-
     public void recomputeState() {
         ItemStack wandStack = getItem(WAND_INPUT_SLOT);
         ItemStack arcaneStack = getItem(ARCANE_ITEM_SLOT);
         ItemStack lapisStack = getItem(LAPIS_INPUT_SLOT);
 
-        this.hasWand = isArcaneWand(wandStack);
-        boolean validEnchantmentItem = isArcaneEnchantmentItem(arcaneStack);
-        this.hasLapis = !lapisStack.isEmpty() && lapisStack.is(Items.LAPIS_LAZULI);
-        this.hasValidRecipe = this.hasWand && validEnchantmentItem && this.hasLapis;
+        this.hasValidRecipe = isArcaneWand(wandStack)
+                && isArcaneEnchantmentItem(arcaneStack)
+                && lapisStack.is(Items.LAPIS_LAZULI);
 
         this.recomputeWandOutput();
         this.recomputeContainerData();
@@ -151,12 +130,10 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
 
     private void recomputeContainerData() {
         this.containerData.setXpCost(this.xpCost);
-        this.containerData.setHasLapis(this.hasLapis);
         this.containerData.setHasValidRecipe(this.hasValidRecipe);
-        this.containerData.setHasWand(this.hasWand);
     }
 
-    // Assumes hasValidRecipe is up-to-date.
+    // Assumes hasValidRecipe is up to date.
     private void recomputeWandOutput() {
         ItemStack inputWand = getItem(WAND_INPUT_SLOT);
         ItemStack currentOutputWand = getItem(WAND_OUTPUT_SLOT);
@@ -174,7 +151,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
                 newOutputWand = recipeWand.copy();
                 newOutputWand.setCount(1);
 
-                // If input and output are same wand type, carry charges and any custom name over and recharge.
+                // If input and output are the same wand type, carry charges and any custom name over and recharge.
                 if (inputWand.is(newOutputWand.getItem())) {
                     // Preserve the custom name if the input wand was named.
                     if (inputWand.has(DataComponents.CUSTOM_NAME)) {
@@ -201,7 +178,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
 
     //region Persistence Methods
     @Override
-    protected void loadAdditional(ValueInput valueInput) {
+    protected void loadAdditional(@NonNull ValueInput valueInput) {
         super.loadAdditional(valueInput);
         ContainerHelper.loadAllItems(valueInput, this.items);
 
@@ -209,7 +186,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
 
     @Override
-    protected void saveAdditional(ValueOutput valueOutput) {
+    protected void saveAdditional(@NonNull ValueOutput valueOutput) {
         super.saveAdditional(valueOutput);
         ContainerHelper.saveAllItems(valueOutput, this.items);
     }

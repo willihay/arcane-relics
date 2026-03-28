@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.menu.WandEnchantingMenu;
+import org.jspecify.annotations.NonNull;
 
 @Environment(EnvType.CLIENT)
 public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchantingMenu> {
@@ -45,16 +46,16 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
     protected void init() {
         super.init();
 
-        // Position the title
+        // Position the title.
         this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
         this.titleLabelY = 22;
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+    public void render(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         super.render(guiGraphics, mouseX, mouseY, delta);
 
-        // Render item tooltips
+        // Render item tooltips.
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
@@ -115,7 +116,7 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int i, int j) {
+    protected void renderLabels(@NonNull GuiGraphics guiGraphics, int i, int j) {
         super.renderLabels(guiGraphics, i, j);
 
         int xpCost = this.menu.getXpCost();
@@ -125,8 +126,8 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
                 textColor = 0xFFFF6060; // Light red
             }
             Component costComponent = Component.translatable(
-                    "container.arcane-relics.wand_enchanting.cost",
-                    new Object[]{xpCost});
+                    "container." + ArcaneRelics.MOD_ID + ".wand_enchanting.cost",
+                    xpCost);
 
             int rectangleTopY = 69;
             int rectangleRightX = this.imageWidth - 8;

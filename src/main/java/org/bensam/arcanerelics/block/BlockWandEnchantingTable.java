@@ -3,7 +3,6 @@ package org.bensam.arcanerelics.block;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
@@ -17,6 +16,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
 import org.bensam.arcanerelics.menu.WandEnchantingMenu;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class BlockWandEnchantingTable extends BaseEntityBlock {
@@ -28,17 +28,17 @@ public class BlockWandEnchantingTable extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
+    protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+    public @Nullable BlockEntity newBlockEntity(@NonNull BlockPos blockPos, @NonNull BlockState blockState) {
         return new BlockEntityWandEnchantingTable(blockPos, blockState);
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult blockHitResult) {
+    protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState blockState, Level level, @NonNull BlockPos blockPos, @NonNull Player player, @NonNull BlockHitResult blockHitResult) {
         if (!level.isClientSide()) {
             player.openMenu(blockState.getMenuProvider(level, blockPos));
             //player.awardStat(Stats.INTERACT_WITH_CRAFTING_TABLE); // TODO: create stat for wand enchanting table
@@ -48,7 +48,7 @@ public class BlockWandEnchantingTable extends BaseEntityBlock {
     }
 
     @Override
-    protected @Nullable MenuProvider getMenuProvider(BlockState blockState, Level level, BlockPos blockPos) {
+    protected @Nullable MenuProvider getMenuProvider(@NonNull BlockState blockState, Level level, @NonNull BlockPos blockPos) {
         if (level.getBlockEntity(blockPos) instanceof BlockEntityWandEnchantingTable blockEntityWandEnchantingTable) {
             return new SimpleMenuProvider(
                     (containerId, inventory, player) -> new WandEnchantingMenu(

@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
@@ -15,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.NonNull;
@@ -24,14 +24,14 @@ import org.jspecify.annotations.Nullable;
 public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand.LightningRechargeResult> implements WandEnchantingTableOutput {
     public static final int INITIAL_CHARGES = 20;
     public static final int MAX_CHARGES = 40;
+    private static final int RECHARGE_AMOUNT = 20;
 
     private static final int NORMAL_CAST_COST = 1;
-    private static final int FULL_POWER_TICKS = 60;
     private static final int FULL_POWER_CAST_COST = 2;
+    private static final int FULL_POWER_TICKS = 60;
     private static final int WAND_RANGE = 60;
 
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
-    private static final int CHANNELING_BOOK_RECHARGE_AMOUNT = 20;
 
     private static final float BASE_EXPLOSION_POWER = 0.75f;
     private static final float MAX_EXPLOSION_POWER = 2.5f;
@@ -64,7 +64,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     }
 
     @Override
-    public int getRechargeChargeAmount() { return CHANNELING_BOOK_RECHARGE_AMOUNT; }
+    public int getRechargeChargeAmount() { return RECHARGE_AMOUNT; }
     //endregion
 
     //region Recharge Methods
@@ -72,14 +72,11 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         ALREADY_FULL,
         LIGHTNING_ROD_SUCCESS,
         NO_THUNDER,
-        CHANNELING_BOOK_SUCCESS,
-        NO_FUEL
+        NO_LIGHTNING_ROD
     }
 
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        if (stack.isEmpty()) { return false; }
-
         return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.CHANNELING);
     }
 
@@ -92,22 +89,17 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         boolean isThundering = level.isThundering();
 
         BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition());
-        boolean foundLightningRod = lightningRodPos != null;
-        if (foundLightningRod && isThundering) {
-            this.setCharges(wandStack, this.getMaxCharges());
-            return new RechargeContext<>(LightningRechargeResult.LIGHTNING_ROD_SUCCESS, lightningRodPos);
+        if (lightningRodPos != null) {
+            if (isThundering) {
+                this.setCharges(wandStack, this.getMaxCharges());
+                return new RechargeContext<>(LightningRechargeResult.LIGHTNING_ROD_SUCCESS, lightningRodPos);
+            }
+            else {
+                return new RechargeContext<>(LightningRechargeResult.NO_THUNDER, null);
+            }
         }
 
-        LightningRechargeResult blazeRodResult = this.tryBookOfChannelingRecharge(player, wandStack);
-        if (blazeRodResult == LightningRechargeResult.CHANNELING_BOOK_SUCCESS || blazeRodResult == LightningRechargeResult.NO_FUEL) {
-            return new RechargeContext<>(blazeRodResult, null);
-        }
-
-        if (foundLightningRod) {
-            return new RechargeContext<>(LightningRechargeResult.NO_THUNDER, null);
-        }
-
-        return new RechargeContext<>(blazeRodResult, null);
+        return new RechargeContext<>(LightningRechargeResult.NO_LIGHTNING_ROD, null);
     }
 
     protected static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center) {
@@ -119,7 +111,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
                 center.offset(-radius, -radius, -radius),
                 center.offset(radius, radius, radius)
         )) {
-            if (!level.getBlockState(pos).is(Blocks.LIGHTNING_ROD)) {
+            if (!level.getBlockState(pos).is(BlockTags.LIGHTNING_RODS)) {
                 continue;
             }
 
@@ -135,15 +127,6 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         }
 
         return closestRod;
-    }
-
-    private LightningRechargeResult tryBookOfChannelingRecharge(Player player, ItemStack stack) {
-        if (this.consumeArcaneFuelFromInventory(player, Items.ENCHANTED_BOOK, Enchantments.CHANNELING)) {
-            this.addCharges(stack, CHANNELING_BOOK_RECHARGE_AMOUNT);
-            return LightningRechargeResult.CHANNELING_BOOK_SUCCESS;
-        }
-
-        return LightningRechargeResult.NO_FUEL;
     }
 
     @Override
@@ -174,25 +157,6 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
                 Vec3 wandTip = getWandTipPosition(player, hand);
                 this.spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, rodTop, wandTip, 12, 4, 0.04);
             }
-        } else if (rechargeContext.result() == LightningRechargeResult.CHANNELING_BOOK_SUCCESS) {
-            level.playSound(
-                    null,
-                    player.blockPosition(),
-                    SoundEvents.ENCHANTMENT_TABLE_USE,
-                    SoundSource.PLAYERS,
-                    1.0f, // volume
-                    1.0f // pitch
-            );
-
-            // Create recharge particles.
-            Vec3 wandTip = getWandTipPosition(player, hand);
-            level.sendParticles(
-                    ParticleTypes.ELECTRIC_SPARK,
-                    wandTip.x, wandTip.y, wandTip.z, // position
-                    5, // # of particles
-                    0.05,0.05,0.05, // particle spread
-                    0.02 // particle speed
-            );
         }
 
         super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
@@ -213,12 +177,8 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_thunder"),
                     true
             );
-            case CHANNELING_BOOK_SUCCESS -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.fuel"),
-                    true
-            );
-            case NO_FUEL -> player.displayClientMessage(
-                    this.getNoRechargeFuelMessage(),
+            case NO_LIGHTNING_ROD -> player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_lightning_rod"),
                     true
             );
         }
