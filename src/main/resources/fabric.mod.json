@@ -8,10 +8,11 @@
 		"Willow the Wisp"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/willihay/arcane-relics"
+		"homepage": "https://github.com/willihay/arcane-relics/wiki",
+		"sources": "https://github.com/willihay/arcane-relics",
+		"issues": "https://github.com/willihay/arcane-relics/issues"
 	},
-	"license": "CC0-1.0",
+	"license": "LGPL-3.0-only",
 	"icon": "assets/arcane-relics/icon.png",
 	"environment": "*",
 	"entrypoints": {
