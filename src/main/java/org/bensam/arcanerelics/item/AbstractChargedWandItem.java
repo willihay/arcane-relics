@@ -13,15 +13,17 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModComponents;
 import org.jspecify.annotations.NonNull;
@@ -32,6 +34,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     private final int maxCharges;
 
     public record RechargeContext<R extends Enum<R> & RechargeResult> (R result, @Nullable BlockPos sourcePos) {}
+    public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
     public AbstractChargedWandItem(Properties properties, int initialCharges, int maxCharges) {
         super(properties);
@@ -89,6 +92,30 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
 
     public void consumeCharges(ItemStack stack, int amount) {
         this.setCharges(stack, this.getCharges(stack) - amount);
+    }
+
+    protected static <T extends Entity> BlockPos findClosestMobOfType(Level level, BlockPos center, int radius, Class<T> mobType) {
+        BlockPos closestMob = null;
+        double closestDistanceSq = Double.MAX_VALUE;
+
+        AABB searchBox = new AABB(
+                center.getX() - radius, center.getY() - radius, center.getZ() - radius,
+                center.getX() + radius + 1, center.getY() + radius + 1, center.getZ() + radius + 1
+        );
+
+        for (T mob : level.getEntitiesOfClass(mobType, searchBox)) {
+            if (!mob.isAlive()) {
+                continue;
+            }
+
+            double distanceSq = mob.blockPosition().distSqr(center);
+            if (distanceSq < closestDistanceSq) {
+                closestDistanceSq = distanceSq;
+                closestMob = mob.blockPosition().immutable();
+            }
+        }
+
+        return closestMob;
     }
 
     public Component getChargeDisplayMessage(ItemStack stack) {
@@ -217,6 +244,59 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
                     0.0
             );
         }
+    }
+    //endregion
+
+    //region Targeting Methods
+    protected static TargetResult getTarget(Player player, double distance) {
+        // 1. Raycast for blocks.
+        HitResult blockHit = player.pick(distance, 0.0f, true);
+
+        // 2. Raycast for entities.
+        EntityHitResult entityHit = raycastEntities(player, distance);
+
+        // 3. If no entity hit, just return the block hit (if any).
+        if (entityHit == null) {
+            if (blockHit.getType() == HitResult.Type.BLOCK) {
+                return new TargetResult(((BlockHitResult) blockHit).getBlockPos(), null);
+            }
+            return null;
+        }
+
+        // 4. Compare distances: entity vs block.
+        double blockDist = blockHit.getLocation().distanceTo(player.getEyePosition());
+        double entityDist = entityHit.getLocation().distanceTo(player.getEyePosition());
+
+        if (entityDist < blockDist) {
+            // Player is looking at an entity → return block under entity.
+            Entity e = entityHit.getEntity();
+            return new TargetResult(e.blockPosition(), e); // block the entity is standing on
+        }
+
+        // Otherwise return the block hit.
+        if (blockHit.getType() == HitResult.Type.BLOCK) {
+            return new TargetResult(((BlockHitResult) blockHit).getBlockPos(), null);
+        }
+
+        return null;
+    }
+
+    private static EntityHitResult raycastEntities(Player player, double distance) {
+        Vec3 start = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+        Vec3 end = start.add(look.scale(distance));
+
+        AABB box = player.getBoundingBox().expandTowards(look.scale(distance)).inflate(1.0);
+
+        // Note: This Minecraft utility expects the square of the distance to be passed in as distance.
+        return ProjectileUtil.getEntityHitResult(
+                player,
+                start,
+                end,
+                box,
+                entity -> !entity.isSpectator() && entity.isPickable(),
+                distance * distance
+        );
     }
     //endregion
 

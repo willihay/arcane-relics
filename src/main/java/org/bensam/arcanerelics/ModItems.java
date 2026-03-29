@@ -7,10 +7,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import org.bensam.arcanerelics.item.ItemArcaneWand;
-import org.bensam.arcanerelics.item.ItemFireWand;
-import org.bensam.arcanerelics.item.ItemLightningWand;
-import org.bensam.arcanerelics.item.WandEnchantingTableOutput;
+import org.bensam.arcanerelics.item.*;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -25,10 +22,12 @@ public final class ModItems {
 
     private static ItemArcaneWand arcaneWandInternal;
     private static ItemFireWand fireWandInternal;
+    private static ItemLevitationWand levitationWandInternal;
     private static ItemLightningWand lightningWandInternal;
 
     public static final Supplier<ItemArcaneWand> ARCANE_WAND = () -> arcaneWandInternal;
     public static final Supplier<ItemFireWand> FIRE_WAND = () -> fireWandInternal;
+    public static final Supplier<ItemLevitationWand> LEVITATION_WAND = () -> levitationWandInternal;
     public static final Supplier<ItemLightningWand> LIGHTNING_WAND = () -> lightningWandInternal;
 
     public static void initialize() {
@@ -48,7 +47,7 @@ public final class ModItems {
                         .component(ModComponents.WAND_TOOLTIP_COMPONENT,
                                 new ModComponents.WandTooltipComponent(
                                         "item." + ArcaneRelics.MOD_ID + ".arcane_wand.info",
-                                        1
+                                        2
                                 )
                         )
         );
@@ -70,6 +69,28 @@ public final class ModItems {
                                 new ModComponents.WandTooltipComponent(
                                         "item." + ArcaneRelics.MOD_ID + ".fire_wand.info",
                                         3
+                                )
+                        )
+                        .stacksTo(1)
+        );
+
+        levitationWandInternal = register(
+                "levitation_wand",
+                ItemLevitationWand::new,
+                new Item.Properties()
+                        .component(
+                                ModComponents.WAND_CHARGES_COMPONENT,
+                                new ModComponents.WandChargesComponent(ItemLevitationWand.INITIAL_CHARGES)
+                        )
+                        .component(
+                                ModComponents.WAND_MAX_CHARGES_COMPONENT,
+                                ItemLevitationWand.MAX_CHARGES
+                        )
+                        .component(
+                                ModComponents.WAND_TOOLTIP_COMPONENT,
+                                new ModComponents.WandTooltipComponent(
+                                        "item." + ArcaneRelics.MOD_ID + ".levitation_wand.info",
+                                        2
                                 )
                         )
                         .stacksTo(1)

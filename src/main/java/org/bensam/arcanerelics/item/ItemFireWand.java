@@ -86,7 +86,6 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         RechargeContext<FireRechargeResult> mobFuelSearchResult = findNearbyMobFuel(level, player.blockPosition());
         if (mobFuelSearchResult.result() != FireRechargeResult.NO_MOB_FUEL) {
             this.setCharges(wandStack, this.getMaxCharges());
-            return mobFuelSearchResult;
         }
 
         return mobFuelSearchResult;
@@ -111,36 +110,13 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         return new RechargeContext<>(FireRechargeResult.NO_MOB_FUEL, null);
     }
 
-    protected static <T extends Entity> BlockPos findClosestMobOfType(Level level, BlockPos center, int radius, Class<T> mobType) {
-        BlockPos closestMob = null;
-        double closestDistanceSq = Double.MAX_VALUE;
-
-        AABB searchBox = new AABB(
-                center.getX() - radius, center.getY() - radius, center.getZ() - radius,
-                center.getX() + radius + 1, center.getY() + radius + 1, center.getZ() + radius + 1
-        );
-
-        for (T mob : level.getEntitiesOfClass(mobType, searchBox)) {
-            if (!mob.isAlive()) {
-                continue;
-            }
-
-            double distanceSq = mob.blockPosition().distSqr(center);
-            if (distanceSq < closestDistanceSq) {
-                closestDistanceSq = distanceSq;
-                closestMob = mob.blockPosition().immutable();
-            }
-        }
-
-        return closestMob;
-    }
-
     @Override
     protected void playRechargeContextEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
-            ItemStack stack, @NonNull RechargeContext<FireRechargeResult> rechargeContext
+            ItemStack stack,
+            @NonNull RechargeContext<FireRechargeResult> rechargeContext
     ) {
         // Play sound effects.
         SoundEvent soundRechargeEvent = null;
@@ -169,25 +145,26 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
             this.spawnParticleTrail(level, ParticleTypes.SMALL_FLAME, mobStart, wandTip, 12, 5, 0.04);
         }
 
+        // Play default effects.
         super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
     }
 
     @Override
     protected void sendRechargeFeedback(Player player, FireRechargeResult result) {
         switch (result) {
-            case FireRechargeResult.ALREADY_FULL -> player.displayClientMessage(
+            case ALREADY_FULL -> player.displayClientMessage(
                     this.getFullyChargedMessage(),
                     true
             );
-            case FireRechargeResult.BLAZE_EXTRACTION_SUCCESS -> player.displayClientMessage(
+            case BLAZE_EXTRACTION_SUCCESS -> player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".fire_wand.recharge.blaze"),
                     true
             );
-            case FireRechargeResult.GHAST_EXTRACTION_SUCCESS -> player.displayClientMessage(
+            case GHAST_EXTRACTION_SUCCESS -> player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".fire_wand.recharge.ghast"),
                     true
             );
-            case FireRechargeResult.NO_MOB_FUEL -> player.displayClientMessage(
+            case NO_MOB_FUEL -> player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".fire_wand.recharge.no_mob_fuel"),
                     true
             );

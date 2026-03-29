@@ -11,7 +11,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -25,18 +24,16 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     public static final int INITIAL_CHARGES = 20;
     public static final int MAX_CHARGES = 40;
     private static final int RECHARGE_AMOUNT = 20;
+    private static final int WAND_RANGE = 60;
 
     private static final int NORMAL_CAST_COST = 1;
     private static final int FULL_POWER_CAST_COST = 2;
     private static final int FULL_POWER_TICKS = 60;
-    private static final int WAND_RANGE = 60;
 
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
 
     private static final float BASE_EXPLOSION_POWER = 0.75f;
     private static final float MAX_EXPLOSION_POWER = 2.5f;
-
-    public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
     public ItemLightningWand(Properties properties) {
         super(properties, INITIAL_CHARGES, MAX_CHARGES);
@@ -159,6 +156,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
             }
         }
 
+        // Play default effects.
         super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
     }
 
@@ -213,55 +211,5 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         return true;
     }
 
-    private static TargetResult getTarget(Player player, double distance) {
-        // 1. Raycast for blocks.
-        HitResult blockHit = player.pick(distance, 0.0f, true);
-
-        // 2. Raycast for entities.
-        EntityHitResult entityHit = raycastEntities(player, distance);
-
-        // 3. If no entity hit, just return the block hit (if any).
-        if (entityHit == null) {
-            if (blockHit.getType() == HitResult.Type.BLOCK) {
-                return new TargetResult(((BlockHitResult) blockHit).getBlockPos(), null);
-            }
-            return null;
-        }
-
-        // 4. Compare distances: entity vs block.
-        double blockDist = blockHit.getLocation().distanceTo(player.getEyePosition());
-        double entityDist = entityHit.getLocation().distanceTo(player.getEyePosition());
-
-        if (entityDist < blockDist) {
-            // Player is looking at an entity → return block under entity.
-            Entity e = entityHit.getEntity();
-            return new TargetResult(e.blockPosition(), e); // block the entity is standing on
-        }
-
-        // Otherwise return the block hit.
-        if (blockHit.getType() == HitResult.Type.BLOCK) {
-            return new TargetResult(((BlockHitResult) blockHit).getBlockPos(), null);
-        }
-
-        return null;
-    }
-
-    private static EntityHitResult raycastEntities(Player player, double distance) {
-        Vec3 start = player.getEyePosition();
-        Vec3 look = player.getLookAngle();
-        Vec3 end = start.add(look.scale(distance));
-
-        AABB box = player.getBoundingBox().expandTowards(look.scale(distance)).inflate(1.0);
-
-        // Note: This Minecraft utility expects the square of the distance to be passed in as distance.
-        return ProjectileUtil.getEntityHitResult(
-                player,
-                start,
-                end,
-                box,
-                entity -> !entity.isSpectator() && entity.isPickable(),
-                distance * distance
-        );
-    }
     //endregion
 }
