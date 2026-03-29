@@ -24,8 +24,8 @@ import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.NonNull;
 
 public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRechargeResult> implements WandEnchantingTableOutput {
-    public static final int INITIAL_CHARGES = 30;
-    public static final int MAX_CHARGES = 50;
+    public static final int INITIAL_CHARGES = 20;
+    public static final int MAX_CHARGES = 40;
     private static final int RECHARGE_AMOUNT = 20;
 
     private static final int NORMAL_CAST_COST = 1;

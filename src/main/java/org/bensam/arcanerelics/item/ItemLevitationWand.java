@@ -20,8 +20,8 @@ import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.NonNull;
 
 public class ItemLevitationWand extends AbstractChargedWandItem<ItemLevitationWand.LevitationRechargeResult> implements WandEnchantingTableOutput {
-    public static final int INITIAL_CHARGES = 30;
-    public static final int MAX_CHARGES = 50;
+    public static final int INITIAL_CHARGES = 20;
+    public static final int MAX_CHARGES = 40;
     private static final int RECHARGE_AMOUNT = 20;
     private static final int WAND_RANGE = 60;
 
