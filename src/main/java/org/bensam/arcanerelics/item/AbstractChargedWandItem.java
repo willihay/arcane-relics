@@ -151,8 +151,8 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
     }
 
-    protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyCharged) {
-        return fullyCharged ? this.getFullPowerCastCost() : this.getNormalCastCost();
+    protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
+        return fullyPowered ? this.getFullPowerCastCost() : this.getNormalCastCost();
     }
 
     protected float getPowerUpPercentage(int elapsedTicks) {

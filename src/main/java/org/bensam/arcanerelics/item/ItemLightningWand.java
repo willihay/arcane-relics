@@ -21,9 +21,9 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand.LightningRechargeResult> implements WandEnchantingTableOutput {
-    public static final int INITIAL_CHARGES = 20;
-    public static final int MAX_CHARGES = 40;
-    private static final int RECHARGE_AMOUNT = 20;
+    public static final int INITIAL_CHARGES = 15;
+    public static final int MAX_CHARGES = 30;
+    private static final int RECHARGE_AMOUNT = 15;
     private static final int WAND_RANGE = 60;
 
     private static final int NORMAL_CAST_COST = 1;
@@ -33,7 +33,7 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
 
     private static final float BASE_EXPLOSION_POWER = 0.75f;
-    private static final float MAX_EXPLOSION_POWER = 2.5f;
+    private static final float MAX_EXPLOSION_POWER = 2.0f;
 
     public ItemLightningWand(Properties properties) {
         super(properties, INITIAL_CHARGES, MAX_CHARGES);
@@ -56,8 +56,8 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     }
 
     @Override
-    protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyCharged) {
-        return level.isThundering() ? 0 : super.getPowerUpCost(level, player, stack, chargeTicks, fullyCharged);
+    protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
+        return level.isThundering() ? NORMAL_CAST_COST : super.getPowerUpCost(level, player, stack, chargeTicks, fullyPowered);
     }
 
     @Override
@@ -186,6 +186,15 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     //region Cast Methods
     @Override
     protected boolean performCast(Level level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
+        // Check if dimension has sky light. Can't cast lightning in the nether.
+        if (!level.dimensionType().hasSkyLight()) {
+            player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.cast.no_skylight"),
+                    true
+            );
+            return false;
+        }
+
         float explosionPower = Mth.lerp(powerUpPercentage, BASE_EXPLOSION_POWER, MAX_EXPLOSION_POWER);
         return this.summonChargedLightning(level, player, explosionPower, isFullyPowered);
     }

@@ -35,6 +35,7 @@
   "message.arcane-relics.fire_wand.recharge.no_mob_fuel": "No blaze or ghasts found nearby",
   "message.arcane-relics.levitation_wand.recharge.shulker": "Recharged to full from nearby shulker",
   "message.arcane-relics.levitation_wand.recharge.no_mob_fuel": "No shulker found nearby",
+  "message.arcane-relics.lightning_wand.cast.no_skylight": "No skylight in this dimension",
   "message.arcane-relics.lightning_wand.recharge.lightning_rod": "Recharged to full from nearby lightning rod",
   "message.arcane-relics.lightning_wand.recharge.no_thunder": "Lightning rod recharge requires a thunderstorm",
   "message.arcane-relics.lightning_wand.recharge.no_lightning_rod": "No lightning rod found nearby"
