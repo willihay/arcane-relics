@@ -24,43 +24,19 @@ import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.NonNull;
 
 public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRechargeResult> implements WandEnchantingTableOutput {
-    public static final int INITIAL_CHARGES = 20;
-    public static final int MAX_CHARGES = 40;
-    private static final int RECHARGE_AMOUNT = 20;
-
-    private static final int NORMAL_CAST_COST = 1;
-    private static final int FULL_POWER_CAST_COST = 2;
-    private static final int FULL_POWER_TICKS = 20;
-
     private static final int BLAZE_EXTRACTION_RECHARGE_RADIUS = 8;
     private static final int GHAST_EXTRACTION_RECHARGE_RADIUS = 20;
-
     private static final float BASE_EXPLOSION_POWER = 0.5f;
     private static final float MAX_EXPLOSION_POWER = 2.0f;
 
-    public ItemFireWand(Properties properties) {
-        super(properties, INITIAL_CHARGES, MAX_CHARGES);
-    }
-
-    //region Helper Methods
-    @Override
-    protected int getFullPowerCastCost() {
-        return FULL_POWER_CAST_COST;
+    public ItemFireWand(Properties properties, WandDefinition definition) {
+        super(properties, definition);
     }
 
     @Override
-    protected int getFullPowerTicks() {
-        return FULL_POWER_TICKS;
+    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
+        return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.FLAME);
     }
-
-    @Override
-    protected int getNormalCastCost() {
-        return NORMAL_CAST_COST;
-    }
-
-    @Override
-    public int getRechargeChargeAmount() { return RECHARGE_AMOUNT; }
-    //endregion
 
     //region Recharge Methods
     public enum FireRechargeResult implements RechargeResult {
@@ -68,11 +44,6 @@ public class ItemFireWand extends AbstractChargedWandItem<ItemFireWand.FireRecha
         BLAZE_EXTRACTION_SUCCESS,
         GHAST_EXTRACTION_SUCCESS,
         NO_MOB_FUEL
-    }
-
-    @Override
-    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.FLAME);
     }
 
     @Override

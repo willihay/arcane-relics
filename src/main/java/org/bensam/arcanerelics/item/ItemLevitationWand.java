@@ -20,51 +20,23 @@ import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.NonNull;
 
 public class ItemLevitationWand extends AbstractChargedWandItem<ItemLevitationWand.LevitationRechargeResult> implements WandEnchantingTableOutput {
-    public static final int INITIAL_CHARGES = 20;
-    public static final int MAX_CHARGES = 40;
-    private static final int RECHARGE_AMOUNT = 20;
     private static final int WAND_RANGE = 60;
-
-    private static final int NORMAL_CAST_COST = 1;
-    private static final int FULL_POWER_CAST_COST = 1;
-    private static final int FULL_POWER_TICKS = 20;
-
     private static final int SHULKER_EXTRACTION_RECHARGE_RADIUS = 8;
 
-    public ItemLevitationWand(Properties properties) { super(properties, INITIAL_CHARGES, MAX_CHARGES); }
-
-    //region Helper Methods
-    @Override
-    protected int getFullPowerCastCost() {
-        return FULL_POWER_CAST_COST;
+    public ItemLevitationWand(Properties properties, WandDefinition definition) {
+        super(properties, definition);
     }
 
     @Override
-    protected int getFullPowerTicks() {
-        return FULL_POWER_TICKS;
+    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
+        return stack.is(Items.SHULKER_SHELL);
     }
-
-    @Override
-    protected int getNormalCastCost() {
-        return NORMAL_CAST_COST;
-    }
-
-    @Override
-    public int getRechargeChargeAmount() {
-        return RECHARGE_AMOUNT;
-    }
-    //endregion
 
     //region Recharge Methods
     public enum LevitationRechargeResult implements RechargeResult {
         ALREADY_FULL,
         SHULKER_EXTRACTION_SUCCESS,
         NO_MOB_FUEL
-    }
-
-    @Override
-    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return stack.is(Items.SHULKER_SHELL);
     }
 
     @Override

@@ -21,48 +21,24 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand.LightningRechargeResult> implements WandEnchantingTableOutput {
-    public static final int INITIAL_CHARGES = 15;
-    public static final int MAX_CHARGES = 30;
-    private static final int RECHARGE_AMOUNT = 15;
     private static final int WAND_RANGE = 60;
-
-    private static final int NORMAL_CAST_COST = 1;
-    private static final int FULL_POWER_CAST_COST = 2;
-    private static final int FULL_POWER_TICKS = 60;
-
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
-
     private static final float BASE_EXPLOSION_POWER = 0.75f;
     private static final float MAX_EXPLOSION_POWER = 2.0f;
 
-    public ItemLightningWand(Properties properties) {
-        super(properties, INITIAL_CHARGES, MAX_CHARGES);
-    }
-
-    //region Helper Methods
-    @Override
-    protected int getFullPowerCastCost() {
-        return FULL_POWER_CAST_COST;
+    public ItemLightningWand(Properties properties, WandDefinition definition) {
+        super(properties, definition);
     }
 
     @Override
-    protected int getFullPowerTicks() {
-        return FULL_POWER_TICKS;
-    }
-
-    @Override
-    protected int getNormalCastCost() {
-        return NORMAL_CAST_COST;
+    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
+        return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.CHANNELING);
     }
 
     @Override
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
-        return level.isThundering() ? NORMAL_CAST_COST : super.getPowerUpCost(level, player, stack, chargeTicks, fullyPowered);
+        return level.isThundering() ? this.getNormalCastCost() : super.getPowerUpCost(level, player, stack, chargeTicks, fullyPowered);
     }
-
-    @Override
-    public int getRechargeChargeAmount() { return RECHARGE_AMOUNT; }
-    //endregion
 
     //region Recharge Methods
     public enum LightningRechargeResult implements RechargeResult {
@@ -70,11 +46,6 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
         LIGHTNING_ROD_SUCCESS,
         NO_THUNDER,
         NO_LIGHTNING_ROD
-    }
-
-    @Override
-    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.CHANNELING);
     }
 
     @Override

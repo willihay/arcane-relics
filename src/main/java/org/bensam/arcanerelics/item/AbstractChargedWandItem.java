@@ -1,6 +1,5 @@
 package org.bensam.arcanerelics.item;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
@@ -30,71 +29,93 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult> extends Item {
-    private final int initialCharges;
-    private final int maxCharges;
+    private final WandDefinition definition;
 
     public record RechargeContext<R extends Enum<R> & RechargeResult> (R result, @Nullable BlockPos sourcePos) {}
     public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
-    public AbstractChargedWandItem(Properties properties, int initialCharges, int maxCharges) {
+    public AbstractChargedWandItem(Properties properties, WandDefinition definition) {
         super(properties);
-        this.initialCharges = initialCharges;
-        this.maxCharges = maxCharges;
+        this.definition = definition;
     }
 
-    //region Helper Methods
-    public int addCharges(ItemStack stack, int amount) {
-        int currentCharges = this.getCharges(stack);
-        int newCharges = Math.min(currentCharges + amount, this.getMaxCharges());
-        this.setCharges(stack, newCharges);
-        return newCharges;
-    }
+    //region Enchanting Methods
+    public int getNewWandXpCost() { return 2; }
 
-    protected boolean consumeArcaneFuelFromInventory(Player player, Item item) {
-        var inventory = player.getInventory();
-        int inventorySize = inventory.getContainerSize();
+    public int getRechargeChargeAmount() { return this.definition.rechargeAmount(); }
 
-        for (int slot = 0; slot < inventorySize; slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (stack.is(item)) {
-                stack.shrink(1);
-                inventory.setChanged();
+    public int getRechargeXpCost() { return 1; }
+
+    public static boolean hasEnchantment(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+
+        for (var entry : enchantments.entrySet()) {
+            var key = entry.getKey().unwrapKey();
+            if (key.isPresent() && key.get() == enchantmentKey) {
                 return true;
             }
         }
 
         return false;
     }
+    //endregion
 
-    protected boolean consumeArcaneFuelFromInventory(Player player, Item item, ResourceKey<Enchantment> enchantmentKey) {
-        var inventory = player.getInventory();
-        int inventorySize = inventory.getContainerSize();
-
-        for (int slot = 0; slot < inventorySize; slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (stack.is(item)) {
-                var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
-
-                for (var entry : enchantments.entrySet()) {
-                    var key = entry.getKey().unwrapKey();
-
-                    if (key.isPresent() && key.get() == enchantmentKey) {
-                        stack.shrink(1);
-                        inventory.setChanged();
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
+    //region Charge Helper Methods
+    public void addCharges(ItemStack stack, int amount) {
+        int newCharges = this.getCharges(stack) + amount;
+        this.setCharges(stack, newCharges);
     }
 
     public void consumeCharges(ItemStack stack, int amount) {
         this.setCharges(stack, this.getCharges(stack) - amount);
     }
 
-    protected static <T extends Entity> BlockPos findClosestMobOfType(Level level, BlockPos center, int radius, Class<T> mobType) {
+    public int getCharges(ItemStack stack) {
+        return stack.getOrDefault(
+                ModComponents.WAND_CHARGES_COMPONENT,
+                new ModComponents.WandChargesComponent(this.definition.initialCharges())
+        ).charges();
+    }
+
+    public Component getFullyChargedMessage() {
+        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.fully_charged");
+    }
+
+    public int getMaxCharges() {
+        return this.definition.maxCharges();
+    }
+
+    public Component getNoChargesMessage() {
+        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
+    }
+
+    public boolean hasAtLeastCharges(ItemStack stack, int amount) {
+        return this.getCharges(stack) >= amount;
+    }
+
+    protected boolean hasEnoughChargesForCast(ItemStack stack, int chargeCost) {
+        return chargeCost <= 0 || this.hasAtLeastCharges(stack, chargeCost);
+    }
+
+    public boolean isFullyCharged(ItemStack stack) {
+        return this.getCharges(stack) >= this.getMaxCharges();
+    }
+
+    public void setCharges(ItemStack stack, int charges) {
+        stack.set(
+                ModComponents.WAND_CHARGES_COMPONENT,
+                new ModComponents.WandChargesComponent(Math.max(0, Math.min(charges, this.getMaxCharges())))
+        );
+    }
+    //endregion
+
+    //region Targeting Methods
+    protected static <T extends Entity> BlockPos findClosestMobOfType(
+            Level level,
+            BlockPos center,
+            int radius,
+            Class<T> mobType
+    ) {
         BlockPos closestMob = null;
         double closestDistanceSq = Double.MAX_VALUE;
 
@@ -118,136 +139,6 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return closestMob;
     }
 
-    public Component getChargeDisplayMessage(ItemStack stack) {
-        int charges = this.getCharges(stack);
-        int maxCharges = this.getMaxCharges();
-        return Component.translatable(
-                "message." + ArcaneRelics.MOD_ID + ".wand.charges",
-                charges,
-                maxCharges
-        ).withStyle(ChatFormatting.GOLD);
-    }
-
-    public int getCharges(ItemStack stack) {
-        return stack.getOrDefault(
-                ModComponents.WAND_CHARGES_COMPONENT,
-                new ModComponents.WandChargesComponent(this.initialCharges)
-        ).charges();
-    }
-
-    protected int getElapsedTicks(ItemStack stack, LivingEntity entity, int remainingUseDuration) {
-        return this.getUseDuration(stack, entity) - remainingUseDuration;
-    }
-
-    public int getMaxCharges() {
-        return this.maxCharges;
-    }
-
-    public Component getFullyChargedMessage() {
-        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.fully_charged");
-    }
-
-    public Component getNoChargesMessage() {
-        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
-    }
-
-    protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
-        return fullyPowered ? this.getFullPowerCastCost() : this.getNormalCastCost();
-    }
-
-    protected float getPowerUpPercentage(int elapsedTicks) {
-        return Mth.clamp((float) elapsedTicks / this.getFullPowerTicks(), 0.0f, 1.0f);
-    }
-
-    public int getNewWandXpCost() { return 2; }
-
-    public int getRechargeXpCost() { return 1; }
-
-    @Override
-    public ItemUseAnimation getUseAnimation(ItemStack stack) {
-        return ItemUseAnimation.BOW;
-    }
-
-    @Override
-    public int getUseDuration(ItemStack stack, LivingEntity entity) {
-        return 72000; // same as bow; effectively as long as you want
-    }
-
-    protected static Vec3 getWandTipPosition(Player player, @Nullable InteractionHand hand) {
-        Vec3 look = player.getLookAngle().normalize();
-        Vec3 right = look.cross(Vec3.Y_AXIS).normalize();
-        double sideOffset = hand != null
-                ? (hand == InteractionHand.MAIN_HAND) ? 0.25 : -0.25
-                : 0.0;
-
-        return player.getEyePosition(1.0f)
-                .add(look) // forward offset towards tip
-                .add(right.scale(sideOffset)) // side offset towards interaction hand
-                .add(0.0, -0.20, 0.0); // downwards offset towards hand level
-    }
-
-    public boolean hasAtLeastCharges(ItemStack stack, int amount) {
-        return this.getCharges(stack) >= amount;
-    }
-
-    public static boolean hasEnchantment(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
-
-        for (var entry : enchantments.entrySet()) {
-            var key = entry.getKey().unwrapKey();
-
-            if (key.isPresent() && key.get() == enchantmentKey) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public boolean isFullyCharged(ItemStack stack) {
-        return this.getCharges(stack) >= this.getMaxCharges();
-    }
-
-    protected boolean isFullyPoweredUp(int elapsedTicks) {
-        return elapsedTicks >= this.getFullPowerTicks();
-    }
-
-    public void setCharges(ItemStack stack, int charges) {
-        stack.set(
-                ModComponents.WAND_CHARGES_COMPONENT,
-                new ModComponents.WandChargesComponent(Math.max(0, Math.min(charges, this.maxCharges)))
-        );
-    }
-
-    protected void spawnParticleTrail(
-            ServerLevel level,
-            ParticleOptions particle,
-            Vec3 startPos,
-            Vec3 endPos,
-            int steps,
-            int particlesPerStep,
-            double spread
-    ) {
-        if (steps <= 0 || particlesPerStep <= 0) {
-            return;
-        }
-
-        for (int i = 0; i < steps; i++) {
-            double t = (double) i / steps;
-            Vec3 pos = startPos.lerp(endPos, t);
-
-            level.sendParticles(
-                    particle,
-                    pos.x, pos.y, pos.z,
-                    particlesPerStep,
-                    spread, spread, spread,
-                    0.0
-            );
-        }
-    }
-    //endregion
-
-    //region Targeting Methods
     protected static TargetResult getTarget(Player player, double distance) {
         // 1. Raycast for blocks.
         HitResult blockHit = player.pick(distance, 0.0f, true);
@@ -263,7 +154,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
             return null;
         }
 
-        // 4. Compare distances: entity vs block.
+        // 4. Compare distances: entity vs. block.
         double blockDist = blockHit.getLocation().distanceTo(player.getEyePosition());
         double entityDist = entityHit.getLocation().distanceTo(player.getEyePosition());
 
@@ -300,8 +191,54 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     }
     //endregion
 
+    //region Wand Usage Lifecycle
+    protected int getElapsedTicks(ItemStack stack, LivingEntity entity, int remainingUseDuration) {
+        return this.getUseDuration(stack, entity) - remainingUseDuration;
+    }
+
+    protected int getFullPowerCastCost() { return this.definition.fullPowerCastCost(); }
+
+    protected int getFullPowerTicks() { return this.definition.fullPowerTicks(); }
+
+    protected int getNormalCastCost() { return this.definition.normalCastCost(); }
+
+    protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
+        return fullyPowered ? this.getFullPowerCastCost() : this.getNormalCastCost();
+    }
+
+    protected float getPowerUpPercentage(int elapsedTicks) {
+        return Mth.clamp((float) elapsedTicks / this.getFullPowerTicks(), 0.0f, 1.0f);
+    }
+
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public @NonNull ItemUseAnimation getUseAnimation(@NonNull ItemStack stack) {
+        return ItemUseAnimation.BOW;
+    }
+
+    @Override
+    public int getUseDuration(@NonNull ItemStack stack, @NonNull LivingEntity entity) {
+        return 72000; // same as bow; effectively as long as you want
+    }
+
+    protected static Vec3 getWandTipPosition(Player player, @Nullable InteractionHand hand) {
+        Vec3 look = player.getLookAngle().normalize();
+        Vec3 right = look.cross(Vec3.Y_AXIS).normalize();
+        double sideOffset = hand != null
+                ? (hand == InteractionHand.MAIN_HAND) ? 0.25 : -0.25
+                : 0.0;
+
+        return player.getEyePosition(1.0f)
+                .add(look) // forward offset towards tip
+                .add(right.scale(sideOffset)) // side offset towards interaction hand
+                .add(0.0, -0.20, 0.0); // downwards offset towards hand level
+    }
+
+    protected boolean isFullyPoweredUp(int elapsedTicks) {
+        return elapsedTicks >= this.getFullPowerTicks();
+    }
+
+    @Override
+    public @NonNull InteractionResult use(@NonNull Level level, Player player, @NonNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         // If sneaking, try to recharge.
@@ -320,7 +257,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     }
 
     @Override
-    public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int remainingUseDuration) {
+    public void onUseTick(@NonNull Level level, @NonNull LivingEntity entity, @NonNull ItemStack stack, int remainingUseDuration) {
         super.onUseTick(level, entity, stack, remainingUseDuration);
 
         int elapsedTicks = this.getElapsedTicks(stack, entity, remainingUseDuration);
@@ -332,7 +269,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     }
 
     @Override
-    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+    public boolean releaseUsing(ItemStack stack, Level level, @NonNull LivingEntity entity, int timeLeft) {
         stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
 
         // The remaining logic is for server-side only.
@@ -354,8 +291,8 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         int chargeCost = this.getPowerUpCost(level, player, stack, elapsedTicks, isFullyPowered);
 
         // Check if wand has enough charges remaining to complete the cast.
-        if (chargeCost > 0 && !this.hasAtLeastCharges(stack, chargeCost)) {
-            this.playCastFailEffects((ServerLevel) level, player, stack);
+        if (!this.hasEnoughChargesForCast(stack, chargeCost)) {
+            this.playCastFailEffects((ServerLevel) level, player);
             player.displayClientMessage(this.getNoChargesMessage(), true);
             return true;
         }
@@ -368,12 +305,22 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
             if (chargeCost > 0) {
                 this.consumeCharges(stack, chargeCost);
             }
-        }
-        else {
-            this.playCastFailEffects((ServerLevel) level, player, stack);
+        } else {
+            this.playCastFailEffects((ServerLevel) level, player);
         }
 
         return true;
+    }
+
+    protected void playDefaultRechargeEffects(ServerLevel level, Player player) {
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.CAMPFIRE_CRACKLE,
+                SoundSource.PLAYERS,
+                1.0f,
+                1.0f
+        );
     }
 
     protected void playRechargeContextEffects(
@@ -383,26 +330,18 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
             ItemStack stack,
             @NonNull RechargeContext<R> rechargeContext
     ) {
-        // Default sound effect. Can be combined with other effects.
-        level.playSound(
-                null,
-                player.blockPosition(),
-                SoundEvents.CAMPFIRE_CRACKLE,
-                SoundSource.PLAYERS,
-                1.0f, // volume
-                1.0f // pitch
-        );
+        this.playDefaultRechargeEffects(level, player);
     }
 
     protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {}
 
-    protected void playCastFailEffects(ServerLevel level, Player player, ItemStack stack) {
+    protected void playDefaultCastFailEffects(ServerLevel level, Player player) {
         Vec3 frontOfPlayer = getWandTipPosition(player, null);
         level.sendParticles(
                 ParticleTypes.WHITE_SMOKE,
                 frontOfPlayer.x, frontOfPlayer.y, frontOfPlayer.z, // position
                 5, // # of particles
-                0.05,0.05,0.05, // particle spread
+                0.05, 0.05, 0.05, // particle spread
                 0.02 // particle speed
         );
         level.playSound(
@@ -415,12 +354,39 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         );
     }
 
-    //region Abstract Methods
-    protected abstract int getFullPowerTicks();
-    protected abstract int getNormalCastCost();
-    protected abstract int getFullPowerCastCost();
-    public abstract int getRechargeChargeAmount();
+    protected void playCastFailEffects(ServerLevel level, Player player) {
+        this.playDefaultCastFailEffects(level, player);
+    }
 
+    protected void spawnParticleTrail(
+            ServerLevel level,
+            ParticleOptions particle,
+            Vec3 startPos,
+            Vec3 endPos,
+            int steps,
+            int particlesPerStep,
+            double spread
+    ) {
+        if (steps <= 0 || particlesPerStep <= 0) {
+            return;
+        }
+
+        for (int i = 0; i < steps; i++) {
+            double t = (double) i / steps;
+            Vec3 pos = startPos.lerp(endPos, t);
+
+            level.sendParticles(
+                    particle,
+                    pos.x, pos.y, pos.z,
+                    particlesPerStep,
+                    spread, spread, spread,
+                    0.0
+            );
+        }
+    }
+    //endregion
+
+    //region Abstract Methods
     protected abstract RechargeContext<R> tryRecharge(Level level, Player player, ItemStack wandStack);
     protected abstract void sendRechargeFeedback(Player player, R result);
 

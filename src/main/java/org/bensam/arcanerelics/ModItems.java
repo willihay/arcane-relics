@@ -30,92 +30,42 @@ public final class ModItems {
     public static final Supplier<ItemLevitationWand> LEVITATION_WAND = () -> levitationWandInternal;
     public static final Supplier<ItemLightningWand> LIGHTNING_WAND = () -> lightningWandInternal;
 
+    private static final WandDefinition ARCANE_WAND_DEFINITION =
+            new WandDefinition(0, 0, 1, 1, Integer.MAX_VALUE, 0, 2, false);
+
+    private static final WandDefinition FIRE_WAND_DEFINITION =
+            new WandDefinition(20, 40, 1, 2, 20, 20, 3, true);
+
+    private static final WandDefinition LEVITATION_WAND_DEFINITION =
+            new WandDefinition(20, 40, 1, 1, 20, 20, 2, true);
+
+    private static final WandDefinition LIGHTNING_WAND_DEFINITION =
+            new WandDefinition(15, 30, 1, 2, 60, 15, 4, true);
+
     public static void initialize() {
         // Register mod items.
         arcaneWandInternal = register(
                 "arcane_wand",
-                ItemArcaneWand::new,
-                new Item.Properties()
-                        .component(
-                                ModComponents.WAND_CHARGES_COMPONENT,
-                                new ModComponents.WandChargesComponent(ItemArcaneWand.INITIAL_CHARGES)
-                        )
-                        .component(
-                                ModComponents.WAND_MAX_CHARGES_COMPONENT,
-                                ItemArcaneWand.MAX_CHARGES
-                        )
-                        .component(ModComponents.WAND_TOOLTIP_COMPONENT,
-                                new ModComponents.WandTooltipComponent(
-                                        "item." + ArcaneRelics.MOD_ID + ".arcane_wand.info",
-                                        2
-                                )
-                        )
+                props -> new ItemArcaneWand(props, ARCANE_WAND_DEFINITION),
+                ARCANE_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".arcane_wand.info")
         );
 
         fireWandInternal = register(
                 "fire_wand",
-                ItemFireWand::new,
-                new Item.Properties()
-                        .component(
-                                ModComponents.WAND_CHARGES_COMPONENT,
-                                new ModComponents.WandChargesComponent(ItemFireWand.INITIAL_CHARGES)
-                        )
-                        .component(
-                                ModComponents.WAND_MAX_CHARGES_COMPONENT,
-                                ItemFireWand.MAX_CHARGES
-                        )
-                        .component(
-                                ModComponents.WAND_TOOLTIP_COMPONENT,
-                                new ModComponents.WandTooltipComponent(
-                                        "item." + ArcaneRelics.MOD_ID + ".fire_wand.info",
-                                        3
-                                )
-                        )
-                        .stacksTo(1)
+                props -> new ItemFireWand(props, FIRE_WAND_DEFINITION),
+                FIRE_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".fire_wand.info")
         );
 
         levitationWandInternal = register(
                 "levitation_wand",
-                ItemLevitationWand::new,
-                new Item.Properties()
-                        .component(
-                                ModComponents.WAND_CHARGES_COMPONENT,
-                                new ModComponents.WandChargesComponent(ItemLevitationWand.INITIAL_CHARGES)
-                        )
-                        .component(
-                                ModComponents.WAND_MAX_CHARGES_COMPONENT,
-                                ItemLevitationWand.MAX_CHARGES
-                        )
-                        .component(
-                                ModComponents.WAND_TOOLTIP_COMPONENT,
-                                new ModComponents.WandTooltipComponent(
-                                        "item." + ArcaneRelics.MOD_ID + ".levitation_wand.info",
-                                        2
-                                )
-                        )
-                        .stacksTo(1)
+                props -> new ItemLevitationWand(props, LEVITATION_WAND_DEFINITION),
+                LEVITATION_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".levitation_wand.info")
         );
 
         lightningWandInternal = register(
                 "lightning_wand",
-                ItemLightningWand::new,
-                new Item.Properties()
-                        .component(
-                                ModComponents.WAND_CHARGES_COMPONENT,
-                                new ModComponents.WandChargesComponent(ItemLightningWand.INITIAL_CHARGES)
-                        )
-                        .component(
-                                ModComponents.WAND_MAX_CHARGES_COMPONENT,
-                                ItemLightningWand.MAX_CHARGES
-                        )
-                        .component(
-                                ModComponents.WAND_TOOLTIP_COMPONENT,
-                                new ModComponents.WandTooltipComponent(
-                                        "item." + ArcaneRelics.MOD_ID + ".lightning_wand.info",
-                                        4
-                                )
-                        )
-                        .stacksTo(1)
+                props -> new ItemLightningWand(props, LIGHTNING_WAND_DEFINITION),
+                LIGHTNING_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".lightning_wand.info")
         );
     }
 
