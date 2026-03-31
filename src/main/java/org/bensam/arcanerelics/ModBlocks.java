@@ -29,7 +29,7 @@ public class ModBlocks {
                 "wand_enchanting_table",
                 BlockWandEnchantingTable::new,
                 BlockBehaviour.Properties.of()
-                        .mapColor(MapColor.COLOR_RED)
+                        .mapColor(MapColor.COLOR_CYAN)
                         .instrument(NoteBlockInstrument.BASEDRUM)
                         .requiresCorrectToolForDrops()
                         .lightLevel(blockState -> 7)

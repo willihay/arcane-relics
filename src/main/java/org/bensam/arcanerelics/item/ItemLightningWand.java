@@ -17,10 +17,9 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand.LightningRechargeResult> implements WandEnchantingTableOutput {
+public class ItemLightningWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final int WAND_RANGE = 60;
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
     private static final float BASE_EXPLOSION_POWER = 0.75f;
@@ -41,33 +40,24 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     }
 
     //region Recharge Methods
-    public enum LightningRechargeResult implements RechargeResult {
-        ALREADY_FULL,
-        LIGHTNING_ROD_SUCCESS,
-        NO_THUNDER,
-        NO_LIGHTNING_ROD
-    }
-
     @Override
-    protected RechargeContext<LightningRechargeResult> tryRecharge(Level level, Player player, ItemStack wandStack) {
+    protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         if (this.isFullyCharged(wandStack)) {
-            return new RechargeContext<>(LightningRechargeResult.ALREADY_FULL, null);
+            return new RechargeContext(RechargeResult.ALREADY_FULL, 0, null, this.getAlreadyFullMessagePath());
         }
-
-        boolean isThundering = level.isThundering();
 
         BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition());
         if (lightningRodPos != null) {
-            if (isThundering) {
+            if (level.isThundering()) {
                 this.setCharges(wandStack, this.getMaxCharges());
-                return new RechargeContext<>(LightningRechargeResult.LIGHTNING_ROD_SUCCESS, lightningRodPos);
+                return new RechargeContext(RechargeResult.RECHARGE_SUCCESS, 0, lightningRodPos, "lightning_wand.recharge.success");
             }
             else {
-                return new RechargeContext<>(LightningRechargeResult.NO_THUNDER, null);
+                return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "lightning_wand.recharge.no_thunder");
             }
         }
 
-        return new RechargeContext<>(LightningRechargeResult.NO_LIGHTNING_ROD, null);
+        return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "lightning_wand.recharge.no_lightning_rod");
     }
 
     protected static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center) {
@@ -98,14 +88,14 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
     }
 
     @Override
-    protected void playRechargeContextEffects(
+    protected void playRechargeEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
             ItemStack stack,
-            @NonNull RechargeContext<LightningRechargeResult> rechargeContext
+            RechargeContext rechargeContext
     ) {
-        if (rechargeContext.result() == LightningRechargeResult.LIGHTNING_ROD_SUCCESS) {
+        if (rechargeContext.result() == RechargeResult.RECHARGE_SUCCESS) {
             level.playSound(
                     null,
                     player.blockPosition(),
@@ -119,45 +109,23 @@ public class ItemLightningWand extends AbstractChargedWandItem<ItemLightningWand
                 // Create recharge particle trail from sky to rod.
                 Vec3 skyStart = Vec3.atBottomCenterOf(rechargeContext.sourcePos()).add(0.0, 12.0, 0.0);
                 Vec3 rodTop = Vec3.atBottomCenterOf(rechargeContext.sourcePos()).add(Vec3.Y_AXIS);
-                this.spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, skyStart, rodTop, 12, 4, 0.05);
+                spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, skyStart, rodTop, 12, 4, 0.05);
 
                 // Create recharge particle trail from rod to player's wand.
                 Vec3 wandTip = getWandTipPosition(player, hand);
-                this.spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, rodTop, wandTip, 12, 4, 0.04);
+                spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, rodTop, wandTip, 12, 4, 0.04);
             }
         }
 
         // Play default effects.
-        super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
-    }
-
-    @Override
-    protected void sendRechargeFeedback(Player player, LightningRechargeResult result) {
-        switch (result) {
-            case ALREADY_FULL -> player.displayClientMessage(
-                    this.getFullyChargedMessage(),
-                    true
-            );
-            case LIGHTNING_ROD_SUCCESS -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.lightning_rod"),
-                    true
-            );
-            case NO_THUNDER -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_thunder"),
-                    true
-            );
-            case NO_LIGHTNING_ROD -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_lightning_rod"),
-                    true
-            );
-        }
+        super.playRechargeEffects(level, player, hand, stack, rechargeContext);
     }
     //endregion
 
     //region Cast Methods
     @Override
     protected boolean performCast(Level level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
-        // Check if dimension has sky light. Can't cast lightning in the nether.
+        // Check if dimension has skylight. Can't cast lightning in the nether.
         if (!level.dimensionType().hasSkyLight()) {
             player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.cast.no_skylight"),

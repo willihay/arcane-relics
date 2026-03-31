@@ -9,9 +9,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
-import org.jspecify.annotations.NonNull;
 
-public class ItemArcaneWand extends AbstractChargedWandItem<ItemArcaneWand.ArcaneRechargeResult> {
+public class ItemArcaneWand extends AbstractChargedWandItem {
 
     public ItemArcaneWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
@@ -24,26 +23,23 @@ public class ItemArcaneWand extends AbstractChargedWandItem<ItemArcaneWand.Arcan
     public int getRechargeXpCost() { return 0; }
 
     @Override
-    public Component getNoChargesMessage() {
+    protected Component getNoChargesMessage() {
         return Component.translatable("message." + ArcaneRelics.MOD_ID + ".arcane_wand.cast.no_power");
     }
 
     //region Recharge Methods
-    public enum ArcaneRechargeResult implements RechargeResult {
-        NO_POWER
+    @Override
+    protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
+        return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "arcane_wand.recharge.no_power");
     }
 
     @Override
-    protected RechargeContext<ArcaneRechargeResult> tryRecharge(Level level, Player player, ItemStack wandStack) {
-        return new RechargeContext<>(ArcaneRechargeResult.NO_POWER, null);
-    }
-
-    @Override
-    protected void playRechargeContextEffects(
+    protected void playRechargeEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
-            ItemStack stack, @NonNull RechargeContext<ArcaneRechargeResult> rechargeContext
+            ItemStack stack,
+            RechargeContext rechargeContext
     ) {
         // Create recharge fizzle particles.
         Vec3 wandTip = getWandTipPosition(player, hand);
@@ -55,15 +51,7 @@ public class ItemArcaneWand extends AbstractChargedWandItem<ItemArcaneWand.Arcan
                 0.02 // particle speed
         );
 
-        super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
-    }
-
-    @Override
-    protected void sendRechargeFeedback(Player player, ArcaneRechargeResult result) {
-        player.displayClientMessage(
-                Component.translatable("message." + ArcaneRelics.MOD_ID + ".arcane_wand.recharge.no_power"),
-                true
-        );
+        super.playRechargeEffects(level, player, hand, stack, rechargeContext);
     }
     //endregion
 

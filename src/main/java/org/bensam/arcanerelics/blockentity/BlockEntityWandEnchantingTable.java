@@ -68,7 +68,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
 
     public static boolean isArcaneWand(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() instanceof AbstractChargedWandItem<?>;
+        return !stack.isEmpty() && stack.getItem() instanceof AbstractChargedWandItem;
     }
 
     public static boolean isArcaneEnchantmentItem(ItemStack stack) {
@@ -145,8 +145,8 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
 
             // Verify we're dealing with wands.
             if (!recipeWand.isEmpty()
-                    && recipeWand.getItem() instanceof AbstractChargedWandItem<?> newOutputWandItem
-                    && inputWand.getItem() instanceof AbstractChargedWandItem<?> inputWandItem) {
+                    && recipeWand.getItem() instanceof AbstractChargedWandItem newOutputWandItem
+                    && inputWand.getItem() instanceof AbstractChargedWandItem inputWandItem) {
                 // Make the output wand and set charges.
                 newOutputWand = recipeWand.copy();
                 newOutputWand.setCount(1);

@@ -28,10 +28,16 @@ import org.bensam.arcanerelics.ModComponents;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult> extends Item {
+public abstract class AbstractChargedWandItem extends Item {
     private final WandDefinition definition;
 
-    public record RechargeContext<R extends Enum<R> & RechargeResult> (R result, @Nullable BlockPos sourcePos) {}
+    public enum RechargeResult {
+        ALREADY_FULL,
+        RECHARGE_SUCCESS,
+        RECHARGE_FAIL
+    }
+    public record RechargeContext(RechargeResult result, int contextData, @Nullable BlockPos sourcePos, String messagePath) {}
+
     public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
     public AbstractChargedWandItem(Properties properties, WandDefinition definition) {
@@ -77,16 +83,8 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         ).charges();
     }
 
-    public Component getFullyChargedMessage() {
-        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.fully_charged");
-    }
-
     public int getMaxCharges() {
         return this.definition.maxCharges();
-    }
-
-    public Component getNoChargesMessage() {
-        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
     }
 
     public boolean hasAtLeastCharges(ItemStack stack, int amount) {
@@ -112,7 +110,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     //region Targeting Methods
     protected static <T extends Entity> BlockPos findClosestMobOfType(
             Level level,
-            BlockPos center,
+            BlockPos sourcePos,
             int radius,
             Class<T> mobType
     ) {
@@ -120,8 +118,8 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         double closestDistanceSq = Double.MAX_VALUE;
 
         AABB searchBox = new AABB(
-                center.getX() - radius, center.getY() - radius, center.getZ() - radius,
-                center.getX() + radius + 1, center.getY() + radius + 1, center.getZ() + radius + 1
+                sourcePos.getX() - radius, sourcePos.getY() - radius, sourcePos.getZ() - radius,
+                sourcePos.getX() + radius + 1, sourcePos.getY() + radius + 1, sourcePos.getZ() + radius + 1
         );
 
         for (T mob : level.getEntitiesOfClass(mobType, searchBox)) {
@@ -129,7 +127,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
                 continue;
             }
 
-            double distanceSq = mob.blockPosition().distSqr(center);
+            double distanceSq = mob.blockPosition().distSqr(sourcePos);
             if (distanceSq < closestDistanceSq) {
                 closestDistanceSq = distanceSq;
                 closestMob = mob.blockPosition().immutable();
@@ -144,7 +142,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         HitResult blockHit = player.pick(distance, 0.0f, true);
 
         // 2. Raycast for entities.
-        EntityHitResult entityHit = raycastEntities(player, distance);
+        EntityHitResult entityHit = raycastLivingEntities(player, distance);
 
         // 3. If no entity hit, just return the block hit (if any).
         if (entityHit == null) {
@@ -172,7 +170,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         return null;
     }
 
-    private static EntityHitResult raycastEntities(Player player, double distance) {
+    private static EntityHitResult raycastLivingEntities(Player player, double distance) {
         Vec3 start = player.getEyePosition();
         Vec3 look = player.getLookAngle();
         Vec3 end = start.add(look.scale(distance));
@@ -185,7 +183,7 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
                 start,
                 end,
                 box,
-                entity -> !entity.isSpectator() && entity.isPickable(),
+                entity -> entity instanceof LivingEntity && !entity.isSpectator() && entity.isPickable(),
                 distance * distance
         );
     }
@@ -194,6 +192,14 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
     //region Wand Usage Lifecycle
     protected int getElapsedTicks(ItemStack stack, LivingEntity entity, int remainingUseDuration) {
         return this.getUseDuration(stack, entity) - remainingUseDuration;
+    }
+
+    protected String getAlreadyFullMessagePath() {
+        return "wand.recharge.already_full";
+    }
+
+    protected Component getNoChargesMessage() {
+        return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
     }
 
     protected int getFullPowerCastCost() { return this.definition.fullPowerCastCost(); }
@@ -244,9 +250,9 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         // If sneaking, try to recharge.
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
-                RechargeContext<R> rechargeContext = this.tryRecharge(level, player, stack);
-                this.playRechargeContextEffects((ServerLevel) level, player, hand, stack, rechargeContext);
-                this.sendRechargeFeedback(player, rechargeContext.result());
+                RechargeContext rechargeContext = this.tryRecharge(level, player, stack);
+                this.playRechargeEffects((ServerLevel) level, player, hand, stack, rechargeContext);
+                this.sendRechargeFeedback(player, rechargeContext);
             }
             return InteractionResult.SUCCESS;
         }
@@ -311,7 +317,9 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
 
         return true;
     }
+    //endregion
 
+    //region Recharge Methods
     protected void playDefaultRechargeEffects(ServerLevel level, Player player) {
         level.playSound(
                 null,
@@ -323,42 +331,28 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
         );
     }
 
-    protected void playRechargeContextEffects(
+    protected void playRechargeEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
             ItemStack stack,
-            @NonNull RechargeContext<R> rechargeContext
+            RechargeContext rechargeContext
     ) {
         this.playDefaultRechargeEffects(level, player);
     }
 
-    protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {}
-
-    protected void playDefaultCastFailEffects(ServerLevel level, Player player) {
-        Vec3 frontOfPlayer = getWandTipPosition(player, null);
-        level.sendParticles(
-                ParticleTypes.WHITE_SMOKE,
-                frontOfPlayer.x, frontOfPlayer.y, frontOfPlayer.z, // position
-                5, // # of particles
-                0.05, 0.05, 0.05, // particle spread
-                0.02 // particle speed
-        );
-        level.playSound(
-                null,
-                player.blockPosition(),
-                SoundEvents.FIRE_EXTINGUISH,
-                SoundSource.PLAYERS,
-                1.0f, // volume
-                1.0f // pitch
+    protected void sendDefaultRechargeFeedback(Player player, RechargeContext rechargeContext) {
+        player.displayClientMessage(
+                Component.translatable("message." + ArcaneRelics.MOD_ID + "." + rechargeContext.messagePath()),
+                true
         );
     }
 
-    protected void playCastFailEffects(ServerLevel level, Player player) {
-        this.playDefaultCastFailEffects(level, player);
+    protected void sendRechargeFeedback(Player player, RechargeContext rechargeContext) {
+        this.sendDefaultRechargeFeedback(player, rechargeContext);
     }
 
-    protected void spawnParticleTrail(
+    protected static void spawnParticleTrail(
             ServerLevel level,
             ParticleOptions particle,
             Vec3 startPos,
@@ -384,12 +378,11 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
             );
         }
     }
+
+    protected abstract RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack);
     //endregion
 
-    //region Abstract Methods
-    protected abstract RechargeContext<R> tryRecharge(Level level, Player player, ItemStack wandStack);
-    protected abstract void sendRechargeFeedback(Player player, R result);
-
+    //region Cast Methods
     protected abstract boolean performCast(
             Level level,
             Player player,
@@ -397,5 +390,30 @@ public abstract class AbstractChargedWandItem<R extends Enum<R> & RechargeResult
             float powerUpPercentage,
             boolean isFullyPowered
     );
+
+    protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {}
+
+    protected void playDefaultCastFailEffects(ServerLevel level, Player player) {
+        Vec3 frontOfPlayer = getWandTipPosition(player, null);
+        level.sendParticles(
+                ParticleTypes.WHITE_SMOKE,
+                frontOfPlayer.x, frontOfPlayer.y, frontOfPlayer.z, // position
+                5, // # of particles
+                0.05, 0.05, 0.05, // particle spread
+                0.02 // particle speed
+        );
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.FIRE_EXTINGUISH,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
+    }
+
+    protected void playCastFailEffects(ServerLevel level, Player player) {
+        this.playDefaultCastFailEffects(level, player);
+    }
     //endregion
 }

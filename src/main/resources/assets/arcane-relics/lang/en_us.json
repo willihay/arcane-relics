@@ -26,17 +26,16 @@
 
   "message.arcane-relics.wand.charges": "%1$s / %2$s charges",
   "message.arcane-relics.wand.cast.no_charges": "Not enough charges",
-  "message.arcane-relics.wand.recharge.fully_charged": "The wand is already fully charged",
-  "message.arcane-relics.wand.recharge.no_fuel": "No arcane fuel found",
+  "message.arcane-relics.wand.recharge.already_full": "The wand is already fully charged",
   "message.arcane-relics.arcane_wand.cast.no_power": "Basic arcane wands have no arcane power",
   "message.arcane-relics.arcane_wand.recharge.no_power": "No arcane power",
   "message.arcane-relics.fire_wand.recharge.blaze": "Recharged to full from nearby blaze",
   "message.arcane-relics.fire_wand.recharge.ghast": "Recharged to full from nearby ghast",
-  "message.arcane-relics.fire_wand.recharge.no_mob_fuel": "No blaze or ghasts found nearby",
-  "message.arcane-relics.levitation_wand.recharge.shulker": "Recharged to full from nearby shulker",
-  "message.arcane-relics.levitation_wand.recharge.no_mob_fuel": "No shulker found nearby",
+  "message.arcane-relics.fire_wand.recharge.fail": "No blaze or ghasts found nearby",
+  "message.arcane-relics.levitation_wand.recharge.success": "Recharged to full from nearby shulker",
+  "message.arcane-relics.levitation_wand.recharge.fail": "No shulker found nearby",
   "message.arcane-relics.lightning_wand.cast.no_skylight": "No skylight in this dimension",
-  "message.arcane-relics.lightning_wand.recharge.lightning_rod": "Recharged to full from nearby lightning rod",
+  "message.arcane-relics.lightning_wand.recharge.success": "Recharged to full from nearby lightning rod",
   "message.arcane-relics.lightning_wand.recharge.no_thunder": "Lightning rod recharge requires a thunderstorm",
   "message.arcane-relics.lightning_wand.recharge.no_lightning_rod": "No lightning rod found nearby"
 }

@@ -3,7 +3,6 @@ package org.bensam.arcanerelics.item;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -16,12 +15,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.bensam.arcanerelics.ArcaneRelics;
-import org.jspecify.annotations.NonNull;
 
-public class ItemLevitationWand extends AbstractChargedWandItem<ItemLevitationWand.LevitationRechargeResult> implements WandEnchantingTableOutput {
+public class ItemLevitationWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final int WAND_RANGE = 60;
-    private static final int SHULKER_EXTRACTION_RECHARGE_RADIUS = 8;
+    private static final int SHULKER_EXTRACTION_RADIUS = 8;
 
     public ItemLevitationWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
@@ -33,44 +30,31 @@ public class ItemLevitationWand extends AbstractChargedWandItem<ItemLevitationWa
     }
 
     //region Recharge Methods
-    public enum LevitationRechargeResult implements RechargeResult {
-        ALREADY_FULL,
-        SHULKER_EXTRACTION_SUCCESS,
-        NO_MOB_FUEL
-    }
-
     @Override
-    protected RechargeContext<LevitationRechargeResult> tryRecharge(Level level, Player player, ItemStack wandStack) {
+    protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         if (this.isFullyCharged(wandStack)) {
-            return new RechargeContext<>(LevitationRechargeResult.ALREADY_FULL, null);
+            return new RechargeContext(RechargeResult.ALREADY_FULL, 0, null, this.getAlreadyFullMessagePath());
         }
 
-        RechargeContext<LevitationRechargeResult> mobFuelSearchResult = findNearbyMobFuel(level, player.blockPosition());
-        if (mobFuelSearchResult.result() != LevitationRechargeResult.NO_MOB_FUEL) {
-            this.setCharges(wandStack, this.getMaxCharges());
-        }
-
-        return mobFuelSearchResult;
-    }
-
-    protected static RechargeContext<LevitationRechargeResult> findNearbyMobFuel(Level level, BlockPos center) {
-        BlockPos closestMob = findClosestMobOfType(level, center, SHULKER_EXTRACTION_RECHARGE_RADIUS, Shulker.class);
+        BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), SHULKER_EXTRACTION_RADIUS, Shulker.class);
         if (closestMob != null) {
-            return new RechargeContext<>(LevitationRechargeResult.SHULKER_EXTRACTION_SUCCESS, closestMob);
+            this.setCharges(wandStack, this.getMaxCharges());
+            return new RechargeContext(RechargeResult.RECHARGE_SUCCESS, 0, closestMob, "levitation_wand.recharge.success");
         }
-
-        return new RechargeContext<>(LevitationRechargeResult.NO_MOB_FUEL, null);
+        else {
+            return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "levitation_wand.recharge.fail");
+        }
     }
 
     @Override
-    protected void playRechargeContextEffects(
+    protected void playRechargeEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
             ItemStack stack,
-            @NonNull RechargeContext<LevitationRechargeResult> rechargeContext
+            RechargeContext rechargeContext
     ) {
-        if (rechargeContext.result() == LevitationRechargeResult.SHULKER_EXTRACTION_SUCCESS) {
+        if (rechargeContext.result() == RechargeResult.RECHARGE_SUCCESS) {
             // Play sound effects.
             level.playSound(
                     null,
@@ -86,35 +70,16 @@ public class ItemLevitationWand extends AbstractChargedWandItem<ItemLevitationWa
                 // Create recharge particle trail from mob to player's wand.
                 Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
                 Vec3 wandTip = getWandTipPosition(player, hand);
-                this.spawnParticleTrail(level, ParticleTypes.ENCHANTED_HIT, mobStart, wandTip, 12, 5, 0.04);
+                spawnParticleTrail(level, ParticleTypes.ENCHANTED_HIT, mobStart, wandTip, 12, 5, 0.04);
             }
         }
 
         // Play default effects.
-        super.playRechargeContextEffects(level, player, hand, stack, rechargeContext);
-    }
-
-    @Override
-    protected void sendRechargeFeedback(Player player, LevitationRechargeResult result) {
-        switch (result) {
-            case ALREADY_FULL -> player.displayClientMessage(
-                    this.getFullyChargedMessage(),
-                    true
-            );
-            case SHULKER_EXTRACTION_SUCCESS -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".levitation_wand.recharge.shulker"),
-                    true
-            );
-            case NO_MOB_FUEL -> player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".levitation_wand.recharge.no_mob_fuel"),
-                    true
-            );
-        }
+        super.playRechargeEffects(level, player, hand, stack, rechargeContext);
     }
     //endregion
 
     //region Cast Methods
-
     @Override
     protected boolean performCast(Level level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         TargetResult target = getTarget(player, WAND_RANGE);
