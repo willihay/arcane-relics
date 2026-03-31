@@ -275,11 +275,11 @@ public abstract class AbstractChargedWandItem extends Item {
     }
 
     @Override
-    public boolean releaseUsing(ItemStack stack, Level level, @NonNull LivingEntity entity, int timeLeft) {
+    public boolean releaseUsing(ItemStack stack, @NonNull Level level, @NonNull LivingEntity entity, int timeLeft) {
         stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
 
         // The remaining logic is for server-side only.
-        if (level.isClientSide()) {
+        if (!(level instanceof ServerLevel serverLevel)) {
             return true;
         }
 
@@ -298,21 +298,21 @@ public abstract class AbstractChargedWandItem extends Item {
 
         // Check if wand has enough charges remaining to complete the cast.
         if (!this.hasEnoughChargesForCast(stack, chargeCost)) {
-            this.playCastFailEffects((ServerLevel) level, player);
+            this.playCastFailEffects(serverLevel, player);
             player.displayClientMessage(this.getNoChargesMessage(), true);
             return true;
         }
 
         // Perform cast.
-        boolean castSucceeded = this.performCast(level, player, stack, powerUpPercentage, isFullyPowered);
+        boolean castSucceeded = this.performCast(serverLevel, player, stack, powerUpPercentage, isFullyPowered);
 
         if (castSucceeded) {
-            this.playCastSuccessEffects((ServerLevel) level, player, stack);
+            this.playCastSuccessEffects(serverLevel, player, stack);
             if (chargeCost > 0) {
                 this.consumeCharges(stack, chargeCost);
             }
         } else {
-            this.playCastFailEffects((ServerLevel) level, player);
+            this.playCastFailEffects(serverLevel, player);
         }
 
         return true;
@@ -341,15 +341,15 @@ public abstract class AbstractChargedWandItem extends Item {
         this.playDefaultRechargeEffects(level, player);
     }
 
-    protected void sendDefaultRechargeFeedback(Player player, RechargeContext rechargeContext) {
+    protected void sendDefaultRechargeFeedback(Player player, String messagePath) {
         player.displayClientMessage(
-                Component.translatable("message." + ArcaneRelics.MOD_ID + "." + rechargeContext.messagePath()),
+                Component.translatable("message." + ArcaneRelics.MOD_ID + "." + messagePath),
                 true
         );
     }
 
     protected void sendRechargeFeedback(Player player, RechargeContext rechargeContext) {
-        this.sendDefaultRechargeFeedback(player, rechargeContext);
+        this.sendDefaultRechargeFeedback(player, rechargeContext.messagePath());
     }
 
     protected static void spawnParticleTrail(
@@ -384,7 +384,7 @@ public abstract class AbstractChargedWandItem extends Item {
 
     //region Cast Methods
     protected abstract boolean performCast(
-            Level level,
+            ServerLevel level,
             Player player,
             ItemStack stack,
             float powerUpPercentage,

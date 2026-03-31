@@ -32,6 +32,7 @@ public final class ModCreativeTab {
                     output.accept(ModBlocks.WAND_ENCHANTING_TABLE.get().asItem());
                     output.accept(ModItems.ARCANE_WAND.get());
                     output.accept(ModItems.FIRE_WAND.get());
+                    output.accept(ModItems.ICE_WAND.get());
                     output.accept(ModItems.LEVITATION_WAND.get());
                     output.accept(ModItems.LIGHTNING_WAND.get());
                 })

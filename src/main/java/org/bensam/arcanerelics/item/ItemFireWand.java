@@ -33,7 +33,7 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
 
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.FLAME);
+        return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.FLAME);
     }
 
     //region Recharge Methods
@@ -121,7 +121,7 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
 
     //region Cast Methods
     @Override
-    protected boolean performCast(Level level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
+    protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         int explosionPower = Math.round(Mth.lerp(powerUpPercentage, BASE_EXPLOSION_POWER, MAX_EXPLOSION_POWER));
         this.shootFireball(level, player, explosionPower, isFullyPowered);
         return true;

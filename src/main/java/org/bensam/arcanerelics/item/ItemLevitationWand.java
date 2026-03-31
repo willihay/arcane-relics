@@ -17,7 +17,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public class ItemLevitationWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
-    private static final int WAND_RANGE = 60;
+    private static final int WAND_RANGE = 50;
     private static final int SHULKER_EXTRACTION_RADIUS = 8;
 
     public ItemLevitationWand(Properties properties, WandDefinition definition) {
@@ -41,9 +41,8 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
             this.setCharges(wandStack, this.getMaxCharges());
             return new RechargeContext(RechargeResult.RECHARGE_SUCCESS, 0, closestMob, "levitation_wand.recharge.success");
         }
-        else {
-            return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "levitation_wand.recharge.fail");
-        }
+
+        return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "levitation_wand.recharge.fail");
     }
 
     @Override
@@ -81,7 +80,7 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
 
     //region Cast Methods
     @Override
-    protected boolean performCast(Level level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
+    protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         TargetResult target = getTarget(player, WAND_RANGE);
         if (target == null || target.entity() == null || !(target.entity() instanceof LivingEntity targetEntity)) {
             return false;

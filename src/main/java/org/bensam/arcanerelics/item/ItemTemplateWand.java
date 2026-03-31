@@ -52,7 +52,7 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
     //region Cast Methods
 
     @Override
-    protected boolean performCast(Level level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
+    protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         return false;
     }
 

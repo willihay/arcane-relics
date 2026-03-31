@@ -20,7 +20,7 @@ import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.Nullable;
 
 public class ItemLightningWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
-    private static final int WAND_RANGE = 60;
+    private static final int WAND_RANGE = 50;
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
     private static final float BASE_EXPLOSION_POWER = 0.75f;
     private static final float MAX_EXPLOSION_POWER = 2.0f;
@@ -31,7 +31,7 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
 
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) && AbstractChargedWandItem.hasEnchantment(stack, Enchantments.CHANNELING);
+        return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.CHANNELING);
     }
 
     @Override
@@ -124,7 +124,7 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
 
     //region Cast Methods
     @Override
-    protected boolean performCast(Level level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
+    protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         // Check if dimension has skylight. Can't cast lightning in the nether.
         if (!level.dimensionType().hasSkyLight()) {
             player.displayClientMessage(
