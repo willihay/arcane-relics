@@ -46,23 +46,37 @@ public abstract class AbstractChargedWandItem extends Item {
     }
 
     //region Enchanting Methods
+    public int getNewWandCharges(int enchantmentLevel) {
+        int rechargeMultiplier = enchantmentLevel > 0 ? enchantmentLevel - 1 : 0;
+        return Math.min(
+                this.definition.initialCharges() + (this.getRechargeChargeAmount(enchantmentLevel) * rechargeMultiplier),
+                this.getMaxCharges());
+    }
+
     public int getNewWandXpCost() { return 2; }
 
-    public int getRechargeChargeAmount() { return this.definition.rechargeAmount(); }
+    public int getRechargeChargeAmount(int enchantmentLevel) {
+        int baseRechargeAmount = this.definition.rechargeAmount();
+        return Math.min(baseRechargeAmount * enchantmentLevel, this.getMaxCharges());
+    }
 
     public int getRechargeXpCost() { return 1; }
 
-    public static boolean hasEnchantment(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
+    public static int getEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
 
         for (var entry : enchantments.entrySet()) {
             var key = entry.getKey().unwrapKey();
-            if (key.isPresent() && key.get() == enchantmentKey) {
-                return true;
+            if (key.isPresent() && key.get().equals(enchantmentKey)) {
+                return entry.getIntValue();
             }
         }
 
-        return false;
+        return 0;
+    }
+
+    public static boolean hasEnchantment(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
+        return getEnchantmentLevel(stack, enchantmentKey) > 0;
     }
     //endregion
 

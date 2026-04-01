@@ -16,6 +16,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.bensam.arcanerelics.ModBlockEntities;
 import org.bensam.arcanerelics.ModItems;
 import org.bensam.arcanerelics.item.AbstractChargedWandItem;
+import org.bensam.arcanerelics.item.WandEnchantingTableOutput;
 import org.bensam.arcanerelics.menu.WandEnchantingContainerData;
 import org.jspecify.annotations.NonNull;
 
@@ -141,15 +142,22 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         this.xpCost = 0;
 
         if (this.hasValidRecipe) {
-            ItemStack recipeWand = ModItems.getArcaneEnchantmentItem(getItem(ARCANE_ITEM_SLOT));
+            ItemStack arcaneItem = getItem(ARCANE_ITEM_SLOT);
+            ItemStack recipeWand = ModItems.getWandEnchantmentOutput(arcaneItem);
 
-            // Verify we're dealing with wands.
+            // Get the wand item class instances so we can set the charges in the output wand and calculate XP cost.
             if (!recipeWand.isEmpty()
                     && recipeWand.getItem() instanceof AbstractChargedWandItem newOutputWandItem
                     && inputWand.getItem() instanceof AbstractChargedWandItem inputWandItem) {
                 // Make the output wand and set charges.
                 newOutputWand = recipeWand.copy();
                 newOutputWand.setCount(1);
+
+                // Determine if the arcane item has a higher enchantment level than 1 or is an extended potion and adjust charge bonus accordingly.
+                int arcaneItemLevel = 1;
+                if (recipeWand.getItem() instanceof WandEnchantingTableOutput outputItem && arcaneItem.is(Items.ENCHANTED_BOOK)) {
+                    arcaneItemLevel = outputItem.getLevelOfEnchantmentItem(arcaneItem);
+                }
 
                 // If input and output are the same wand type, carry charges and any custom name over and recharge.
                 if (inputWand.is(newOutputWand.getItem())) {
@@ -159,12 +167,13 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
                     }
 
                     newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand));
-                    newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount());
+                    newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(arcaneItemLevel));
 
                     this.xpCost = newOutputWandItem.getRechargeXpCost();
                 }
-                // (Otherwise, leave the default number of charges in the new wand.)
+                // Otherwise, calculate and set the initial number of charges for the new wand.
                 else {
+                    newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(arcaneItemLevel));
                     this.xpCost = newOutputWandItem.getNewWandXpCost();
                 }
             }

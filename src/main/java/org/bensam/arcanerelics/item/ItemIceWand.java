@@ -3,7 +3,6 @@ package org.bensam.arcanerelics.item;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -33,6 +32,11 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
         return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.FROST_WALKER);
+    }
+
+    @Override
+    public int getLevelOfEnchantmentItem(ItemStack stack) {
+        return getEnchantmentLevel(stack, Enchantments.FROST_WALKER);
     }
 
     //region Recharge Methods
@@ -101,12 +105,12 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
                 ? target.blockPos()
                 : target.blockPos().above();
 
-        placeFrostCage(level, center, powerUpPercentage, player);
+        placeFrostCage(level, center, powerUpPercentage);
 
         return true;
     }
 
-    private static void placeFrostCage(ServerLevel level, BlockPos center, float powerUpPercentage, Player player) {
+    private static void placeFrostCage(ServerLevel level, BlockPos center, float powerUpPercentage) {
         // Core cage: center + vertical stack.
         placeIceIfReplaceable(level, center);
         if (powerUpPercentage > POWER_LEVEL_1) {

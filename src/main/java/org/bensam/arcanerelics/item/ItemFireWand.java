@@ -36,6 +36,11 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
         return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.FLAME);
     }
 
+    @Override
+    public int getLevelOfEnchantmentItem(ItemStack stack) {
+        return getEnchantmentLevel(stack, Enchantments.FLAME);
+    }
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {

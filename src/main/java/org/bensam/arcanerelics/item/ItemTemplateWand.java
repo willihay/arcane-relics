@@ -17,6 +17,12 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
         return false;
     }
 
+    @Override
+    public int getLevelOfEnchantmentItem(ItemStack stack) {
+        //return getEnchantmentLevel(stack, Enchantments.FROST_WALKER);
+        return 1;
+    }
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {

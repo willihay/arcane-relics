@@ -29,6 +29,11 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
         return stack.is(Items.SHULKER_SHELL);
     }
 
+    @Override
+    public int getLevelOfEnchantmentItem(ItemStack stack) {
+        return 1;
+    }
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {

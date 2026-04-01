@@ -104,7 +104,7 @@ public final class ModItems {
         return registered;
     }
 
-    public static ItemStack getArcaneEnchantmentItem(@NonNull ItemStack stack) {
+    public static ItemStack getWandEnchantmentOutput(@NonNull ItemStack stack) {
         if (stack.isEmpty()) { return ItemStack.EMPTY; }
 
         for (Item item : WAND_ENCHANTING_TABLE_OUTPUTS) {
@@ -118,6 +118,6 @@ public final class ModItems {
     }
 
     public static boolean isArcaneEnchantmentItem(@NonNull ItemStack stack) {
-        return !getArcaneEnchantmentItem(stack).isEmpty();
+        return !getWandEnchantmentOutput(stack).isEmpty();
     }
 }

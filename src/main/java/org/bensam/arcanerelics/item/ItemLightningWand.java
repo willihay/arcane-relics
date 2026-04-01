@@ -35,6 +35,11 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     }
 
     @Override
+    public int getLevelOfEnchantmentItem(ItemStack stack) {
+        return getEnchantmentLevel(stack, Enchantments.CHANNELING);
+    }
+
+    @Override
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
         return level.isThundering() ? this.getNormalCastCost() : super.getPowerUpCost(level, player, stack, chargeTicks, fullyPowered);
     }
