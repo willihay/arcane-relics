@@ -7,6 +7,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.player.Player;
@@ -87,14 +89,25 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
     @Override
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         TargetResult target = getTarget(player, WAND_RANGE);
-        if (target == null || target.entity() == null || !(target.entity() instanceof LivingEntity targetEntity)) {
+        if (target == null) {
+            return false;
+        }
+
+        boolean isTargetLivingEntity = target.entity() == null || !(target.entity() instanceof LivingEntity);
+        if (!isTargetLivingEntity) {
+            // If target position is within about 1 block of player, apply levitation effect directly to the player.
+            if (target.blockPos().closerThan(player.blockPosition(), 2)) {
+                int durationTicks = 60 + (int) (powerUpPercentage * 140);
+                player.addEffect(new MobEffectInstance(MobEffects.LEVITATION, durationTicks));
+                return true;
+            }
             return false;
         }
 
         // Fire shulker bullet.
         Vec3 look = player.getLookAngle().normalize();
         Vec3 projectilePos = player.getEyePosition(1.0f).add(look.scale(2));
-        ShulkerBullet projectile = new ShulkerBullet(level, player, targetEntity, Direction.UP.getAxis());
+        ShulkerBullet projectile = new ShulkerBullet(level, player, target.entity(), Direction.UP.getAxis());
 
         projectile.setPos(projectilePos);
         level.addFreshEntity(projectile);

@@ -42,7 +42,7 @@ public final class ModItems {
             new WandDefinition(30, 60, 1, 1, 40, 30, 3, true);
 
     private static final WandDefinition LEVITATION_WAND_DEFINITION =
-            new WandDefinition(20, 40, 1, 1, 20, 20, 2, true);
+            new WandDefinition(20, 40, 1, 1, 60, 20, 2, true);
 
     private static final WandDefinition LIGHTNING_WAND_DEFINITION =
             new WandDefinition(15, 30, 1, 2, 60, 15, 4, true);
