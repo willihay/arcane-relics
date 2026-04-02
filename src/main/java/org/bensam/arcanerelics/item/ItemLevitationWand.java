@@ -93,7 +93,7 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
             return false;
         }
 
-        boolean isTargetLivingEntity = target.entity() == null || !(target.entity() instanceof LivingEntity);
+        boolean isTargetLivingEntity = target.entity() != null && target.entity() instanceof LivingEntity;
         if (!isTargetLivingEntity) {
             // If target position is within about 1 block of player, apply levitation effect directly to the player.
             if (target.blockPos().closerThan(player.blockPosition(), 2)) {
