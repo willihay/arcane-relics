@@ -8,7 +8,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.monster.skeleton.Stray;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -46,7 +46,7 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
             return new RechargeContext(RechargeResult.ALREADY_FULL, 0, null, this.getAlreadyFullMessagePath());
         }
 
-        BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), STRAY_EXTRACTION_RADIUS, Stray.class);
+        BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), STRAY_EXTRACTION_RADIUS, EntityType.STRAY);
         if (closestMob != null) {
             this.setCharges(wandStack, this.getMaxCharges());
             return new RechargeContext(RechargeResult.RECHARGE_SUCCESS, 0, closestMob, "ice_wand.recharge.success");

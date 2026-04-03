@@ -9,8 +9,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ShulkerBullet;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +33,7 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
 
     @Override
     public int getLevelOfEnchantmentItem(ItemStack stack) {
-        return 1;
+        return this.canBeProducedOrRechargedBy(stack) ? 1 : 0;
     }
 
     //region Recharge Methods
@@ -43,7 +43,7 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
             return new RechargeContext(RechargeResult.ALREADY_FULL, 0, null, this.getAlreadyFullMessagePath());
         }
 
-        BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), SHULKER_EXTRACTION_RADIUS, Shulker.class);
+        BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), SHULKER_EXTRACTION_RADIUS, EntityType.SHULKER);
         if (closestMob != null) {
             this.setCharges(wandStack, this.getMaxCharges());
             return new RechargeContext(RechargeResult.RECHARGE_SUCCESS, 0, closestMob, "levitation_wand.recharge.success");

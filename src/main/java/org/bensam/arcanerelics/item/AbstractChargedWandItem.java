@@ -1,6 +1,7 @@
 package org.bensam.arcanerelics.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -13,12 +14,15 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -78,6 +82,11 @@ public abstract class AbstractChargedWandItem extends Item {
     public static boolean hasEnchantment(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
         return getEnchantmentLevel(stack, enchantmentKey) > 0;
     }
+
+    public static boolean hasPotionEffect(ItemStack stack, Holder<Potion> potionType) {
+        PotionContents contents = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+        return contents.potion().isPresent() && contents.potion().get().equals(potionType);
+    }
     //endregion
 
     //region Charge Helper Methods
@@ -116,7 +125,7 @@ public abstract class AbstractChargedWandItem extends Item {
     public void setCharges(ItemStack stack, int charges) {
         stack.set(
                 ModComponents.WAND_CHARGES_COMPONENT,
-                new ModComponents.WandChargesComponent(Math.max(0, Math.min(charges, this.getMaxCharges())))
+                new ModComponents.WandChargesComponent(Math.clamp(charges, 0, this.getMaxCharges()))
         );
     }
     //endregion
@@ -126,7 +135,7 @@ public abstract class AbstractChargedWandItem extends Item {
             Level level,
             BlockPos sourcePos,
             int radius,
-            Class<T> mobType
+            EntityType<T> mobType
     ) {
         BlockPos closestMob = null;
         double closestDistanceSq = Double.MAX_VALUE;
@@ -136,11 +145,7 @@ public abstract class AbstractChargedWandItem extends Item {
                 sourcePos.getX() + radius + 1, sourcePos.getY() + radius + 1, sourcePos.getZ() + radius + 1
         );
 
-        for (T mob : level.getEntitiesOfClass(mobType, searchBox)) {
-            if (!mob.isAlive()) {
-                continue;
-            }
-
+        for (T mob : level.getEntities(mobType, searchBox, Entity::isAlive)) {
             double distanceSq = mob.blockPosition().distSqr(sourcePos);
             if (distanceSq < closestDistanceSq) {
                 closestDistanceSq = distanceSq;

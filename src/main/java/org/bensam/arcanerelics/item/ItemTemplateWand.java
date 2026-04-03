@@ -19,8 +19,7 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
 
     @Override
     public int getLevelOfEnchantmentItem(ItemStack stack) {
-        //return getEnchantmentLevel(stack, Enchantments.FROST_WALKER);
-        return 1;
+        return this.canBeProducedOrRechargedBy(stack) ? 1 : 0; // change this to check for stack item's level of enchantment or potency if applicable
     }
 
     //region Recharge Methods

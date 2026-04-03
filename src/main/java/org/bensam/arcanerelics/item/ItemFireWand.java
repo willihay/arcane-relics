@@ -7,9 +7,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.animal.happyghast.HappyGhast;
-import net.minecraft.world.entity.monster.Blaze;
-import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.hurtingprojectile.LargeFireball;
 import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
@@ -57,7 +55,7 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
     }
 
     protected static RechargeContext findNearbyMobFuel(Level level, BlockPos center) {
-        BlockPos closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, Ghast.class);
+        BlockPos closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, EntityType.GHAST);
         if (closestMob != null) {
             return new RechargeContext(
                     RechargeResult.RECHARGE_SUCCESS,
@@ -66,7 +64,7 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
                     "fire_wand.recharge.ghast");
         }
 
-        closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, HappyGhast.class);
+        closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, EntityType.HAPPY_GHAST);
         if (closestMob != null) {
             return new RechargeContext(
                     RechargeResult.RECHARGE_SUCCESS,
@@ -75,7 +73,7 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
                     "fire_wand.recharge.ghast");
         }
 
-        closestMob = findClosestMobOfType(level, center, BLAZE_EXTRACTION_RADIUS, Blaze.class);
+        closestMob = findClosestMobOfType(level, center, BLAZE_EXTRACTION_RADIUS, EntityType.BLAZE);
         if (closestMob != null) {
             return new RechargeContext(
                     RechargeResult.RECHARGE_SUCCESS,
