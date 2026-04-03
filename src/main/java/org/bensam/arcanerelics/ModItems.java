@@ -25,12 +25,14 @@ public final class ModItems {
     private static ItemIceWand iceWandInternal;
     private static ItemLevitationWand levitationWandInternal;
     private static ItemLightningWand lightningWandInternal;
+    private static ItemWindWand windWandInternal;
 
     public static final Supplier<ItemArcaneWand> ARCANE_WAND = () -> arcaneWandInternal;
     public static final Supplier<ItemFireWand> FIRE_WAND = () -> fireWandInternal;
     public static final Supplier<ItemIceWand> ICE_WAND = () -> iceWandInternal;
     public static final Supplier<ItemLevitationWand> LEVITATION_WAND = () -> levitationWandInternal;
     public static final Supplier<ItemLightningWand> LIGHTNING_WAND = () -> lightningWandInternal;
+    public static final Supplier<ItemWindWand> WIND_WAND = () -> windWandInternal;
 
     private static final WandDefinition ARCANE_WAND_DEFINITION =
             new WandDefinition(0, 0, 1, 1, Integer.MAX_VALUE, 0, 2, false);
@@ -46,6 +48,9 @@ public final class ModItems {
 
     private static final WandDefinition LIGHTNING_WAND_DEFINITION =
             new WandDefinition(15, 30, 1, 2, 60, 15, 4, true);
+
+    private static final WandDefinition WIND_WAND_DEFINITION =
+            new WandDefinition(30, 60, 1, 1, 20, 30, 3, true);
 
     public static void initialize() {
         // Register mod items.
@@ -77,6 +82,12 @@ public final class ModItems {
                 "lightning_wand",
                 props -> new ItemLightningWand(props, LIGHTNING_WAND_DEFINITION),
                 LIGHTNING_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".lightning_wand.info")
+        );
+
+        windWandInternal = register(
+                "wind_wand",
+                props -> new ItemWindWand(props, WIND_WAND_DEFINITION),
+                WIND_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".wind_wand.info")
         );
     }
 

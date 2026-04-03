@@ -35,6 +35,7 @@ public final class ModCreativeTab {
                     output.accept(ModItems.ICE_WAND.get());
                     output.accept(ModItems.LEVITATION_WAND.get());
                     output.accept(ModItems.LIGHTNING_WAND.get());
+                    output.accept(ModItems.WIND_WAND.get());
                 })
                 .build();
 
