@@ -150,6 +150,15 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
         }
         Vec3 strikePos = Vec3.atBottomCenterOf(target.blockPos());
 
+        // Check if we can see sky above the target.
+        if (!hasSkyAccess(level, target.blockPos().above(), true)) {
+            player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.cast.no_sky_above_target"),
+                    true
+            );
+            return false;
+        }
+
         // Create the lightning bolt.
         LightningBolt lightningBolt = new LightningBolt(EntityType.LIGHTNING_BOLT, level);
         lightningBolt.setPos(strikePos);

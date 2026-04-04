@@ -1,6 +1,7 @@
 package org.bensam.arcanerelics.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
@@ -10,6 +11,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -26,6 +28,7 @@ import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModComponents;
@@ -187,6 +190,36 @@ public abstract class AbstractChargedWandItem extends Item {
         }
 
         return null;
+    }
+
+    protected static boolean hasSkyAccess(Level level, BlockPos pos, boolean checkAdjacent) {
+        // Check trivial case.
+        if (level.canSeeSky(pos)) {
+            return true;
+        }
+
+        // Check if every block up to the level height limit is sky-transparent.
+        int startY = pos.getY();
+        int delta = 0;
+        for (int y = pos.getY(); level.isInsideBuildHeight(y); y++) {
+            delta = y - startY;
+            BlockState blockState = level.getBlockState(pos.above(delta));
+            if (blockState.canBeReplaced() || blockState.is(BlockTags.LEAVES)) {
+                continue;
+            }
+            // Found a non-transparent block above pos.
+
+            if (checkAdjacent) {
+                for (Direction direction : Direction.Plane.HORIZONTAL) {
+                    if (hasSkyAccess(level, pos.relative(direction), false)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        return true;
     }
 
     private static EntityHitResult raycastLivingEntities(Player player, double distance) {
