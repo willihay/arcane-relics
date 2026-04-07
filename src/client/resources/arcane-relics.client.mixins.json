@@ -3,7 +3,7 @@
 	"package": "org.bensam.arcanerelics.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ExampleClientMixin"
+		"ItemInHandRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

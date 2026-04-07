@@ -1,5 +1,6 @@
 package org.bensam.arcanerelics.item;
 
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -9,6 +10,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -32,6 +34,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModComponents;
+import org.bensam.arcanerelics.network.WandBeginCastS2CPayload;
+import org.bensam.arcanerelics.network.WandSucceedCastS2CPayload;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -270,7 +274,7 @@ public abstract class AbstractChargedWandItem extends Item {
 
     @Override
     public @NonNull ItemUseAnimation getUseAnimation(@NonNull ItemStack stack) {
-        return ItemUseAnimation.BOW;
+        return ItemUseAnimation.NONE;
     }
 
     @Override
@@ -278,17 +282,22 @@ public abstract class AbstractChargedWandItem extends Item {
         return 72000; // same as bow; effectively as long as you want
     }
 
-    protected static Vec3 getWandTipPosition(Player player, @Nullable InteractionHand hand) {
-        Vec3 look = player.getLookAngle().normalize();
-        Vec3 right = look.cross(Vec3.Y_AXIS).normalize();
+    protected static Vec3 getWandTipPosition(LivingEntity entity, @Nullable InteractionHand hand) {
+        Vec3 eyePos = entity.getEyePosition();
+        Vec3 look = entity.getLookAngle();
+
+        // Build a stable horizontal right vector from yaw so it doesn't become unreliable when looking up/down.
+        float yRotRad = entity.getYRot() * ((float) Math.PI / 180.0f);
+        Vec3 right = new Vec3(-Mth.cos(yRotRad), 0.0, Mth.sin(yRotRad));
+
         double sideOffset = hand != null
-                ? (hand == InteractionHand.MAIN_HAND) ? 0.25 : -0.25
+                ? (hand == InteractionHand.MAIN_HAND ? 0.3 : -0.3)
                 : 0.0;
 
-        return player.getEyePosition(1.0f)
-                .add(look) // forward offset towards tip
-                .add(right.scale(sideOffset)) // side offset towards interaction hand
-                .add(0.0, -0.20, 0.0); // downwards offset towards hand level
+        return eyePos
+                .add(look.scale(0.65))      // forward: toward the wand tip
+                .add(0.0, -0.22, 0.0) // slightly below the eye line
+                .add(right.scale(sideOffset)); // left/right hand offset
     }
 
     protected boolean isFullyPoweredUp(int elapsedTicks) {
@@ -309,7 +318,17 @@ public abstract class AbstractChargedWandItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        // If not sneaking, start normal power-up behavior.
+        // If not sneaking, start powering up the wand to cast its power.
+
+        // Begin the wand cast animation.
+        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
+            ServerPlayNetworking.send(
+                    serverPlayer,
+                    new WandBeginCastS2CPayload(hand == InteractionHand.MAIN_HAND, level.getGameTime())
+            );
+        }
+
+        // Start officially using the wand.
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
     }
@@ -324,6 +343,21 @@ public abstract class AbstractChargedWandItem extends Item {
         } else {
             stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
         }
+
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        /*
+        // Create portal-type particles around the player's wand when it's being powered up.
+        Vec3 particlePos = getWandTipPosition(entity, entity.getUsedItemHand());
+        serverLevel.sendParticles(
+                ParticleTypes.PORTAL,
+                particlePos.x, particlePos.y, particlePos.z,
+                2, // # of particles
+                0.2, 0.2, 0.2, // particle spread
+                 0.2 // particle speed
+        );*/
     }
 
     @Override
@@ -360,6 +394,14 @@ public abstract class AbstractChargedWandItem extends Item {
 
         if (castSucceeded) {
             this.playCastSuccessEffects(serverLevel, player, stack);
+
+            if (player instanceof ServerPlayer serverPlayer) {
+                ServerPlayNetworking.send(
+                        serverPlayer,
+                        new WandSucceedCastS2CPayload(level.getGameTime())
+                );
+            }
+
             if (chargeCost > 0) {
                 this.consumeCharges(stack, chargeCost);
             }
