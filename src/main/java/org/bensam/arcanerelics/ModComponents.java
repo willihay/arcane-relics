@@ -58,7 +58,7 @@ public final class ModComponents {
                 ArcaneRelics.LOGGER.warn("Missing wand_max_charges component for tooltip rendering");
                 textConsumer.accept(
                         Component.translatable(
-                                "item." + ArcaneRelics.MOD_ID + ".wand.charges.fallback",
+                                "item." + ArcaneRelics.MOD_ID + ".wand.charges.remaining",
                                         this.charges
                                 )
                                 .withStyle(ChatFormatting.GOLD)

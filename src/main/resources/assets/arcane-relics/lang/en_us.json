@@ -5,7 +5,7 @@
   "container.arcane-relics.wand_enchanting.cost": "Enchantment Cost: %1$s",
 
   "item.arcane-relics.wand.charges": "%1$s / %2$s charges",
-  "item.arcane-relics.wand.charges.fallback": "%1$s charges remaining",
+  "item.arcane-relics.wand.charges.remaining": "%1$s charges remaining",
   "item.arcane-relics.arcane_wand": "Arcane Wand",
   "item.arcane-relics.arcane_wand.info.1": "Base wand that can be enchanted with arcane power",
   "item.arcane-relics.arcane_wand.info.2": "in a wand enchanting table.",
@@ -39,6 +39,7 @@
   "itemGroup.arcane-relics": "Arcane Relics",
 
   "message.arcane-relics.wand.charges": "%1$s / %2$s charges",
+  "message.arcane-relics.wand.charges.remaining": "%1$s has %2$s charges remaining",
   "message.arcane-relics.wand.cast.no_charges": "Not enough charges",
   "message.arcane-relics.wand.recharge.already_full": "The wand is already fully charged",
   "message.arcane-relics.arcane_wand.cast.no_power": "Basic arcane wands have no arcane power",
