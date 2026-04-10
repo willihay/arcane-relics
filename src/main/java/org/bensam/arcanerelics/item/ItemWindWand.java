@@ -371,7 +371,7 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
         level.playSound(
                 null,
                 player.blockPosition(),
-                SoundEvents.BREEZE_WIND_CHARGE_BURST.value(),
+                SoundEvents.EVOKER_CAST_SPELL,
                 SoundSource.PLAYERS,
                 1.0F,
                 1.0F

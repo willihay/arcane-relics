@@ -21,6 +21,7 @@ public final class ModItems {
     private static final List<Item> WAND_ENCHANTING_TABLE_OUTPUTS = new ArrayList<>();
 
     private static ItemArcaneWand arcaneWandInternal;
+    private static ItemFangWand fangWandInternal;
     private static ItemFireWand fireWandInternal;
     private static ItemIceWand iceWandInternal;
     private static ItemLevitationWand levitationWandInternal;
@@ -28,6 +29,7 @@ public final class ModItems {
     private static ItemWindWand windWandInternal;
 
     public static final Supplier<ItemArcaneWand> ARCANE_WAND = () -> arcaneWandInternal;
+    public static final Supplier<ItemFangWand> FANG_WAND = () -> fangWandInternal;
     public static final Supplier<ItemFireWand> FIRE_WAND = () -> fireWandInternal;
     public static final Supplier<ItemIceWand> ICE_WAND = () -> iceWandInternal;
     public static final Supplier<ItemLevitationWand> LEVITATION_WAND = () -> levitationWandInternal;
@@ -37,6 +39,9 @@ public final class ModItems {
     private static final WandDefinition ARCANE_WAND_DEFINITION =
             new WandDefinition(0, 0, 1, 1, Integer.MAX_VALUE, 0, 2, false);
 
+    private static final WandDefinition FANG_WAND_DEFINITION =
+            new WandDefinition(20, 40, 1, 1, 20, 20, 4, true);
+
     private static final WandDefinition FIRE_WAND_DEFINITION =
             new WandDefinition(20, 40, 1, 2, 20, 20, 3, true);
 
@@ -44,7 +49,7 @@ public final class ModItems {
             new WandDefinition(30, 60, 1, 1, 40, 30, 3, true);
 
     private static final WandDefinition LEVITATION_WAND_DEFINITION =
-            new WandDefinition(20, 40, 1, 1, 60, 20, 2, true);
+            new WandDefinition(20, 40, 1, 1, 60, 20, 3, true);
 
     private static final WandDefinition LIGHTNING_WAND_DEFINITION =
             new WandDefinition(15, 30, 1, 2, 60, 15, 4, true);
@@ -58,6 +63,12 @@ public final class ModItems {
                 "arcane_wand",
                 props -> new ItemArcaneWand(props, ARCANE_WAND_DEFINITION),
                 ARCANE_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".arcane_wand.info")
+        );
+
+        fangWandInternal = register(
+                "fang_wand",
+                props -> new ItemFangWand(props, FANG_WAND_DEFINITION),
+                FANG_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".fang_wand.info")
         );
 
         fireWandInternal = register(

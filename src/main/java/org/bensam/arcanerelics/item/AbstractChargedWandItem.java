@@ -344,11 +344,11 @@ public abstract class AbstractChargedWandItem extends Item {
             stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
         }
 
+        /*
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
 
-        /*
         // Create portal-type particles around the player's wand when it's being powered up.
         Vec3 particlePos = getWandTipPosition(entity, entity.getUsedItemHand());
         serverLevel.sendParticles(
@@ -357,7 +357,8 @@ public abstract class AbstractChargedWandItem extends Item {
                 2, // # of particles
                 0.2, 0.2, 0.2, // particle spread
                  0.2 // particle speed
-        );*/
+        );
+        */
     }
 
     @Override
