@@ -31,6 +31,10 @@
   "item.arcane-relics.lightning_wand.info.2": "Hold use to build lightning power for more damage.",
   "item.arcane-relics.lightning_wand.info.3": "At full power a strike causes a block-breaking explosion.",
   "item.arcane-relics.lightning_wand.info.4": "Can sneak-use with a lightning rod nearby to recharge.",
+  "item.arcane-relics.regen_wand": "Regeneration Wand",
+  "item.arcane-relics.regen_wand.info.1": "Casts regeneration effect on self or target living entity.",
+  "item.arcane-relics.regen_wand.info.2": "Hold use to build regeneration duration.",
+  "item.arcane-relics.regen_wand.info.3": "Can sneak-use with a happy ghast nearby to recharge.",
   "item.arcane-relics.wind_wand": "Wind Wand",
   "item.arcane-relics.wind_wand.info.1": "Blasts a gust of wind in front of you.",
   "item.arcane-relics.wind_wand.info.2": "Hold use to build wind power for more damage.",
@@ -58,6 +62,8 @@
   "message.arcane-relics.lightning_wand.recharge.success": "Recharged to full from nearby lightning rod",
   "message.arcane-relics.lightning_wand.recharge.no_thunder": "Lightning rod recharge requires a thunderstorm",
   "message.arcane-relics.lightning_wand.recharge.no_lightning_rod": "No lightning rod found nearby",
+  "message.arcane-relics.regen_wand.recharge.success": "Recharged to full from nearby happy ghast",
+  "message.arcane-relics.regen_wand.recharge.fail": "No happy ghast found nearby",
   "message.arcane-relics.wind_wand.recharge.success": "Recharged to full from nearby breeze",
   "message.arcane-relics.wind_wand.recharge.fail": "No breeze mob found nearby"
 }

@@ -26,6 +26,7 @@ public final class ModItems {
     private static ItemIceWand iceWandInternal;
     private static ItemLevitationWand levitationWandInternal;
     private static ItemLightningWand lightningWandInternal;
+    private static ItemRegenerationWand regenerationWandInternal;
     private static ItemWindWand windWandInternal;
 
     public static final Supplier<ItemArcaneWand> ARCANE_WAND = () -> arcaneWandInternal;
@@ -34,6 +35,7 @@ public final class ModItems {
     public static final Supplier<ItemIceWand> ICE_WAND = () -> iceWandInternal;
     public static final Supplier<ItemLevitationWand> LEVITATION_WAND = () -> levitationWandInternal;
     public static final Supplier<ItemLightningWand> LIGHTNING_WAND = () -> lightningWandInternal;
+    public static final Supplier<ItemRegenerationWand> REGENERATION_WAND = () -> regenerationWandInternal;
     public static final Supplier<ItemWindWand> WIND_WAND = () -> windWandInternal;
 
     private static final WandDefinition ARCANE_WAND_DEFINITION =
@@ -53,6 +55,9 @@ public final class ModItems {
 
     private static final WandDefinition LIGHTNING_WAND_DEFINITION =
             new WandDefinition(15, 30, 1, 2, 60, 15, 4, true);
+
+    private static final WandDefinition REGENERATION_WAND_DEFINITION =
+            new WandDefinition(10, 30, 1, 1, 40, 10, 3, true);
 
     private static final WandDefinition WIND_WAND_DEFINITION =
             new WandDefinition(30, 60, 1, 1, 20, 30, 3, true);
@@ -93,6 +98,12 @@ public final class ModItems {
                 "lightning_wand",
                 props -> new ItemLightningWand(props, LIGHTNING_WAND_DEFINITION),
                 LIGHTNING_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".lightning_wand.info")
+        );
+
+        regenerationWandInternal = register(
+                "regen_wand",
+                props -> new ItemRegenerationWand(props, REGENERATION_WAND_DEFINITION),
+                REGENERATION_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".regen_wand.info")
         );
 
         windWandInternal = register(
