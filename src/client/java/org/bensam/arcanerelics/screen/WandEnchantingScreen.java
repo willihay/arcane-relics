@@ -23,6 +23,9 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
 
     public WandEnchantingScreen(WandEnchantingMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
+        this.imageWidth = 176;
+        this.imageHeight = 178;
+        this.inventoryLabelY = this.imageHeight - 94;
         player = inventory.player;
     }
 
@@ -87,7 +90,7 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
                     RenderPipelines.GUI_TEXTURED,
                     EMPTY_SLOT_WAND_TEXTURE,
                     i + WandEnchantingMenu.WAND_INPUT_SLOT_X,
-                    j + WandEnchantingMenu.COMBINER_ROW_Y,
+                    j + WandEnchantingMenu.RECIPE_ROW_Y,
                     0,0, 16, 16, 16, 16
             );
         }
@@ -97,7 +100,7 @@ public class WandEnchantingScreen extends AbstractContainerScreen<WandEnchanting
                     RenderPipelines.GUI_TEXTURED,
                     EMPTY_SLOT_LAPIS_TEXTURE,
                     i + WandEnchantingMenu.LAPIS_INPUT_SLOT_X,
-                    j + WandEnchantingMenu.COMBINER_ROW_Y,
+                    j + WandEnchantingMenu.RECIPE_ROW_Y,
                     0,0, 16, 16, 16, 16
             );
         }

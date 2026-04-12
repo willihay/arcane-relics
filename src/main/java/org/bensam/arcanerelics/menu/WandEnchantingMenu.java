@@ -15,7 +15,7 @@ import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
 import org.jspecify.annotations.NonNull;
 
 public class WandEnchantingMenu extends AbstractContainerMenu {
-    // --- Combiner slot layout ---
+    // --- Recipe slot layout ---
     private static final int WAND_INPUT_SLOT = 0;
     public static final int WAND_INPUT_SLOT_X = 8;
     private static final int ARCANE_ITEM_SLOT = 1;
@@ -24,10 +24,12 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     public static final int LAPIS_INPUT_SLOT_X = 44;
     private static final int WAND_OUTPUT_SLOT = 3;
     private static final int WAND_OUTPUT_SLOT_X = 98;
-    public static final int COMBINER_ROW_Y = 48;
+    public static final int RECIPE_ROW_Y = 48;
     private static final int BLOCK_SLOT_COUNT = 4;
 
     // --- Other slot layout ---
+    private static final int PLAYER_INVENTORY_ROW_X = 8;
+    private static final int PLAYER_INVENTORY_ROW_Y = 96;
     private static final int FIRST_PLAYER_SLOT = BLOCK_SLOT_COUNT;
     private static final int FIRST_HOTBAR_SLOT = FIRST_PLAYER_SLOT + 27;
 
@@ -63,7 +65,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
 
         // Add block entity slots.
         // Slot 0: Wand input
-        this.addSlot(new Slot(blockInventory, WAND_INPUT_SLOT, WAND_INPUT_SLOT_X, COMBINER_ROW_Y) {
+        this.addSlot(new Slot(blockInventory, WAND_INPUT_SLOT, WAND_INPUT_SLOT_X, RECIPE_ROW_Y) {
             @Override
             public boolean mayPlace(@NonNull ItemStack stack) {
                 return BlockEntityWandEnchantingTable.isArcaneWand(stack);
@@ -76,7 +78,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         });
 
         // Slot 1: Arcane item input
-        this.addSlot(new Slot(blockInventory, ARCANE_ITEM_SLOT, ARCANE_ITEM_SLOT_X, COMBINER_ROW_Y) {
+        this.addSlot(new Slot(blockInventory, ARCANE_ITEM_SLOT, ARCANE_ITEM_SLOT_X, RECIPE_ROW_Y) {
             @Override
             public boolean mayPlace(@NonNull ItemStack stack) {
                 return ModItems.isArcaneEnchantmentItem(stack);
@@ -89,7 +91,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         });
 
         // Slot 2: Lapis input
-        this.addSlot(new Slot(blockInventory, LAPIS_INPUT_SLOT, LAPIS_INPUT_SLOT_X, COMBINER_ROW_Y) {
+        this.addSlot(new Slot(blockInventory, LAPIS_INPUT_SLOT, LAPIS_INPUT_SLOT_X, RECIPE_ROW_Y) {
             @Override
             public boolean mayPlace(@NonNull ItemStack stack) {
                 return stack.is(Items.LAPIS_LAZULI);
@@ -102,7 +104,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         });
 
         // Slot 3: Result wand
-        this.addSlot(new Slot(blockInventory, WAND_OUTPUT_SLOT, WAND_OUTPUT_SLOT_X, COMBINER_ROW_Y) {
+        this.addSlot(new Slot(blockInventory, WAND_OUTPUT_SLOT, WAND_OUTPUT_SLOT_X, RECIPE_ROW_Y) {
             @Override
             public boolean mayPlace(@NonNull ItemStack stack) {
                 return false;
@@ -121,7 +123,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         });
 
         // Add the player inventory slots.
-        this.addStandardInventorySlots(playerInventory, 8, 84);
+        this.addStandardInventorySlots(playerInventory, PLAYER_INVENTORY_ROW_X, PLAYER_INVENTORY_ROW_Y);
 
         // Data sync.
         this.addDataSlots(data);
