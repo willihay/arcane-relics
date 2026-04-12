@@ -19,6 +19,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.List;
+
 public class ItemFangWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final int WAND_RANGE = 40;
     private static final int EVOKER_EXTRACTION_RADIUS = 8;
@@ -30,6 +32,11 @@ public class ItemFangWand extends AbstractChargedWandItem implements WandEnchant
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
         return stack.is(Items.TOTEM_OF_UNDYING);
+    }
+
+    @Override
+    public List<ItemStack> getEnchantmentItems(Level level) {
+        return List.of(new ItemStack(Items.TOTEM_OF_UNDYING));
     }
 
     @Override

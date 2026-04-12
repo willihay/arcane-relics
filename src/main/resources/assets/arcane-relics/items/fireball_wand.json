@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "arcane-relics:item/fire_wand"
+    "model": "arcane-relics:item/fireball_wand"
   }
 }

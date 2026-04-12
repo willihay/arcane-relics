@@ -18,6 +18,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
+
 public class ItemLevitationWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final int WAND_RANGE = 50;
     private static final int SHULKER_EXTRACTION_RADIUS = 8;
@@ -29,6 +31,11 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
         return stack.is(Items.SHULKER_SHELL);
+    }
+
+    @Override
+    public List<ItemStack> getEnchantmentItems(Level level) {
+        return List.of(new ItemStack(Items.SHULKER_SHELL));
     }
 
     @Override

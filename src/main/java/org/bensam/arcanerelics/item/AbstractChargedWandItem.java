@@ -4,9 +4,11 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -22,13 +24,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
@@ -38,6 +39,9 @@ import org.bensam.arcanerelics.network.WandBeginCastS2CPayload;
 import org.bensam.arcanerelics.network.WandSucceedCastS2CPayload;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractChargedWandItem extends Item {
     private final WandDefinition definition;
@@ -57,6 +61,30 @@ public abstract class AbstractChargedWandItem extends Item {
     }
 
     //region Enchanting Methods
+    protected static @NonNull List<ItemStack> getAllEnchantedBooks(Level level, ResourceKey<Enchantment> enchantmentKey) {
+        List<ItemStack> books = new ArrayList<>();
+        if (level == null) return books;
+
+        RegistryAccess registryAccess = level.registryAccess();
+        var holder = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(enchantmentKey);
+        Enchantment enchantment = holder.value();
+        int maxEnchantmentLevel = enchantment.getMaxLevel();
+        for (int enchantmentlevel = enchantment.getMinLevel(); enchantmentlevel <= maxEnchantmentLevel; enchantmentlevel++) {
+            books.add(EnchantmentHelper.createBook(new EnchantmentInstance(holder, enchantmentlevel)));
+        }
+
+        return books;
+    }
+
+    protected static @NonNull List<ItemStack> getAllEffectItems(Holder<Potion> potionType) {
+        List<ItemStack> items = new ArrayList<>();
+        items.add(PotionContents.createItemStack(Items.POTION, potionType));
+        items.add(PotionContents.createItemStack(Items.SPLASH_POTION, potionType));
+        items.add(PotionContents.createItemStack(Items.LINGERING_POTION, potionType));
+        items.add(PotionContents.createItemStack(Items.TIPPED_ARROW, potionType));
+        return items;
+    }
+
     public int getNewWandCharges(int enchantmentLevel) {
         int rechargeMultiplier = enchantmentLevel > 0 ? enchantmentLevel - 1 : 0;
         return Math.min(

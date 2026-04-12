@@ -22,6 +22,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ItemWindWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
@@ -43,6 +44,13 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
             return true;
         }
         return hasPotionEffect(stack, Potions.WIND_CHARGED);
+    }
+
+    @Override
+    public List<ItemStack> getEnchantmentItems(Level level) {
+        List<ItemStack> items = getAllEnchantedBooks(level, Enchantments.WIND_BURST);
+        items.addAll(getAllEffectItems(Potions.WIND_CHARGED));
+        return items;
     }
 
     @Override

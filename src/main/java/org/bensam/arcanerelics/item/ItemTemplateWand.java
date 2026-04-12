@@ -6,6 +6,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
+import java.util.List;
+
 public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
 
     public ItemTemplateWand(Properties properties, WandDefinition definition) {
@@ -15,6 +17,11 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
         return false;
+    }
+
+    @Override
+    public List<ItemStack> getEnchantmentItems(Level level) {
+        return List.of();
     }
 
     @Override

@@ -18,11 +18,12 @@ import java.util.function.Supplier;
 public final class ModItems {
     private ModItems() {}
 
-    private static final List<Item> WAND_ENCHANTING_TABLE_OUTPUTS = new ArrayList<>();
+    private static final List<ItemStack> WAND_ENCHANTING_TABLE_INPUTS = new ArrayList<>();
+    private static final List<AbstractChargedWandItem> WAND_ENCHANTING_TABLE_OUTPUTS = new ArrayList<>();
 
     private static ItemArcaneWand arcaneWandInternal;
     private static ItemFangWand fangWandInternal;
-    private static ItemFireWand fireWandInternal;
+    private static ItemFireballWand fireballWandInternal;
     private static ItemIceWand iceWandInternal;
     private static ItemLevitationWand levitationWandInternal;
     private static ItemLightningWand lightningWandInternal;
@@ -31,7 +32,7 @@ public final class ModItems {
 
     public static final Supplier<ItemArcaneWand> ARCANE_WAND = () -> arcaneWandInternal;
     public static final Supplier<ItemFangWand> FANG_WAND = () -> fangWandInternal;
-    public static final Supplier<ItemFireWand> FIRE_WAND = () -> fireWandInternal;
+    public static final Supplier<ItemFireballWand> FIREBALL_WAND = () -> fireballWandInternal;
     public static final Supplier<ItemIceWand> ICE_WAND = () -> iceWandInternal;
     public static final Supplier<ItemLevitationWand> LEVITATION_WAND = () -> levitationWandInternal;
     public static final Supplier<ItemLightningWand> LIGHTNING_WAND = () -> lightningWandInternal;
@@ -44,7 +45,7 @@ public final class ModItems {
     private static final WandDefinition FANG_WAND_DEFINITION =
             new WandDefinition(20, 40, 1, 1, 20, 20, 4, true);
 
-    private static final WandDefinition FIRE_WAND_DEFINITION =
+    private static final WandDefinition FIREBALL_WAND_DEFINITION =
             new WandDefinition(20, 40, 1, 2, 20, 20, 3, true);
 
     private static final WandDefinition ICE_WAND_DEFINITION =
@@ -76,10 +77,10 @@ public final class ModItems {
                 FANG_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".fang_wand.info")
         );
 
-        fireWandInternal = register(
-                "fire_wand",
-                props -> new ItemFireWand(props, FIRE_WAND_DEFINITION),
-                FIRE_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".fire_wand.info")
+        fireballWandInternal = register(
+                "fireball_wand",
+                props -> new ItemFireballWand(props, FIREBALL_WAND_DEFINITION),
+                FIREBALL_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".fireball_wand.info")
         );
 
         iceWandInternal = register(
@@ -130,20 +131,34 @@ public final class ModItems {
         // Register the item.
         T registered = Registry.register(BuiltInRegistries.ITEM, itemKey, item);
 
-        if (registered instanceof WandEnchantingTableOutput) {
-            WAND_ENCHANTING_TABLE_OUTPUTS.add(registered);
+        if (registered instanceof AbstractChargedWandItem wandItem) {
+            WAND_ENCHANTING_TABLE_INPUTS.add(new ItemStack(registered));
+
+            if (registered instanceof WandEnchantingTableOutput) {
+                WAND_ENCHANTING_TABLE_OUTPUTS.add(wandItem);
+            }
         }
 
         return registered;
     }
 
+    public static List<ItemStack> getAllWands() {
+        return WAND_ENCHANTING_TABLE_INPUTS.stream()
+                .map(ItemStack::copy)
+                .toList();
+    }
+
+    public static List<AbstractChargedWandItem> getAllOutputWands() {
+        return WAND_ENCHANTING_TABLE_OUTPUTS;
+    }
+
     public static ItemStack getWandEnchantmentOutput(@NonNull ItemStack stack) {
         if (stack.isEmpty()) { return ItemStack.EMPTY; }
 
-        for (Item item : WAND_ENCHANTING_TABLE_OUTPUTS) {
-            if (item instanceof WandEnchantingTableOutput outputItem
+        for (AbstractChargedWandItem wandItem : WAND_ENCHANTING_TABLE_OUTPUTS) {
+            if (wandItem instanceof WandEnchantingTableOutput outputItem
                     && outputItem.canBeProducedOrRechargedBy(stack)) {
-                return new ItemStack(item);
+                return new ItemStack(wandItem);
             }
         }
 

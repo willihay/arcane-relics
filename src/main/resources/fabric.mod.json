@@ -1,42 +1,45 @@
 {
-	"schemaVersion": 1,
-	"id": "arcane-relics",
-	"version": "${version}",
-	"name": "Arcane Relics",
-	"description": "A collection of powerful relics from crafty wizards",
-	"authors": [
-		"Willow the Wisp"
-	],
-	"contact": {
-		"homepage": "https://github.com/willihay/arcane-relics/wiki",
-		"sources": "https://github.com/willihay/arcane-relics",
-		"issues": "https://github.com/willihay/arcane-relics/issues"
-	},
-	"license": "LGPL-3.0-only",
-	"icon": "assets/arcane-relics/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"org.bensam.arcanerelics.ArcaneRelics"
-		],
-		"client": [
-			"org.bensam.arcanerelics.ArcaneRelicsClient"
-		],
-		"fabric-datagen": [
-			"org.bensam.arcanerelics.ArcaneRelicsDataGenerator"
-		]
-	},
-	"mixins": [
-		"arcane-relics.mixins.json",
-		{
-			"config": "arcane-relics.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.18.4",
-		"minecraft": "~1.21.11",
-		"java": ">=21",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "arcane-relics",
+  "version": "${version}",
+  "name": "Arcane Relics",
+  "description": "A collection of powerful relics from crafty wizards",
+  "authors": [
+    "Willow the Wisp"
+  ],
+  "contact": {
+    "homepage": "https://github.com/willihay/arcane-relics/wiki",
+    "sources": "https://github.com/willihay/arcane-relics",
+    "issues": "https://github.com/willihay/arcane-relics/issues"
+  },
+  "license": "LGPL-3.0-only",
+  "icon": "assets/arcane-relics/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "org.bensam.arcanerelics.ArcaneRelics"
+    ],
+    "client": [
+      "org.bensam.arcanerelics.ArcaneRelicsClient"
+    ],
+    "fabric-datagen": [
+      "org.bensam.arcanerelics.ArcaneRelicsDataGenerator"
+    ],
+    "jei_mod_plugin": [
+      "org.bensam.arcanerelics.integration.jei.JEIPlugin"
+    ]
+  },
+  "mixins": [
+    "arcane-relics.mixins.json",
+    {
+      "config": "arcane-relics.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
 }

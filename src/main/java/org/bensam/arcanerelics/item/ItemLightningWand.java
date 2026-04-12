@@ -9,15 +9,18 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.*;
+import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 public class ItemLightningWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final int WAND_RANGE = 50;
@@ -32,6 +35,11 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
         return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.CHANNELING);
+    }
+
+    @Override
+    public List<ItemStack> getEnchantmentItems(Level level) {
+        return getAllEnchantedBooks(level, Enchantments.CHANNELING);
     }
 
     @Override

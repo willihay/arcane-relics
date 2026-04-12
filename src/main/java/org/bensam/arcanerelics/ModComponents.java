@@ -100,6 +100,6 @@ public final class ModComponents {
     }
 
     public static void initialize() {
-        ArcaneRelics.LOGGER.info("Registering components");
+        ArcaneRelics.LOGGER.debug("Registering components");
     }
 }

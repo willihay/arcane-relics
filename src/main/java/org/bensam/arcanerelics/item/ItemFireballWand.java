@@ -17,7 +17,9 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-public class ItemFireWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
+import java.util.List;
+
+public class ItemFireballWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final int BLAZE_EXTRACTION_RADIUS = 8;
     private static final int GHAST_EXTRACTION_RADIUS = 20;
     private static final int RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION = 1;
@@ -25,13 +27,18 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
     private static final float BASE_EXPLOSION_POWER = 0.5f;
     private static final float MAX_EXPLOSION_POWER = 2.0f;
 
-    public ItemFireWand(Properties properties, WandDefinition definition) {
+    public ItemFireballWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
     }
 
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
         return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.FLAME);
+    }
+
+    @Override
+    public List<ItemStack> getEnchantmentItems(Level level) {
+        return getAllEnchantedBooks(level, Enchantments.FLAME);
     }
 
     @Override
@@ -61,7 +68,7 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
                     RechargeResult.RECHARGE_SUCCESS,
                     RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION,
                     closestMob,
-                    "fire_wand.recharge.ghast");
+                    "fireball_wand.recharge.ghast");
         }
 
         closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, EntityType.HAPPY_GHAST);
@@ -70,7 +77,7 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
                     RechargeResult.RECHARGE_SUCCESS,
                     RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION,
                     closestMob,
-                    "fire_wand.recharge.ghast");
+                    "fireball_wand.recharge.ghast");
         }
 
         closestMob = findClosestMobOfType(level, center, BLAZE_EXTRACTION_RADIUS, EntityType.BLAZE);
@@ -79,14 +86,14 @@ public class ItemFireWand extends AbstractChargedWandItem implements WandEnchant
                     RechargeResult.RECHARGE_SUCCESS,
                     RECHARGE_CONTEXT_DATA_BLAZE_EXTRACTION,
                     closestMob,
-                    "fire_wand.recharge.blaze");
+                    "fireball_wand.recharge.blaze");
         }
 
         return new RechargeContext(
                 RechargeResult.RECHARGE_FAIL,
                 0,
                 null,
-                "fire_wand.recharge.fail");
+                "fireball_wand.recharge.fail");
     }
 
     @Override

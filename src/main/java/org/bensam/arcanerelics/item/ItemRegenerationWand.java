@@ -12,9 +12,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.List;
 
 public class ItemRegenerationWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final int GHAST_EXTRACTION_RADIUS = 20;
@@ -26,12 +29,24 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
 
     @Override
     public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return hasPotionEffect(stack, Potions.REGENERATION);
+        return stack.is(Items.GOLDEN_APPLE)
+                || stack.is(Items.ENCHANTED_GOLDEN_APPLE)
+                || hasPotionEffect(stack, Potions.REGENERATION)
+                || hasPotionEffect(stack, Potions.STRONG_REGENERATION)
+                || hasPotionEffect(stack, Potions.LONG_REGENERATION);
+    }
+
+    @Override
+    public List<ItemStack> getEnchantmentItems(Level level) {
+        List<ItemStack> items = getAllEffectItems(Potions.REGENERATION);
+        items.add(new ItemStack(Items.GOLDEN_APPLE));
+        items.add(new ItemStack(Items.ENCHANTED_GOLDEN_APPLE));
+        return items;
     }
 
     @Override
     public int getLevelOfEnchantmentItem(ItemStack stack) {
-        return hasPotionEffect(stack, Potions.REGENERATION) ? 1 : 0; }
+        return this.canBeProducedOrRechargedBy(stack) ? 1 : 0; }
 
     //region Recharge Methods
     @Override
