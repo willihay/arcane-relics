@@ -10,9 +10,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModBlocks;
+import org.bensam.arcanerelics.ModMenus;
 import org.bensam.arcanerelics.integration.jei.category.WandEnchantingCategory;
 import org.bensam.arcanerelics.integration.jei.recipe.WandEnchantingRecipe;
 import org.bensam.arcanerelics.integration.jei.recipe.WandEnchantingRecipeBuilder;
+import org.bensam.arcanerelics.menu.WandEnchantingMenu;
 import org.jspecify.annotations.NonNull;
 
 import java.util.List;
@@ -42,9 +44,15 @@ public class JEIPlugin implements IModPlugin {
         registration.addCraftingStation(WandEnchantingRecipe.TYPE, new ItemStack(ModBlocks.WAND_ENCHANTING_TABLE.get()));
     }
 
-    // TODO: Create and register a transfer handler for the Wand Enchanting Table.
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
-        //registration.addRecipeTransferHandler();
+        registration.addRecipeTransferHandler(
+                WandEnchantingMenu.class,
+                ModMenus.WAND_ENCHANTING_MENU.get(),
+                WandEnchantingRecipe.TYPE,
+                0,
+                3,
+                4,
+                36);
     }
 }
