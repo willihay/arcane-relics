@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public class ItemLightningWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
+    private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.CHANNELING));
     private static final int WAND_RANGE = 50;
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
     private static final int RECHARGE_CONTEXT_DATA_NO_THUNDER = 1;
@@ -35,18 +36,8 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     }
 
     @Override
-    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.CHANNELING);
-    }
-
-    @Override
-    public List<ItemStack> getEnchantmentItems(Level level) {
-        return getAllEnchantedBooks(level, Enchantments.CHANNELING);
-    }
-
-    @Override
-    public int getLevelOfEnchantmentItem(ItemStack stack) {
-        return getEnchantmentLevel(stack, Enchantments.CHANNELING);
+    public List<WandEnchantingSource> getEnchantingSources() {
+        return ENCHANTING_SOURCES;
     }
 
     @Override

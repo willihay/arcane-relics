@@ -13,24 +13,15 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
+    private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(); // add any combination of EnchantedBookSource, FixedItemSource, or PotionSource
 
     public ItemTemplateWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
     }
 
     @Override
-    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return false;
-    }
-
-    @Override
-    public List<ItemStack> getEnchantmentItems(Level level) {
-        return List.of();
-    }
-
-    @Override
-    public int getLevelOfEnchantmentItem(ItemStack stack) {
-        return this.canBeProducedOrRechargedBy(stack) ? 1 : 0; // change this to check for stack item's level of enchantment or potency if applicable
+    public List<WandEnchantingSource> getEnchantingSources() {
+        return ENCHANTING_SOURCES;
     }
 
     //region Recharge Methods

@@ -13,7 +13,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.hurtingprojectile.LargeFireball;
 import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -22,6 +21,7 @@ import org.bensam.arcanerelics.ArcaneRelics;
 import java.util.List;
 
 public class ItemFireballWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
+    private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.FLAME));
     private static final int BLAZE_EXTRACTION_RADIUS = 8;
     private static final int GHAST_EXTRACTION_RADIUS = 20;
     private static final int RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION = 1;
@@ -34,18 +34,8 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
     }
 
     @Override
-    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.FLAME);
-    }
-
-    @Override
-    public List<ItemStack> getEnchantmentItems(Level level) {
-        return getAllEnchantedBooks(level, Enchantments.FLAME);
-    }
-
-    @Override
-    public int getLevelOfEnchantmentItem(ItemStack stack) {
-        return getEnchantmentLevel(stack, Enchantments.FLAME);
+    public List<WandEnchantingSource> getEnchantingSources() {
+        return ENCHANTING_SOURCES;
     }
 
     //region Recharge Methods

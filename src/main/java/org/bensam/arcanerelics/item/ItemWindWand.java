@@ -12,7 +12,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
@@ -26,6 +25,10 @@ import java.util.List;
 import java.util.Set;
 
 public class ItemWindWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
+    private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(
+            new EnchantedBookSource(Enchantments.WIND_BURST),
+            new PotionSource(Potions.WIND_CHARGED)
+    );
     private static final int BREEZE_EXTRACTION_RADIUS = 8;
     private static final double WIND_RANGE = 24.0D;
     private static final double WIND_STEP = 0.55D;
@@ -39,26 +42,8 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
     }
 
     @Override
-    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        if (stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.WIND_BURST)) {
-            return true;
-        }
-        return hasPotionEffect(stack, Potions.WIND_CHARGED);
-    }
-
-    @Override
-    public List<ItemStack> getEnchantmentItems(Level level) {
-        List<ItemStack> items = getAllEnchantedBooks(level, Enchantments.WIND_BURST);
-        items.addAll(getAllEffectItems(Potions.WIND_CHARGED));
-        return items;
-    }
-
-    @Override
-    public int getLevelOfEnchantmentItem(ItemStack stack) {
-        if (stack.is(Items.ENCHANTED_BOOK)) {
-            return getEnchantmentLevel(stack, Enchantments.WIND_BURST);
-        }
-        return hasPotionEffect(stack, Potions.WIND_CHARGED) ? 1 : 0;
+    public List<WandEnchantingSource> getEnchantingSources() {
+        return ENCHANTING_SOURCES;
     }
 
     //region Recharge Methods

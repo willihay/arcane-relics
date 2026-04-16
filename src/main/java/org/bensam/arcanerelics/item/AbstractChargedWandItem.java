@@ -511,11 +511,10 @@ public abstract class AbstractChargedWandItem extends Item {
     }
 
     protected void sendRechargeFeedback(Player player, RechargeContext rechargeContext) {
-        if (rechargeContext.succeeded()) {
-            this.sendDefaultRechargeFeedback(player, "wand.recharge.success", rechargeContext.messageContext());
-        } else {
-            this.sendDefaultRechargeFeedback(player, "wand.recharge.fail", rechargeContext.messageContext());
-        }
+        this.sendDefaultRechargeFeedback(
+                player,
+                rechargeContext.succeeded() ? "wand.recharge.success" : "wand.recharge.fail",
+                rechargeContext.messageContext());
     }
 
     protected static void spawnParticleTrail(

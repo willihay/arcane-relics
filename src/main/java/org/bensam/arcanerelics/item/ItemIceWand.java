@@ -11,7 +11,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -21,6 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class ItemIceWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
+    private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.FROST_WALKER));
     private static final int WAND_RANGE = 50;
     private static final int STRAY_EXTRACTION_RADIUS = 8;
     private static final float POWER_LEVEL_1 = 0.30f;
@@ -32,18 +32,8 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
     }
 
     @Override
-    public boolean canBeProducedOrRechargedBy(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) && hasEnchantment(stack, Enchantments.FROST_WALKER);
-    }
-
-    @Override
-    public List<ItemStack> getEnchantmentItems(Level level) {
-        return getAllEnchantedBooks(level, Enchantments.FROST_WALKER);
-    }
-
-    @Override
-    public int getLevelOfEnchantmentItem(ItemStack stack) {
-        return getEnchantmentLevel(stack, Enchantments.FROST_WALKER);
+    public List<WandEnchantingSource> getEnchantingSources() {
+        return ENCHANTING_SOURCES;
     }
 
     //region Recharge Methods
