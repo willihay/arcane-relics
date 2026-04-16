@@ -49,48 +49,37 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        if (this.isFullyCharged(wandStack)) {
-            return new RechargeContext(RechargeResult.ALREADY_FULL, 0, null, this.getAlreadyFullMessagePath());
-        }
-
-        BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), STRAY_EXTRACTION_RADIUS, EntityType.STRAY);
-        if (closestMob != null) {
-            this.setCharges(wandStack, this.getMaxCharges());
-            return new RechargeContext(RechargeResult.RECHARGE_SUCCESS, 0, closestMob, "ice_wand.recharge.success");
-        }
-
-        return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "ice_wand.recharge.fail");
+        return this.rechargeFromSource(wandStack, () -> {
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), STRAY_EXTRACTION_RADIUS, EntityType.STRAY);
+            return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.STRAY).getDescription());
+        });
     }
 
     @Override
-    protected void playRechargeEffects(
+    protected void playRechargeSuccessEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
             ItemStack stack,
             RechargeContext rechargeContext
     ) {
-        if (rechargeContext.result() == RechargeResult.RECHARGE_SUCCESS) {
-            level.playSound(
-                    null,
-                    player.blockPosition(),
-                    SoundEvents.STRAY_AMBIENT,
-                    SoundSource.PLAYERS,
-                    1.0f, // volume
-                    1.0f // pitch
-            );
+        // Play sound effects.
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.STRAY_AMBIENT,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
 
-            // Create recharge particle effects.
-            if (rechargeContext.sourcePos() != null) {
-                // Create recharge particle trail from mob to player's wand.
-                Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
-                Vec3 wandTip = getWandTipPosition(player, hand);
-                spawnParticleTrail(level, ParticleTypes.ENCHANTED_HIT, mobStart, wandTip, 12, 5, 0.04);
-            }
+        // Create recharge particle effects.
+        if (rechargeContext.sourcePos() != null) {
+            // Create recharge particle trail from mob to player's wand.
+            Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
+            Vec3 wandTip = getWandTipPosition(player, hand);
+            spawnParticleTrail(level, ParticleTypes.ENCHANTED_HIT, mobStart, wandTip, 12, 5, 0.04);
         }
-
-        // Play default effects.
-        super.playRechargeEffects(level, player, hand, stack, rechargeContext);
     }
     //endregion
 

@@ -46,12 +46,7 @@ import java.util.List;
 public abstract class AbstractChargedWandItem extends Item {
     private final WandDefinition definition;
 
-    public enum RechargeResult {
-        ALREADY_FULL,
-        RECHARGE_SUCCESS,
-        RECHARGE_FAIL
-    }
-    public record RechargeContext(RechargeResult result, int contextData, @Nullable BlockPos sourcePos, String messagePath) {}
+    public record RechargeContext(boolean succeeded, int contextData, @Nullable BlockPos sourcePos, @Nullable Component messageContext) {}
 
     public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
@@ -278,10 +273,6 @@ public abstract class AbstractChargedWandItem extends Item {
         return this.getUseDuration(stack, entity) - remainingUseDuration;
     }
 
-    protected String getAlreadyFullMessagePath() {
-        return "wand.recharge.already_full";
-    }
-
     protected Component getNoChargesMessage() {
         return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
     }
@@ -339,9 +330,21 @@ public abstract class AbstractChargedWandItem extends Item {
         // If sneaking, try to recharge.
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
-                RechargeContext rechargeContext = this.tryRecharge(level, player, stack);
-                this.playRechargeEffects((ServerLevel) level, player, hand, stack, rechargeContext);
-                this.sendRechargeFeedback(player, rechargeContext);
+                if (this.isFullyCharged(stack)) {
+                    this.playRechargeFailEffects((ServerLevel) level, player, hand);
+                    player.displayClientMessage(
+                            Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.already_full"),
+                            true
+                    );
+                } else {
+                    RechargeContext rechargeContext = this.tryRecharge(level, player, stack);
+                    if (rechargeContext.succeeded()) {
+                        this.playRechargeSuccessEffects((ServerLevel) level, player, hand, stack, rechargeContext);
+                    } else {
+                        this.playRechargeFailEffects((ServerLevel) level, player, hand);
+                    }
+                    this.sendRechargeFeedback(player, rechargeContext);
+                }
             }
             return InteractionResult.SUCCESS;
         }
@@ -443,7 +446,32 @@ public abstract class AbstractChargedWandItem extends Item {
     //endregion
 
     //region Recharge Methods
-    protected void playDefaultRechargeEffects(ServerLevel level, Player player) {
+    protected abstract RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack);
+
+    @FunctionalInterface
+    protected interface RechargeAttempt {
+        RechargeContext run();
+    }
+
+    protected RechargeContext rechargeFromSource(ItemStack wandStack, RechargeAttempt rechargeAttempt) {
+        RechargeContext rechargeContext = rechargeAttempt.run();
+
+        if (rechargeContext.succeeded()) {
+            this.setCharges(wandStack, this.getMaxCharges());
+        }
+
+        return rechargeContext;
+    }
+
+    protected void playRechargeSuccessEffects(
+            ServerLevel level,
+            Player player,
+            InteractionHand hand,
+            ItemStack stack,
+            RechargeContext rechargeContext
+    ) {}
+
+    private void playDefaultRechargeFailEffects(ServerLevel level, Player player, InteractionHand hand) {
         level.playSound(
                 null,
                 player.blockPosition(),
@@ -452,27 +480,42 @@ public abstract class AbstractChargedWandItem extends Item {
                 1.0f,
                 1.0f
         );
-    }
 
-    protected void playRechargeEffects(
-            ServerLevel level,
-            Player player,
-            InteractionHand hand,
-            ItemStack stack,
-            RechargeContext rechargeContext
-    ) {
-        this.playDefaultRechargeEffects(level, player);
-    }
-
-    protected void sendDefaultRechargeFeedback(Player player, String messagePath) {
-        player.displayClientMessage(
-                Component.translatable("message." + ArcaneRelics.MOD_ID + "." + messagePath),
-                true
+        // Create recharge fizzle particles.
+        Vec3 wandTip = getWandTipPosition(player, hand);
+        level.sendParticles(
+                ParticleTypes.ELECTRIC_SPARK,
+                wandTip.x, wandTip.y, wandTip.z, // position
+                5, // # of particles
+                0.03,0.03,0.03, // particle spread
+                0.02 // particle speed
         );
     }
 
+    protected void playRechargeFailEffects(ServerLevel level, Player player, InteractionHand hand) {
+        this.playDefaultRechargeFailEffects(level, player, hand);
+    }
+
+    private void sendDefaultRechargeFeedback(Player player, String messagePath, @Nullable Component messageParameter) {
+        if (messageParameter == null) {
+            player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + "." + messagePath),
+                    true
+            );
+        } else {
+            player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + "." + messagePath, messageParameter),
+                    true
+            );
+        }
+    }
+
     protected void sendRechargeFeedback(Player player, RechargeContext rechargeContext) {
-        this.sendDefaultRechargeFeedback(player, rechargeContext.messagePath());
+        if (rechargeContext.succeeded()) {
+            this.sendDefaultRechargeFeedback(player, "wand.recharge.success", rechargeContext.messageContext());
+        } else {
+            this.sendDefaultRechargeFeedback(player, "wand.recharge.fail", rechargeContext.messageContext());
+        }
     }
 
     protected static void spawnParticleTrail(
@@ -501,8 +544,6 @@ public abstract class AbstractChargedWandItem extends Item {
             );
         }
     }
-
-    protected abstract RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack);
     //endregion
 
     //region Cast Methods
@@ -516,7 +557,7 @@ public abstract class AbstractChargedWandItem extends Item {
 
     protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {}
 
-    protected void playDefaultCastFailEffects(ServerLevel level, Player player) {
+    private void playDefaultCastFailEffects(ServerLevel level, Player player) {
         Vec3 frontOfPlayer = getWandTipPosition(player, null);
         level.sendParticles(
                 ParticleTypes.WHITE_SMOKE,

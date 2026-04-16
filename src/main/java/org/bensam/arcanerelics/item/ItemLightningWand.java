@@ -25,6 +25,8 @@ import java.util.List;
 public class ItemLightningWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final int WAND_RANGE = 50;
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
+    private static final int RECHARGE_CONTEXT_DATA_NO_THUNDER = 1;
+    private static final int RECHARGE_CONTEXT_DATA_NO_LIGHTNING_ROD = 2;
     private static final float BASE_EXPLOSION_POWER = 0.75f;
     private static final float MAX_EXPLOSION_POWER = 2.0f;
 
@@ -55,22 +57,19 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        if (this.isFullyCharged(wandStack)) {
-            return new RechargeContext(RechargeResult.ALREADY_FULL, 0, null, this.getAlreadyFullMessagePath());
-        }
-
-        BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition());
-        if (lightningRodPos != null) {
-            if (level.isThundering()) {
-                this.setCharges(wandStack, this.getMaxCharges());
-                return new RechargeContext(RechargeResult.RECHARGE_SUCCESS, 0, lightningRodPos, "lightning_wand.recharge.success");
+        return this.rechargeFromSource(wandStack, () -> {
+            BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition());
+            if (lightningRodPos != null) {
+                if (level.isThundering()) {
+                    return new RechargeContext(true, 0, lightningRodPos, (Items.LIGHTNING_ROD).getName());
+                }
+                else {
+                    return new RechargeContext(false, RECHARGE_CONTEXT_DATA_NO_THUNDER, null, null);
+                }
             }
-            else {
-                return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "lightning_wand.recharge.no_thunder");
-            }
-        }
 
-        return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "lightning_wand.recharge.no_lightning_rod");
+            return new RechargeContext(false, RECHARGE_CONTEXT_DATA_NO_LIGHTNING_ROD, null, null);
+        });
     }
 
     protected static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center) {
@@ -101,37 +100,49 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     }
 
     @Override
-    protected void playRechargeEffects(
+    protected void playRechargeSuccessEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
             ItemStack stack,
             RechargeContext rechargeContext
     ) {
-        if (rechargeContext.result() == RechargeResult.RECHARGE_SUCCESS) {
-            level.playSound(
-                    null,
-                    player.blockPosition(),
-                    SoundEvents.LIGHTNING_BOLT_THUNDER,
-                    SoundSource.PLAYERS,
-                    1.0f, // volume
-                    1.0f // pitch
-            );
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.LIGHTNING_BOLT_THUNDER,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
 
-            if (rechargeContext.sourcePos() != null) {
-                // Create recharge particle trail from sky to rod.
-                Vec3 skyStart = Vec3.atBottomCenterOf(rechargeContext.sourcePos()).add(0.0, 12.0, 0.0);
-                Vec3 rodTop = Vec3.atBottomCenterOf(rechargeContext.sourcePos()).add(Vec3.Y_AXIS);
-                spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, skyStart, rodTop, 12, 4, 0.05);
+        if (rechargeContext.sourcePos() != null) {
+            // Create recharge particle trail from sky to rod.
+            Vec3 skyStart = Vec3.atBottomCenterOf(rechargeContext.sourcePos()).add(0.0, 12.0, 0.0);
+            Vec3 rodTop = Vec3.atBottomCenterOf(rechargeContext.sourcePos()).add(Vec3.Y_AXIS);
+            spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, skyStart, rodTop, 12, 4, 0.05);
 
-                // Create recharge particle trail from rod to player's wand.
-                Vec3 wandTip = getWandTipPosition(player, hand);
-                spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, rodTop, wandTip, 12, 4, 0.04);
-            }
+            // Create recharge particle trail from rod to player's wand.
+            Vec3 wandTip = getWandTipPosition(player, hand);
+            spawnParticleTrail(level, ParticleTypes.ELECTRIC_SPARK, rodTop, wandTip, 12, 4, 0.04);
         }
+    }
 
-        // Play default effects.
-        super.playRechargeEffects(level, player, hand, stack, rechargeContext);
+    @Override
+    protected void sendRechargeFeedback(Player player, RechargeContext rechargeContext) {
+        if (rechargeContext.succeeded()) {
+            super.sendRechargeFeedback(player, rechargeContext);
+        } else if (rechargeContext.contextData() == RECHARGE_CONTEXT_DATA_NO_THUNDER) {
+            player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_thunder"),
+                    true
+            );
+        } else if (rechargeContext.contextData() == RECHARGE_CONTEXT_DATA_NO_LIGHTNING_ROD) {
+            player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_lightning_rod"),
+                    true
+            );
+        }
     }
     //endregion
 

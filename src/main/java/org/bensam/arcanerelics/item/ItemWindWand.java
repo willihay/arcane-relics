@@ -64,54 +64,41 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        if (this.isFullyCharged(wandStack)) {
-            return new RechargeContext(RechargeResult.ALREADY_FULL, 0, null, this.getAlreadyFullMessagePath());
-        }
-
-        BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), BREEZE_EXTRACTION_RADIUS, EntityType.BREEZE);
-        if (closestMob != null) {
-            this.setCharges(wandStack, this.getMaxCharges());
-            return new RechargeContext(RechargeResult.RECHARGE_SUCCESS, 0, closestMob, "wind_wand.recharge.success");
-        }
-
-        return new RechargeContext(RechargeResult.RECHARGE_FAIL, 0, null, "wind_wand.recharge.fail");
+        return this.rechargeFromSource(wandStack, () -> {
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), BREEZE_EXTRACTION_RADIUS, EntityType.BREEZE);
+            return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.BREEZE).getDescription());
+        });
     }
 
     @Override
-    protected void playRechargeEffects(
+    protected void playRechargeSuccessEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
             ItemStack stack,
             RechargeContext rechargeContext
     ) {
-        if (rechargeContext.result() == RechargeResult.RECHARGE_SUCCESS) {
-            // Play sound effects.
-            level.playSound(
-                    null,
-                    player.blockPosition(),
-                    SoundEvents.BREEZE_INHALE,
-                    SoundSource.PLAYERS,
-                    1.0f,
-                    1.0f
-            );
+        // Play sound effects.
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.BREEZE_INHALE,
+                SoundSource.PLAYERS,
+                1.0f,
+                1.0f
+        );
 
-            // Create recharge particle effects.
-            if (rechargeContext.sourcePos() != null) {
-                // Create recharge particle trail from mob to player's wand.
-                Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
-                Vec3 wandTip = getWandTipPosition(player, hand);
-                spawnParticleTrail(level, ParticleTypes.SMALL_GUST, mobStart, wandTip, 12, 5, 0.04);
-            }
+        // Create recharge particle effects.
+        if (rechargeContext.sourcePos() != null) {
+            // Create recharge particle trail from mob to player's wand.
+            Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
+            Vec3 wandTip = getWandTipPosition(player, hand);
+            spawnParticleTrail(level, ParticleTypes.SMALL_GUST, mobStart, wandTip, 12, 5, 0.04);
         }
-
-        // Play default effects.
-        super.playRechargeEffects(level, player, hand, stack, rechargeContext);
     }
     //endregion
 
     //region Cast Methods
-
     @Override
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         // Simulates a forward-moving wind cone by stepping through space, spawning visuals, checking obstruction,

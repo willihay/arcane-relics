@@ -2,6 +2,7 @@ package org.bensam.arcanerelics.item;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -16,6 +17,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.ArcaneRelics;
 
 import java.util.List;
 
@@ -49,83 +51,81 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        if (this.isFullyCharged(wandStack)) {
-            return new RechargeContext(RechargeResult.ALREADY_FULL, 0, null, this.getAlreadyFullMessagePath());
-        }
-
-        RechargeContext mobFuelSearchResult = findNearbyMobFuel(level, player.blockPosition());
-        if (mobFuelSearchResult.result() != RechargeResult.RECHARGE_FAIL) {
-            this.setCharges(wandStack, this.getMaxCharges());
-        }
-
-        return mobFuelSearchResult;
+        return this.rechargeFromSource(wandStack, () -> findNearbyMobFuel(level, player.blockPosition()));
     }
 
     protected static RechargeContext findNearbyMobFuel(Level level, BlockPos center) {
         BlockPos closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, EntityType.GHAST);
         if (closestMob != null) {
             return new RechargeContext(
-                    RechargeResult.RECHARGE_SUCCESS,
+                    true,
                     RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION,
                     closestMob,
-                    "fireball_wand.recharge.ghast");
+                    (EntityType.GHAST).getDescription());
         }
 
         closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, EntityType.HAPPY_GHAST);
         if (closestMob != null) {
             return new RechargeContext(
-                    RechargeResult.RECHARGE_SUCCESS,
+                    true,
                     RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION,
                     closestMob,
-                    "fireball_wand.recharge.ghast");
+                    (EntityType.HAPPY_GHAST).getDescription());
         }
 
         closestMob = findClosestMobOfType(level, center, BLAZE_EXTRACTION_RADIUS, EntityType.BLAZE);
         if (closestMob != null) {
             return new RechargeContext(
-                    RechargeResult.RECHARGE_SUCCESS,
+                    true,
                     RECHARGE_CONTEXT_DATA_BLAZE_EXTRACTION,
                     closestMob,
-                    "fireball_wand.recharge.blaze");
+                    (EntityType.BLAZE).getDescription());
         }
 
         return new RechargeContext(
-                RechargeResult.RECHARGE_FAIL,
+                false,
                 0,
                 null,
-                "fireball_wand.recharge.fail");
+                null);
     }
 
     @Override
-    protected void playRechargeEffects(
+    protected void playRechargeSuccessEffects(
             ServerLevel level,
             Player player,
             InteractionHand hand,
             ItemStack stack,
             RechargeContext rechargeContext
     ) {
-        if (rechargeContext.result() == RechargeResult.RECHARGE_SUCCESS) {
-            // Play sound effects.
-            level.playSound(
-                    null,
-                    player.blockPosition(),
-                    rechargeContext.contextData() == RECHARGE_CONTEXT_DATA_BLAZE_EXTRACTION ? SoundEvents.BLAZE_AMBIENT : SoundEvents.GHAST_SCREAM,
-                    SoundSource.PLAYERS,
-                    1.0f, // volume
-                    1.0f // pitch
-            );
+        // Play sound effects.
+        level.playSound(
+                null,
+                player.blockPosition(),
+                rechargeContext.contextData() == RECHARGE_CONTEXT_DATA_BLAZE_EXTRACTION ? SoundEvents.BLAZE_AMBIENT : SoundEvents.GHAST_SCREAM,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
 
-            // Create recharge particle effects.
-            if (rechargeContext.sourcePos() != null) {
-                // Create recharge particle trail from mob to player's wand.
-                Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
-                Vec3 wandTip = getWandTipPosition(player, hand);
-                spawnParticleTrail(level, ParticleTypes.SMALL_FLAME, mobStart, wandTip, 12, 5, 0.04);
-            }
+        // Create recharge particle effects.
+        if (rechargeContext.sourcePos() != null) {
+            // Create recharge particle trail from mob to player's wand.
+            Vec3 mobStart = Vec3.atCenterOf(rechargeContext.sourcePos());
+            Vec3 wandTip = getWandTipPosition(player, hand);
+            spawnParticleTrail(level, ParticleTypes.SMALL_FLAME, mobStart, wandTip, 12, 5, 0.04);
         }
+    }
 
-        // Play default effects.
-        super.playRechargeEffects(level, player, hand, stack, rechargeContext);
+    @Override
+    protected void sendRechargeFeedback(Player player, RechargeContext rechargeContext) {
+        if (rechargeContext.succeeded()) {
+            super.sendRechargeFeedback(player, rechargeContext);
+        } else {
+            player.displayClientMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".fireball_wand.recharge.fail"),
+                    true
+            );
+        }
     }
     //endregion
 
