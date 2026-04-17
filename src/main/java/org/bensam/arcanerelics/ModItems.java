@@ -46,7 +46,7 @@ public final class ModItems {
             new WandDefinition(20, 40, 1, 1, 20, 20, 4, true);
 
     private static final WandDefinition FIREBALL_WAND_DEFINITION =
-            new WandDefinition(20, 40, 1, 2, 20, 20, 3, true);
+            new WandDefinition(20, 40, 1, 2, 40, 20, 3, true);
 
     private static final WandDefinition ICE_WAND_DEFINITION =
             new WandDefinition(30, 60, 1, 1, 40, 30, 3, true);

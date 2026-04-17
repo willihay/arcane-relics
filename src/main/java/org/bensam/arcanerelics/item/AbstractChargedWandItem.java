@@ -30,6 +30,7 @@ import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
@@ -200,12 +201,111 @@ public abstract class AbstractChargedWandItem extends Item {
         return closestMob;
     }
 
-    protected static TargetResult getTarget(Player player, double distance) {
+    protected static Vec3 getAimingLeadToTarget(
+            Vec3 startPos,
+            Vec3 targetPos,
+            Vec3 targetVel,
+            double projectileInitialSpeed,
+            double acceleration,
+            double drag
+    ) {
+        double projectileSpeed = projectileInitialSpeed;
+        double distance = targetPos.distanceTo(startPos);
+        double traveled = 0.0;
+        int ticks = 0;
+
+        while (traveled < distance && ticks < 200) {
+            projectileSpeed = (projectileSpeed + acceleration) * drag;
+            traveled += projectileSpeed;
+            ticks++;
+        }
+
+        return targetVel.scale(ticks);
+    }
+
+    protected static @Nullable LivingEntity getBestLivingTargetInArcAngle(
+            Level level,
+            Player player,
+            double range,
+            double angleDegrees
+    ) {
+        Vec3 start = player.getEyePosition();
+        Vec3 look = player.getLookAngle().normalize();
+        Vec3 end = start.add(look.scale(range));
+        double halfAngleRadians = Math.toRadians(angleDegrees / 2.0);
+        double maxLateralDistance = Math.tan(halfAngleRadians) * range;
+        double minDotProduct = Math.cos(halfAngleRadians);
+        AABB searchBox = new AABB(start, end).inflate(maxLateralDistance);
+
+        Entity bestEntity = null;
+        double bestAngle = Double.MAX_VALUE;
+        double bestDistanceToRaySq = Double.MAX_VALUE;
+        double bestDistanceAlongLook = Double.MAX_VALUE;
+
+        for (Entity entity : level.getEntities(
+                player,
+                searchBox,
+                candidate -> candidate instanceof LivingEntity livingEntity
+                        && livingEntity.isAlive()
+                        && !candidate.isSpectator()
+                        && candidate.isPickable()
+        )) {
+            Vec3 entityCenter = entity.getBoundingBox().getCenter();
+            Vec3 toEntity = entityCenter.subtract(start);
+            double distanceAlongLook = toEntity.dot(look);
+            if (distanceAlongLook <= 0.0 || distanceAlongLook > range) {
+                continue;
+            }
+
+            double distanceToEntitySq = toEntity.lengthSqr();
+            if (distanceToEntitySq <= 0.0) {
+                continue;
+            }
+
+            double dotProduct = distanceAlongLook / Math.sqrt(distanceToEntitySq);
+            if (dotProduct < minDotProduct) {
+                continue;
+            }
+
+            double maxDistanceToRay = Math.tan(halfAngleRadians) * distanceAlongLook;
+            double distanceToRaySq = toEntity.subtract(look.scale(distanceAlongLook)).lengthSqr();
+            if (distanceToRaySq > maxDistanceToRay * maxDistanceToRay) {
+                continue;
+            }
+
+            BlockHitResult colliderHit = level.clip(new ClipContext(
+                    start,
+                    entityCenter,
+                    ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE,
+                    player
+            ));
+            if (colliderHit.getType() == HitResult.Type.BLOCK) {
+                continue;
+            }
+
+            double angle = Math.acos(Mth.clamp(dotProduct, -1.0, 1.0));
+            if (angle < bestAngle
+                    || (angle == bestAngle && distanceToRaySq < bestDistanceToRaySq)
+                    || (angle == bestAngle
+                    && distanceToRaySq == bestDistanceToRaySq
+                    && distanceAlongLook < bestDistanceAlongLook)) {
+                bestEntity = entity;
+                bestAngle = angle;
+                bestDistanceToRaySq = distanceToRaySq;
+                bestDistanceAlongLook = distanceAlongLook;
+            }
+        }
+
+        return bestEntity == null ? null : (LivingEntity) bestEntity;
+    }
+
+    protected static TargetResult getTarget(Player player, double range) {
         // 1. Raycast for blocks.
-        HitResult blockHit = player.pick(distance, 0.0f, true);
+        HitResult blockHit = player.pick(range, 0.0f, true);
 
         // 2. Raycast for entities.
-        EntityHitResult entityHit = raycastLivingEntities(player, distance);
+        EntityHitResult entityHit = raycastLivingEntities(player, range, 1.0);
 
         // 3. If no entity hit, just return the block hit (if any).
         if (entityHit == null) {
@@ -263,12 +363,12 @@ public abstract class AbstractChargedWandItem extends Item {
         return true;
     }
 
-    private static EntityHitResult raycastLivingEntities(Player player, double distance) {
+    protected static EntityHitResult raycastLivingEntities(Player player, double range, double inflate) {
         Vec3 start = player.getEyePosition();
         Vec3 look = player.getLookAngle();
-        Vec3 end = start.add(look.scale(distance));
+        Vec3 end = start.add(look.scale(range));
 
-        AABB box = player.getBoundingBox().expandTowards(look.scale(distance)).inflate(1.0);
+        AABB box = player.getBoundingBox().expandTowards(look.scale(range)).inflate(inflate);
 
         // Note: This Minecraft utility expects the square of the distance to be passed in as distance.
         return ProjectileUtil.getEntityHitResult(
@@ -277,7 +377,7 @@ public abstract class AbstractChargedWandItem extends Item {
                 end,
                 box,
                 entity -> entity instanceof LivingEntity && !entity.isSpectator() && entity.isPickable(),
-                distance * distance
+                range * range
         );
     }
     //endregion

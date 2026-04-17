@@ -9,6 +9,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.hurtingprojectile.LargeFireball;
 import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
@@ -26,6 +27,7 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
     private static final int GHAST_EXTRACTION_RADIUS = 20;
     private static final int RECHARGE_METADATA_GHAST_EXTRACTION = 1;
     private static final int RECHARGE_METADATA_BLAZE_EXTRACTION = 2;
+    private static final double TARGET_MOTION_RETENTION_FACTOR = 0.8;
     private static final float BASE_EXPLOSION_POWER = 0.5f;
     private static final float MAX_EXPLOSION_POWER = 2.0f;
 
@@ -128,16 +130,30 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
     }
 
     protected void shootFireball(Level level, Player player, int explosionPower, boolean isFullyPowered) {
-        Vec3 look = player.getLookAngle().normalize();
-        Vec3 fireballPos = player.getEyePosition(1.0f).add(look.scale(2));
+        Vec3 fireballTargetVec = player.getLookAngle().normalize();
+        Vec3 fireballPos = player.getEyePosition().add(fireballTargetVec);
+
+        LivingEntity targetEntity = getBestLivingTargetInArcAngle(level, player, 60, 9.0);
+        if (targetEntity != null) {
+            Vec3 targetEntityCenter = targetEntity.getBoundingBox().getCenter();
+            Vec3 aimingLead = getAimingLeadToTarget(
+                    fireballPos,
+                    targetEntityCenter,
+                    targetEntity.getKnownSpeed().scale(TARGET_MOTION_RETENTION_FACTOR),
+                    0.1,
+                    0.1,
+                    0.95
+            );
+            fireballTargetVec = targetEntityCenter.add(aimingLead).subtract(fireballPos);
+        }
 
         if (isFullyPowered) {
-            LargeFireball fireball = new LargeFireball(level, player, look, explosionPower);
+            LargeFireball fireball = new LargeFireball(level, player, fireballTargetVec, explosionPower);
             fireball.setPos(fireballPos);
             level.addFreshEntity(fireball);
         }
         else {
-            SmallFireball fireball = new SmallFireball(level, player, look);
+            SmallFireball fireball = new SmallFireball(level, player, fireballTargetVec);
             fireball.setPos(fireballPos);
             level.addFreshEntity(fireball);
         }
