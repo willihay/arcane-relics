@@ -71,13 +71,12 @@ public abstract class AbstractChargedWandItem extends Item {
     }
 
     //region Enchanting Methods
-    protected static @NonNull List<ItemStack> getAllEnchantedBooks(Level level, ResourceKey<Enchantment> enchantmentKey) {
+    protected static @NonNull List<ItemStack> getAllEnchantedBooks(RegistryAccess registryAccess, ResourceKey<Enchantment> enchantmentKey) {
         List<ItemStack> books = new ArrayList<>();
-        if (level == null) return books;
 
-        RegistryAccess registryAccess = level.registryAccess();
         var holder = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(enchantmentKey);
         Enchantment enchantment = holder.value();
+
         int maxEnchantmentLevel = enchantment.getMaxLevel();
         for (int enchantmentlevel = enchantment.getMinLevel(); enchantmentlevel <= maxEnchantmentLevel; enchantmentlevel++) {
             books.add(EnchantmentHelper.createBook(new EnchantmentInstance(holder, enchantmentlevel)));

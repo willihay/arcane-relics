@@ -6,6 +6,7 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.bensam.arcanerelics.ArcaneRelics;
@@ -35,7 +36,13 @@ public class JEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        List<WandEnchantingRecipe> recipes = WandEnchantingRecipeBuilder.buildAll();
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) {
+            ArcaneRelics.LOGGER.error("Minecraft level is null, couldn't build wand enchanting recipes");
+            return;
+        }
+
+        List<WandEnchantingRecipe> recipes = WandEnchantingRecipeBuilder.buildAll(minecraft.level.registryAccess());
         registration.addRecipes(WandEnchantingRecipe.TYPE, recipes);
     }
 

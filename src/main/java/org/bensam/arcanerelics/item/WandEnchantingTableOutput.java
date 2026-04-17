@@ -1,7 +1,7 @@
 package org.bensam.arcanerelics.item;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 import java.util.List;
 
@@ -14,9 +14,9 @@ public interface WandEnchantingTableOutput {
     }
 
     // Get all enchantment items that can produce the implementing class in a wand enchanting table.
-    default List<ItemStack> getEnchantmentItems(Level level) {
+    default List<ItemStack> getEnchantmentItems(RegistryAccess registryAccess) {
         return getEnchantingSources().stream()
-                .flatMap(source -> source.getEnchantingItems(level).stream())
+                .flatMap(source -> source.getEnchantingItems(registryAccess).stream())
                 .toList();
     }
 
