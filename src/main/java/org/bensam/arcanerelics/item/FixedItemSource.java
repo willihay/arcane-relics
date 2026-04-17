@@ -6,6 +6,12 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
+/**
+ * A wand enchanting source backed by one specific item stack type.
+ * <p>
+ * Matching is a simple item check, the displayed inputs contain a single stack of that item, and the
+ * enchanting level is {@code 1} when matched.
+ */
 public record FixedItemSource(Item item) implements WandEnchantingSource {
     @Override
     public List<ItemStack> getEnchantingItems(RegistryAccess registryAccess) {

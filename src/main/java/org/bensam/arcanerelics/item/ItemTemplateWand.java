@@ -13,7 +13,10 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
-    private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(); // add any combination of EnchantedBookSource, FixedItemSource, or PotionSource
+    // Step 1:
+    // Add any combination of EnchantedBookSource, FixedItemSource, or PotionSource to the list of enchanting sources
+    // that can be used to produce this wand in a wand enchanting table.
+    private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of();
 
     public ItemTemplateWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
@@ -27,15 +30,25 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        // Replace this with appropriate recharge attempt logic for this wand:
-        return new RechargeContext(false, 0, null, null);
+        // Step 2:
+        // Define how this wand can be recharged from an alternate source, outside the wand enchanting table, typically
+        // from a mob registered in EntityType, within a radius defined by a constant.
         // Typical pattern:
-//        return this.rechargeFromSource(wandStack, () -> {
-//            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), MOB_EXTRACTION_RADIUS, EntityType.MOB);
-//            return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.MOB).getDescription());
-//        });
+        // return this.rechargeFromSource(wandStack, () -> {
+        //     BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), MOB_EXTRACTION_RADIUS, EntityType.MOB);
+        //     return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.MOB).getDescription());
+        // });
+        return new RechargeContext(false, 0, null, null);
     }
 
+    // Step 3:
+    // a) Choose an appropriate sound event to play when the recharge from an alternate source is successful.
+    // b) Determine if there's a more appropriate particle effect to use in a trail between the alternate source and the player's wand.
+    // c) Determine if you want to override the default playRechargeFailEffects() that's called when the recharge fails.
+    // d) Determine if you want to override the default sendRechargeFeedback() that's called to inform the player of the
+    //    result of the recharge attempt. Common uses for an override are when you have multiple recharge options or
+    //    multiple failure cases, and want to send custom messages, perhaps based on recharge metadata that you place
+    //    into the RechargeContext.
     @Override
     protected void playRechargeSuccessEffects(
             ServerLevel level,
@@ -65,15 +78,27 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
     //endregion
 
     //region Cast Methods
-
+    // Step 4:
+    // Implement the casting logic. Return true if successful so that the parent class lifecycle can consume charges.
+    // See Javadoc for performCast() for more info.
     @Override
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         return false;
     }
 
+    // Step 5:
+    // Typically, pick a sound to play with a successful cast.
+    // Optional: override default effects in playCastFailEffects().
     @Override
     protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {
-
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.EVOKER_CAST_SPELL, // replace with appropriate sound event
+                SoundSource.PLAYERS,
+                1.0F,
+                1.0F
+        );
     }
     //endregion
 }

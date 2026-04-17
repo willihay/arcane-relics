@@ -7,6 +7,13 @@ import net.minecraft.world.item.alchemy.Potion;
 
 import java.util.List;
 
+/**
+ * A wand enchanting source backed by potion-bearing items with one specific potion type.
+ * <p>
+ * The displayed inputs include all standard item forms produced by
+ * {@link AbstractChargedWandItem#getAllEffectItems(Holder)}, and the enchanting level is {@code 1} for any
+ * matching potion-bearing stack.
+ */
 public record PotionSource(Holder<Potion> potion) implements WandEnchantingSource {
     @Override
     public List<ItemStack> getEnchantingItems(RegistryAccess registryAccess) {

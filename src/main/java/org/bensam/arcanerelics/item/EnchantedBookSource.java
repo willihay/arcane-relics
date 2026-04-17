@@ -8,6 +8,12 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 
+/**
+ * A wand enchanting source backed by enchanted books containing a specific enchantment.
+ * <p>
+ * The enchanting level is the level of the configured enchantment found on the matching book, and the
+ * displayed inputs include one enchanted book for each supported level from the enchantment registry.
+ */
 public record EnchantedBookSource(ResourceKey<Enchantment> enchantmentKey) implements WandEnchantingSource {
     @Override
     public List<ItemStack> getEnchantingItems(RegistryAccess registryAccess) {
