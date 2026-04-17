@@ -46,7 +46,22 @@ import java.util.List;
 public abstract class AbstractChargedWandItem extends Item {
     private final WandDefinition definition;
 
-    public record RechargeContext(boolean succeeded, int contextData, @Nullable BlockPos sourcePos, @Nullable Component messageContext) {}
+    /**
+     * Describes the outcome of a recharge attempt for the base wand lifecycle.
+     * <p>
+     * Subclasses return this from {@link #tryRecharge(Level, Player, ItemStack)} and the base class uses it to:
+     * play success or failure effects, send the default recharge feedback message, and optionally carry
+     * wand-specific metadata for subclasses that need to branch on the recharge outcome.
+     * <p>
+     * Contract notes:
+     * <ul>
+     *     <li>{@code succeeded} controls whether the recharge attempt is treated as a success.</li>
+     *     <li>{@code rechargeMetadata} is optional wand-specific metadata for subclass use.</li>
+     *     <li>{@code sourcePos} should be the world position of the recharge source when one exists and is useful for effects.</li>
+     *     <li>{@code messageContext} is an optional translated message argument used by the default feedback path.</li>
+     * </ul>
+     */
+    public record RechargeContext(boolean succeeded, int rechargeMetadata, @Nullable BlockPos sourcePos, @Nullable Component messageContext) {}
 
     public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
@@ -120,31 +135,31 @@ public abstract class AbstractChargedWandItem extends Item {
     //endregion
 
     //region Charge Helper Methods
-    public void addCharges(ItemStack stack, int amount) {
+    public final void addCharges(ItemStack stack, int amount) {
         int newCharges = this.getCharges(stack) + amount;
         this.setCharges(stack, newCharges);
     }
 
-    public void consumeCharges(ItemStack stack, int amount) {
+    public final void consumeCharges(ItemStack stack, int amount) {
         this.setCharges(stack, this.getCharges(stack) - amount);
     }
 
-    public int getCharges(ItemStack stack) {
+    public final int getCharges(ItemStack stack) {
         return stack.getOrDefault(
                 ModComponents.WAND_CHARGES_COMPONENT,
                 new ModComponents.WandChargesComponent(this.definition.initialCharges())
         ).charges();
     }
 
-    public int getMaxCharges() {
+    public final int getMaxCharges() {
         return this.definition.maxCharges();
     }
 
-    public boolean hasAtLeastCharges(ItemStack stack, int amount) {
+    protected final boolean hasAtLeastCharges(ItemStack stack, int amount) {
         return this.getCharges(stack) >= amount;
     }
 
-    protected boolean hasEnoughChargesForCast(ItemStack stack, int chargeCost) {
+    protected final boolean hasEnoughChargesForCast(ItemStack stack, int chargeCost) {
         return chargeCost <= 0 || this.hasAtLeastCharges(stack, chargeCost);
     }
 
@@ -269,7 +284,7 @@ public abstract class AbstractChargedWandItem extends Item {
     //endregion
 
     //region Wand Usage Lifecycle
-    protected int getElapsedTicks(ItemStack stack, LivingEntity entity, int remainingUseDuration) {
+    protected final int getElapsedTicks(ItemStack stack, LivingEntity entity, int remainingUseDuration) {
         return this.getUseDuration(stack, entity) - remainingUseDuration;
     }
 
@@ -277,17 +292,17 @@ public abstract class AbstractChargedWandItem extends Item {
         return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
     }
 
-    protected int getFullPowerCastCost() { return this.definition.fullPowerCastCost(); }
+    protected final int getFullPowerCastCost() { return this.definition.fullPowerCastCost(); }
 
-    protected int getFullPowerTicks() { return this.definition.fullPowerTicks(); }
+    protected final int getFullPowerTicks() { return this.definition.fullPowerTicks(); }
 
-    protected int getNormalCastCost() { return this.definition.normalCastCost(); }
+    protected final int getNormalCastCost() { return this.definition.normalCastCost(); }
 
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
         return fullyPowered ? this.getFullPowerCastCost() : this.getNormalCastCost();
     }
 
-    protected float getPowerUpPercentage(int elapsedTicks) {
+    protected final float getPowerUpPercentage(int elapsedTicks) {
         return Mth.clamp((float) elapsedTicks / this.getFullPowerTicks(), 0.0f, 1.0f);
     }
 
@@ -319,12 +334,12 @@ public abstract class AbstractChargedWandItem extends Item {
                 .add(right.scale(sideOffset)); // left/right hand offset
     }
 
-    protected boolean isFullyPoweredUp(int elapsedTicks) {
+    protected final boolean isFullyPoweredUp(int elapsedTicks) {
         return elapsedTicks >= this.getFullPowerTicks();
     }
 
     @Override
-    public @NonNull InteractionResult use(@NonNull Level level, Player player, @NonNull InteractionHand hand) {
+    public final @NonNull InteractionResult use(@NonNull Level level, Player player, @NonNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         // If sneaking, try to recharge.
@@ -393,7 +408,7 @@ public abstract class AbstractChargedWandItem extends Item {
     }
 
     @Override
-    public boolean releaseUsing(ItemStack stack, @NonNull Level level, @NonNull LivingEntity entity, int timeLeft) {
+    public final boolean releaseUsing(ItemStack stack, @NonNull Level level, @NonNull LivingEntity entity, int timeLeft) {
         stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
 
         // The remaining logic is for server-side only.
@@ -446,6 +461,19 @@ public abstract class AbstractChargedWandItem extends Item {
     //endregion
 
     //region Recharge Methods
+    /**
+     * Attempts to recharge the wand while the player is sneak-using it.
+     * <p>
+     * Implementations should decide whether a valid recharge source is present and return a
+     * {@link RechargeContext} describing the outcome. Subclasses should not directly send player feedback from
+     * this method; the base lifecycle calls {@link #sendRechargeFeedback(Player, RechargeContext)} after the
+     * attempt completes.
+     * <p>
+     * Implementations also should not mutate the wand's charges directly when using
+     * {@link #rechargeFromSource(ItemStack, RechargeAttempt)}. That helper applies the successful recharge to the
+     * wand stack after the subclass reports success. If a subclass intentionally bypasses that helper, it should
+     * still preserve the same contract and avoid duplicating charge mutation unless there is a wand-specific reason.
+     */
     protected abstract RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack);
 
     @FunctionalInterface
@@ -453,7 +481,7 @@ public abstract class AbstractChargedWandItem extends Item {
         RechargeContext run();
     }
 
-    protected RechargeContext rechargeFromSource(ItemStack wandStack, RechargeAttempt rechargeAttempt) {
+    protected final RechargeContext rechargeFromSource(ItemStack wandStack, RechargeAttempt rechargeAttempt) {
         RechargeContext rechargeContext = rechargeAttempt.run();
 
         if (rechargeContext.succeeded()) {
@@ -546,6 +574,17 @@ public abstract class AbstractChargedWandItem extends Item {
     //endregion
 
     //region Cast Methods
+    /**
+     * Performs the wand's cast effect after the base lifecycle has validated charge availability and computed the
+     * current power-up state.
+     * <p>
+     * Implementations should perform only the wand-specific gameplay action and return whether the cast succeeded.
+     * They should not consume charges, play the generic cast success or failure effects, or send the animation packet;
+     * the base lifecycle handles those steps after this method returns.
+     * <p>
+     * Implementations may send additional wand-specific player feedback when the cast fails for a specific reason
+     * beyond the standard "not enough charges" case, such as lightning requiring sky access.
+     */
     protected abstract boolean performCast(
             ServerLevel level,
             Player player,

@@ -26,8 +26,8 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.CHANNELING));
     private static final int WAND_RANGE = 50;
     private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
-    private static final int RECHARGE_CONTEXT_DATA_NO_THUNDER = 1;
-    private static final int RECHARGE_CONTEXT_DATA_NO_LIGHTNING_ROD = 2;
+    private static final int RECHARGE_METADATA_NO_THUNDER = 1;
+    private static final int RECHARGE_METADATA_NO_LIGHTNING_ROD = 2;
     private static final float BASE_EXPLOSION_POWER = 0.75f;
     private static final float MAX_EXPLOSION_POWER = 2.0f;
 
@@ -55,11 +55,11 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
                     return new RechargeContext(true, 0, lightningRodPos, (Items.LIGHTNING_ROD).getName());
                 }
                 else {
-                    return new RechargeContext(false, RECHARGE_CONTEXT_DATA_NO_THUNDER, null, null);
+                    return new RechargeContext(false, RECHARGE_METADATA_NO_THUNDER, null, null);
                 }
             }
 
-            return new RechargeContext(false, RECHARGE_CONTEXT_DATA_NO_LIGHTNING_ROD, null, null);
+            return new RechargeContext(false, RECHARGE_METADATA_NO_LIGHTNING_ROD, null, null);
         });
     }
 
@@ -123,12 +123,12 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     protected void sendRechargeFeedback(Player player, RechargeContext rechargeContext) {
         if (rechargeContext.succeeded()) {
             super.sendRechargeFeedback(player, rechargeContext);
-        } else if (rechargeContext.contextData() == RECHARGE_CONTEXT_DATA_NO_THUNDER) {
+        } else if (rechargeContext.rechargeMetadata() == RECHARGE_METADATA_NO_THUNDER) {
             player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_thunder"),
                     true
             );
-        } else if (rechargeContext.contextData() == RECHARGE_CONTEXT_DATA_NO_LIGHTNING_ROD) {
+        } else if (rechargeContext.rechargeMetadata() == RECHARGE_METADATA_NO_LIGHTNING_ROD) {
             player.displayClientMessage(
                     Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_lightning_rod"),
                     true

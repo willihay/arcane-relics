@@ -24,8 +24,8 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.FLAME));
     private static final int BLAZE_EXTRACTION_RADIUS = 8;
     private static final int GHAST_EXTRACTION_RADIUS = 20;
-    private static final int RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION = 1;
-    private static final int RECHARGE_CONTEXT_DATA_BLAZE_EXTRACTION = 2;
+    private static final int RECHARGE_METADATA_GHAST_EXTRACTION = 1;
+    private static final int RECHARGE_METADATA_BLAZE_EXTRACTION = 2;
     private static final float BASE_EXPLOSION_POWER = 0.5f;
     private static final float MAX_EXPLOSION_POWER = 2.0f;
 
@@ -49,7 +49,7 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         if (closestMob != null) {
             return new RechargeContext(
                     true,
-                    RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION,
+                    RECHARGE_METADATA_GHAST_EXTRACTION,
                     closestMob,
                     (EntityType.GHAST).getDescription());
         }
@@ -58,7 +58,7 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         if (closestMob != null) {
             return new RechargeContext(
                     true,
-                    RECHARGE_CONTEXT_DATA_GHAST_EXTRACTION,
+                    RECHARGE_METADATA_GHAST_EXTRACTION,
                     closestMob,
                     (EntityType.HAPPY_GHAST).getDescription());
         }
@@ -67,7 +67,7 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         if (closestMob != null) {
             return new RechargeContext(
                     true,
-                    RECHARGE_CONTEXT_DATA_BLAZE_EXTRACTION,
+                    RECHARGE_METADATA_BLAZE_EXTRACTION,
                     closestMob,
                     (EntityType.BLAZE).getDescription());
         }
@@ -91,7 +91,7 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         level.playSound(
                 null,
                 player.blockPosition(),
-                rechargeContext.contextData() == RECHARGE_CONTEXT_DATA_BLAZE_EXTRACTION ? SoundEvents.BLAZE_AMBIENT : SoundEvents.GHAST_SCREAM,
+                rechargeContext.rechargeMetadata() == RECHARGE_METADATA_BLAZE_EXTRACTION ? SoundEvents.BLAZE_AMBIENT : SoundEvents.GHAST_SCREAM,
                 SoundSource.PLAYERS,
                 1.0f, // volume
                 1.0f // pitch
