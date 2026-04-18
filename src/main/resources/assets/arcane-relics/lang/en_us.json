@@ -54,5 +54,8 @@
   "message.arcane-relics.lightning_wand.cast.no_skylight": "Unable to summon lightning - no skylight in this dimension",
   "message.arcane-relics.lightning_wand.cast.no_sky_above_target": "Unable to summon lightning - no sky above target",
   "message.arcane-relics.lightning_wand.recharge.no_thunder": "Lightning Rod recharge requires a thunderstorm",
-  "message.arcane-relics.lightning_wand.recharge.no_lightning_rod": "No Lightning Rod found nearby"
+  "message.arcane-relics.lightning_wand.recharge.no_lightning_rod": "No Lightning Rod found nearby",
+
+  "stat.arcane-relics.wands_enchanted": "Wands Enchanted",
+  "stat.arcane-relics.wands_recharged": "Wands Recharged"
 }

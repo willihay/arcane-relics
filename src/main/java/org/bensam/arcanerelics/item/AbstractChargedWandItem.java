@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -36,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModComponents;
+import org.bensam.arcanerelics.ModStats;
 import org.bensam.arcanerelics.network.WandBeginCastS2CPayload;
 import org.bensam.arcanerelics.network.WandSucceedCastS2CPayload;
 import org.jspecify.annotations.NonNull;
@@ -454,6 +456,7 @@ public abstract class AbstractChargedWandItem extends Item {
                     RechargeContext rechargeContext = this.tryRecharge(level, player, stack);
                     if (rechargeContext.succeeded()) {
                         this.playRechargeSuccessEffects((ServerLevel) level, player, hand, stack, rechargeContext);
+                        player.awardStat(ModStats.getWandsRechargedStat());
                     } else {
                         this.playRechargeFailEffects((ServerLevel) level, player, hand);
                     }
@@ -535,6 +538,8 @@ public abstract class AbstractChargedWandItem extends Item {
             if (chargeCost > 0) {
                 this.consumeCharges(stack, chargeCost);
             }
+
+            player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
         } else {
             this.playCastFailEffects(serverLevel, player);
         }

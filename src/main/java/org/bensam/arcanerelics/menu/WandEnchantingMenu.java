@@ -1,5 +1,6 @@
 package org.bensam.arcanerelics.menu;
 
+import net.minecraft.stats.Stats;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,6 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.bensam.arcanerelics.ModBlocks;
 import org.bensam.arcanerelics.ModItems;
 import org.bensam.arcanerelics.ModMenus;
+import org.bensam.arcanerelics.ModStats;
 import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
 import org.jspecify.annotations.NonNull;
 
@@ -183,6 +185,12 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     protected void onResultTake(Player player, ItemStack stack) {
         stack.onCraftedBy(player, stack.getCount());
 
+        if (ItemStack.isSameItem(stack, this.getSlot(WAND_INPUT_SLOT).getItem())) {
+            player.awardStat(ModStats.getWandsRechargedStat());
+        } else {
+            player.awardStat(ModStats.getWandsEnchantedStat());
+        }
+
         // Consume player XP.
         if (!player.hasInfiniteMaterials()) {
             player.giveExperienceLevels(-this.getXpCost());
@@ -216,7 +224,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
             if (!this.moveItemStackTo(sourceStack, FIRST_PLAYER_SLOT, inventorySize, true)) {
                 return ItemStack.EMPTY;
             }
-            slot.onTake(player, sourceStack);
+            slot.onTake(player, returnStack);
         }
         // Input slot inventory -> player inventory
         else if (slotIndex < WAND_OUTPUT_SLOT) {
