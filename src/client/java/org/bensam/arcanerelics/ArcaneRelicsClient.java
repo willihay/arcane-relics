@@ -3,6 +3,8 @@ package org.bensam.arcanerelics;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.gui.screens.MenuScreens;
+import org.bensam.arcanerelics.config.ModClientConfigManager;
+import org.bensam.arcanerelics.network.ConfigClientPackets;
 import org.bensam.arcanerelics.network.WandClientPackets;
 import org.bensam.arcanerelics.renderer.WandClientState;
 import org.bensam.arcanerelics.screen.WandEnchantingScreen;
@@ -13,7 +15,11 @@ public class ArcaneRelicsClient implements ClientModInitializer {
         // Register screens.
         MenuScreens.register(ModMenus.WAND_ENCHANTING_MENU.get(), WandEnchantingScreen::new);
 
+        // Initialize client config manager.
+        ModClientConfigManager.initialize();
+
         // Register packet receivers.
+        ConfigClientPackets.registerClientReceivers();
         WandClientPackets.registerClientReceivers();
 
         // Register renderer tick events.

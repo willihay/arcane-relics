@@ -1,6 +1,5 @@
 package org.bensam.arcanerelics.menu;
 
-import net.minecraft.stats.Stats;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
