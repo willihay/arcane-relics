@@ -166,14 +166,23 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
                         newOutputWand.set(DataComponents.CUSTOM_NAME, inputWand.getCustomName());
                     }
 
-                    newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand));
-                    newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(arcaneItemLevel));
+                    if (this.level != null) {
+                        newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand, this.level), this.level);
+                        newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(this.level, arcaneItemLevel), this.level);
+                    } else {
+                        newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand));
+                        newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(arcaneItemLevel));
+                    }
 
                     this.xpCost = newOutputWandItem.getRechargeXpCost();
                 }
                 // Otherwise, calculate and set the initial number of charges for the new wand.
                 else {
-                    newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(arcaneItemLevel));
+                    if (this.level != null) {
+                        newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(this.level, arcaneItemLevel), this.level);
+                    } else {
+                        newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(arcaneItemLevel));
+                    }
                     this.xpCost = newOutputWandItem.getNewWandXpCost();
                 }
             }

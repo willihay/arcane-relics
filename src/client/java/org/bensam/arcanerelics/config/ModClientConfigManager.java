@@ -5,6 +5,7 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
 import net.fabricmc.loader.api.FabricLoader;
 import org.bensam.arcanerelics.ArcaneRelics;
+import org.bensam.arcanerelics.network.ConfigClientPackets;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,6 +32,7 @@ public final class ModClientConfigManager {
     public static void setConfig(ModClientConfig newConfig) {
         config = newConfig;
         save();
+        ConfigClientPackets.sendClientPreferences();
     }
 
     public static void load() {
@@ -43,8 +45,14 @@ public final class ModClientConfigManager {
         try {
             String raw = Files.readString(CONFIG_PATH);
             JsonObject json = JANKSON.load(raw);
-
             ModClientConfig loaded = JANKSON.fromJson(json, ModClientConfig.class);
+            if (loaded == null) {
+                throw new IOException("Jankson returned null while deserializing ModClientConfig");
+            }
+
+            if (loaded.fireballWand() == null) {
+                loaded.fireballWand = new FireballWandClientConfig();
+            }
 
             // Add migration logic here when we increment past version 1...
             if (loaded.version() < ModClientConfig.CURRENT_VERSION) {
@@ -56,6 +64,7 @@ public final class ModClientConfigManager {
         } catch (IOException | SyntaxError e) {
             ArcaneRelics.LOGGER.error("Failed to load client config, using defaults", e);
             config = ModClientConfig.defaults();
+            // Implementation note: don't save here. Leave the bad config untouched and give the user a chance to fix the error.
         }
     }
 

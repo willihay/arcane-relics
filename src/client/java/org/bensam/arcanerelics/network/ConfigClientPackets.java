@@ -2,6 +2,7 @@ package org.bensam.arcanerelics.network;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import org.bensam.arcanerelics.config.ModClientConfigManager;
 import org.bensam.arcanerelics.config.SyncedServerConfig;
 
 public final class ConfigClientPackets {
@@ -12,6 +13,17 @@ public final class ConfigClientPackets {
             context.client().execute(() -> SyncedServerConfig.set(payload.config()));
         });
 
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sendClientPreferences());
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> SyncedServerConfig.clear());
+    }
+
+    public static void sendClientPreferences() {
+        if (!ClientPlayNetworking.canSend(SyncFireballAimAssistPreferenceC2SPayload.TYPE)) {
+            return;
+        }
+
+        ClientPlayNetworking.send(new SyncFireballAimAssistPreferenceC2SPayload(
+                ModClientConfigManager.getConfig().fireballWand().aimAssistEnabled()
+        ));
     }
 }

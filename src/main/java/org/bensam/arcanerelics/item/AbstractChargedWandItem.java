@@ -104,11 +104,23 @@ public abstract class AbstractChargedWandItem extends Item {
                 this.getMaxCharges());
     }
 
+    public int getNewWandCharges(Level level, int enchantmentLevel) {
+        int rechargeMultiplier = enchantmentLevel > 0 ? enchantmentLevel - 1 : 0;
+        return Math.min(
+                this.getInitialCharges(level) + (this.getRechargeChargeAmount(level, enchantmentLevel) * rechargeMultiplier),
+                this.getMaxCharges(level));
+    }
+
     public int getNewWandXpCost() { return 2; }
 
     public int getRechargeChargeAmount(int enchantmentLevel) {
         int baseRechargeAmount = this.definition.rechargeAmount();
         return Math.min(baseRechargeAmount * enchantmentLevel, this.getMaxCharges());
+    }
+
+    public int getRechargeChargeAmount(Level level, int enchantmentLevel) {
+        int baseRechargeAmount = this.getRechargeAmount(level);
+        return Math.min(baseRechargeAmount * enchantmentLevel, this.getMaxCharges(level));
     }
 
     public int getRechargeXpCost() { return 1; }
@@ -142,8 +154,17 @@ public abstract class AbstractChargedWandItem extends Item {
         this.setCharges(stack, newCharges);
     }
 
+    public final void addCharges(ItemStack stack, int amount, Level level) {
+        int newCharges = this.getCharges(stack, level) + amount;
+        this.setCharges(stack, newCharges, level);
+    }
+
     public final void consumeCharges(ItemStack stack, int amount) {
         this.setCharges(stack, this.getCharges(stack) - amount);
+    }
+
+    public final void consumeCharges(ItemStack stack, int amount, Level level) {
+        this.setCharges(stack, this.getCharges(stack, level) - amount, level);
     }
 
     public final int getCharges(ItemStack stack) {
@@ -153,8 +174,23 @@ public abstract class AbstractChargedWandItem extends Item {
         ).charges();
     }
 
+    public final int getCharges(ItemStack stack, Level level) {
+        return stack.getOrDefault(
+                ModComponents.WAND_CHARGES_COMPONENT,
+                new ModComponents.WandChargesComponent(this.getInitialCharges(level))
+        ).charges();
+    }
+
     public final int getMaxCharges() {
         return this.definition.maxCharges();
+    }
+
+    public int getMaxCharges(Level level) {
+        return this.getMaxCharges();
+    }
+
+    protected int getInitialCharges(Level level) {
+        return this.definition.initialCharges();
     }
 
     protected final boolean hasAtLeastCharges(ItemStack stack, int amount) {
@@ -169,10 +205,21 @@ public abstract class AbstractChargedWandItem extends Item {
         return this.getCharges(stack) >= this.getMaxCharges();
     }
 
+    public boolean isFullyCharged(Level level, ItemStack stack) {
+        return this.getCharges(stack, level) >= this.getMaxCharges(level);
+    }
+
     public void setCharges(ItemStack stack, int charges) {
         stack.set(
                 ModComponents.WAND_CHARGES_COMPONENT,
                 new ModComponents.WandChargesComponent(Math.clamp(charges, 0, this.getMaxCharges()))
+        );
+    }
+
+    public void setCharges(ItemStack stack, int charges, Level level) {
+        stack.set(
+                ModComponents.WAND_CHARGES_COMPONENT,
+                new ModComponents.WandChargesComponent(Math.clamp(charges, 0, this.getMaxCharges(level)))
         );
     }
     //endregion
@@ -395,16 +442,28 @@ public abstract class AbstractChargedWandItem extends Item {
 
     protected final int getFullPowerCastCost() { return this.definition.fullPowerCastCost(); }
 
+    protected int getFullPowerCastCost(Level level) { return this.getFullPowerCastCost(); }
+
     protected final int getFullPowerTicks() { return this.definition.fullPowerTicks(); }
+
+    protected int getFullPowerTicks(Level level) { return this.getFullPowerTicks(); }
 
     protected final int getNormalCastCost() { return this.definition.normalCastCost(); }
 
+    protected int getNormalCastCost(Level level) { return this.getNormalCastCost(); }
+
+    protected int getRechargeAmount(Level level) { return this.definition.rechargeAmount(); }
+
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
-        return fullyPowered ? this.getFullPowerCastCost() : this.getNormalCastCost();
+        return fullyPowered ? this.getFullPowerCastCost(level) : this.getNormalCastCost(level);
     }
 
     protected final float getPowerUpPercentage(int elapsedTicks) {
         return Mth.clamp((float) elapsedTicks / this.getFullPowerTicks(), 0.0f, 1.0f);
+    }
+
+    protected float getPowerUpPercentage(Level level, int elapsedTicks) {
+        return Mth.clamp((float) elapsedTicks / this.getFullPowerTicks(level), 0.0f, 1.0f);
     }
 
     @Override
@@ -439,6 +498,10 @@ public abstract class AbstractChargedWandItem extends Item {
         return elapsedTicks >= this.getFullPowerTicks();
     }
 
+    protected boolean isFullyPoweredUp(Level level, int elapsedTicks) {
+        return elapsedTicks >= this.getFullPowerTicks(level);
+    }
+
     @Override
     public final @NonNull InteractionResult use(@NonNull Level level, Player player, @NonNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -446,7 +509,7 @@ public abstract class AbstractChargedWandItem extends Item {
         // If sneaking, try to recharge.
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
-                if (this.isFullyCharged(stack)) {
+                if (this.isFullyCharged(level, stack)) {
                     this.playRechargeFailEffects((ServerLevel) level, player, hand);
                     player.displayClientMessage(
                             Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.already_full"),
@@ -509,8 +572,8 @@ public abstract class AbstractChargedWandItem extends Item {
 
         // Determine power-up status.
         int elapsedTicks = this.getElapsedTicks(stack, entity, timeLeft);
-        float powerUpPercentage = this.getPowerUpPercentage(elapsedTicks);
-        boolean isFullyPowered = elapsedTicks >= this.getFullPowerTicks();
+        float powerUpPercentage = this.getPowerUpPercentage(level, elapsedTicks);
+        boolean isFullyPowered = elapsedTicks >= this.getFullPowerTicks(level);
 
         // Calculate charge cost.
         int chargeCost = this.getPowerUpCost(level, player, stack, elapsedTicks, isFullyPowered);
@@ -536,7 +599,7 @@ public abstract class AbstractChargedWandItem extends Item {
             }
 
             if (chargeCost > 0) {
-                this.consumeCharges(stack, chargeCost);
+                this.consumeCharges(stack, chargeCost, level);
             }
 
             player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
@@ -558,7 +621,8 @@ public abstract class AbstractChargedWandItem extends Item {
      * attempt completes.
      * <p>
      * Implementations also should not mutate the wand's charges directly when using
-     * {@link #rechargeFromSource(ItemStack, RechargeAttempt)}. That helper applies the successful recharge to the
+     * {@link #rechargeFromSource(ItemStack, RechargeAttempt)} or {@link #rechargeFromSource(Level, ItemStack, RechargeAttempt)}.
+     * Those helpers apply the successful recharge to the
      * wand stack after the subclass reports success. If a subclass intentionally bypasses that helper, it should
      * still preserve the same contract and avoid duplicating charge mutation unless there is a wand-specific reason.
      */
@@ -574,6 +638,16 @@ public abstract class AbstractChargedWandItem extends Item {
 
         if (rechargeContext.succeeded()) {
             this.setCharges(wandStack, this.getMaxCharges());
+        }
+
+        return rechargeContext;
+    }
+
+    protected final RechargeContext rechargeFromSource(Level level, ItemStack wandStack, RechargeAttempt rechargeAttempt) {
+        RechargeContext rechargeContext = rechargeAttempt.run();
+
+        if (rechargeContext.succeeded()) {
+            this.setCharges(wandStack, this.getMaxCharges(level), level);
         }
 
         return rechargeContext;

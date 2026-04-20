@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -18,6 +19,9 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
+import org.bensam.arcanerelics.config.FireballAimAssistPreferenceSync;
+import org.bensam.arcanerelics.config.FireballWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
 
 import java.util.List;
 
@@ -43,11 +47,17 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        return this.rechargeFromSource(wandStack, () -> findNearbyMobFuel(level, player.blockPosition()));
+        FireballWandConfig fireballConfig = this.getFireballConfig(level);
+        return this.rechargeFromSource(level, wandStack, () -> findNearbyMobFuel(
+                level,
+                player.blockPosition(),
+                fireballConfig.blazeExtractionRadius(),
+                fireballConfig.ghastExtractionRadius()
+        ));
     }
 
-    protected static RechargeContext findNearbyMobFuel(Level level, BlockPos center) {
-        BlockPos closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, EntityType.GHAST);
+    protected static RechargeContext findNearbyMobFuel(Level level, BlockPos center, int blazeExtractionRadius, int ghastExtractionRadius) {
+        BlockPos closestMob = findClosestMobOfType(level, center, ghastExtractionRadius, EntityType.GHAST);
         if (closestMob != null) {
             return new RechargeContext(
                     true,
@@ -56,7 +66,7 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
                     (EntityType.GHAST).getDescription());
         }
 
-        closestMob = findClosestMobOfType(level, center, GHAST_EXTRACTION_RADIUS, EntityType.HAPPY_GHAST);
+        closestMob = findClosestMobOfType(level, center, ghastExtractionRadius, EntityType.HAPPY_GHAST);
         if (closestMob != null) {
             return new RechargeContext(
                     true,
@@ -65,7 +75,7 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
                     (EntityType.HAPPY_GHAST).getDescription());
         }
 
-        closestMob = findClosestMobOfType(level, center, BLAZE_EXTRACTION_RADIUS, EntityType.BLAZE);
+        closestMob = findClosestMobOfType(level, center, blazeExtractionRadius, EntityType.BLAZE);
         if (closestMob != null) {
             return new RechargeContext(
                     true,
@@ -129,22 +139,24 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         return true;
     }
 
-    protected void shootFireball(Level level, Player player, int explosionPower, boolean isFullyPowered) {
+    protected void shootFireball(ServerLevel level, Player player, int explosionPower, boolean isFullyPowered) {
         Vec3 fireballTargetVec = player.getLookAngle().normalize();
         Vec3 fireballPos = player.getEyePosition().add(fireballTargetVec);
 
-        LivingEntity targetEntity = getBestLivingTargetInArcAngle(level, player, 60, 9.0);
-        if (targetEntity != null) {
-            Vec3 targetEntityCenter = targetEntity.getBoundingBox().getCenter();
-            Vec3 aimingLead = getAimingLeadToTarget(
-                    fireballPos,
-                    targetEntityCenter,
-                    targetEntity.getKnownSpeed().scale(TARGET_MOTION_RETENTION_FACTOR),
-                    0.1,
-                    0.1,
-                    0.95
-            );
-            fireballTargetVec = targetEntityCenter.add(aimingLead).subtract(fireballPos);
+        if (this.shouldUseAimAssist(level, player)) {
+            LivingEntity targetEntity = getBestLivingTargetInArcAngle(level, player, 60, 9.0);
+            if (targetEntity != null) {
+                Vec3 targetEntityCenter = targetEntity.getBoundingBox().getCenter();
+                Vec3 aimingLead = getAimingLeadToTarget(
+                        fireballPos,
+                        targetEntityCenter,
+                        targetEntity.getKnownSpeed().scale(TARGET_MOTION_RETENTION_FACTOR),
+                        0.1,
+                        0.1,
+                        0.95
+                );
+                fireballTargetVec = targetEntityCenter.add(aimingLead).subtract(fireballPos);
+            }
         }
 
         if (isFullyPowered) {
@@ -169,6 +181,52 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
                 1.0f, // volume
                 1.0f // pitch
         );
+    }
+
+    @Override
+    public int getMaxCharges(Level level) {
+        return this.getFireballConfig(level).balance().maxCharges();
+    }
+
+    @Override
+    protected int getInitialCharges(Level level) {
+        return this.getFireballConfig(level).balance().initialCharges();
+    }
+
+    @Override
+    protected int getFullPowerCastCost(Level level) {
+        return this.getFireballConfig(level).balance().fullPowerCastCost();
+    }
+
+    @Override
+    protected int getFullPowerTicks(Level level) {
+        return this.getFireballConfig(level).balance().fullPowerTicks();
+    }
+
+    @Override
+    protected int getNormalCastCost(Level level) {
+        return this.getFireballConfig(level).balance().normalCastCost();
+    }
+
+    @Override
+    protected int getRechargeAmount(Level level) {
+        return this.getFireballConfig(level).balance().rechargeAmount();
+    }
+
+    private FireballWandConfig getFireballConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).fireballWand();
+    }
+
+    private boolean shouldUseAimAssist(ServerLevel level, Player player) {
+        if (!this.getFireballConfig(level).allowAimAssist()) {
+            return false;
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            return FireballAimAssistPreferenceSync.isAimAssistEnabled(serverPlayer);
+        }
+
+        return true;
     }
     //endregion
 }

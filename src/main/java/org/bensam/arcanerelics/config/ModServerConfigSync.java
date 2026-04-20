@@ -9,7 +9,9 @@ public final class ModServerConfigSync {
     private ModServerConfigSync() {}
 
     public static void initialize() {
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> syncToPlayer(handler.player));
+        ServerPlayConnectionEvents.JOIN.register(
+                (handler, sender, server) ->
+                        syncToPlayer(handler.player));
     }
 
     private static void syncToPlayer(ServerPlayer player) {

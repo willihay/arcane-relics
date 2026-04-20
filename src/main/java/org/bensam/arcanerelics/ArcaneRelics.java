@@ -3,6 +3,7 @@ package org.bensam.arcanerelics;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.ComponentTooltipAppenderRegistry;
 import net.minecraft.core.component.DataComponents;
+import org.bensam.arcanerelics.config.FireballAimAssistPreferenceSync;
 import org.bensam.arcanerelics.config.ModServerConfigSync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class ArcaneRelics implements ModInitializer {
 		ModBlockEntities.initialize();
 		ModMenus.initialize();
 		ModNetworks.initialize();
+		FireballAimAssistPreferenceSync.initialize();
 		ModServerConfigSync.initialize();
 
 		ComponentTooltipAppenderRegistry.addAfter(DataComponents.DAMAGE, ModComponents.WAND_CHARGES_COMPONENT);
