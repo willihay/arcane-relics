@@ -131,7 +131,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
 
         // Initialize the result state on the server.
         if (this.blockInventory instanceof BlockEntityWandEnchantingTable blockEntity) {
-            blockEntity.recomputeState();
+            blockEntity.recomputeState(true);
         }
     }
 
@@ -202,7 +202,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
 
         // Refresh result and synced flags immediately.
         if (this.blockInventory instanceof BlockEntityWandEnchantingTable blockEntity) {
-            blockEntity.recomputeState();
+            blockEntity.recomputeState(true);
         }
     }
 
@@ -279,7 +279,7 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         // Only the real block inventory should drive recomputation.
         if (container == this.blockInventory && this.blockInventory instanceof BlockEntityWandEnchantingTable blockEntity) {
             // Recompute the derived state on the server side.
-            blockEntity.recomputeState();
+            blockEntity.recomputeState(true);
         }
     }
 

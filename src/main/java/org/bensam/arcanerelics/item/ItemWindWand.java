@@ -19,6 +19,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
+import org.bensam.arcanerelics.config.WindWandConfig;
 
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +32,6 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
             new EnchantedBookSource(Enchantments.WIND_BURST),
             new PotionSource(Potions.WIND_CHARGED)
     );
-    private static final int BREEZE_EXTRACTION_RADIUS = 8;
     private static final double WIND_RANGE = 24.0D;
     private static final double WIND_STEP = 0.55D;
     private static final double WIND_HALF_ANGLE_RADIANS = Math.toRadians(32.0D);
@@ -46,11 +48,22 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
         return ENCHANTING_SOURCES;
     }
 
+    //region Config Accessors
+    @Override
+    protected WandBalanceConfig getBalanceConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).windWand().balance();
+    }
+
+    private WindWandConfig getWindWandConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).windWand();
+    }
+    //endregion
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        return this.rechargeFromSource(wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), BREEZE_EXTRACTION_RADIUS, EntityType.BREEZE);
+        return this.rechargeFromSource(level, wandStack, () -> {
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getWindWandConfig(level).breezeExtractionRadius(), EntityType.BREEZE);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.BREEZE).getDescription());
         });
     }

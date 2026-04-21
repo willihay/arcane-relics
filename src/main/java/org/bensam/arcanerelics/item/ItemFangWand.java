@@ -18,13 +18,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.bensam.arcanerelics.config.FangWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
 public class ItemFangWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new FixedItemSource(Items.TOTEM_OF_UNDYING));
     private static final int WAND_RANGE = 40;
-    private static final int EVOKER_EXTRACTION_RADIUS = 8;
 
     public ItemFangWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
@@ -35,11 +37,22 @@ public class ItemFangWand extends AbstractChargedWandItem implements WandEnchant
         return ENCHANTING_SOURCES;
     }
 
+    //region Config Accessors
+    @Override
+    protected WandBalanceConfig getBalanceConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).fangWand().balance();
+    }
+
+    private FangWandConfig getFangWandConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).fangWand();
+    }
+    //endregion
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        return this.rechargeFromSource(wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), EVOKER_EXTRACTION_RADIUS, EntityType.EVOKER);
+        return this.rechargeFromSource(level, wandStack, () -> {
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getFangWandConfig(level).evokerExtractionRadius(), EntityType.EVOKER);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.EVOKER).getDescription());
         });
     }

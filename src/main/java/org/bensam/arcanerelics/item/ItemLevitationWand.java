@@ -17,13 +17,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.LevitationWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
 public class ItemLevitationWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new FixedItemSource(Items.SHULKER_SHELL));
     private static final int WAND_RANGE = 50;
-    private static final int SHULKER_EXTRACTION_RADIUS = 8;
 
     public ItemLevitationWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
@@ -34,11 +36,22 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
         return ENCHANTING_SOURCES;
     }
 
+    //region Config Accessors
+    @Override
+    protected WandBalanceConfig getBalanceConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).levitationWand().balance();
+    }
+
+    private LevitationWandConfig getLevitationWandConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).levitationWand();
+    }
+    //endregion
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        return this.rechargeFromSource(wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), SHULKER_EXTRACTION_RADIUS, EntityType.SHULKER);
+        return this.rechargeFromSource(level, wandStack, () -> {
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getLevitationWandConfig(level).shulkerExtractionRadius(), EntityType.SHULKER);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.SHULKER).getDescription());
         });
     }

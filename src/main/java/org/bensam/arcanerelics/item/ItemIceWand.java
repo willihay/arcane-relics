@@ -16,13 +16,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.IceWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
 public class ItemIceWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.FROST_WALKER));
     private static final int WAND_RANGE = 50;
-    private static final int STRAY_EXTRACTION_RADIUS = 8;
     private static final float POWER_LEVEL_1 = 0.30f;
     private static final float POWER_LEVEL_2 = 0.50f;
     private static final float POWER_LEVEL_3 = 0.80f;
@@ -36,11 +38,22 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
         return ENCHANTING_SOURCES;
     }
 
+    //region Config Accessors
+    @Override
+    protected WandBalanceConfig getBalanceConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).iceWand().balance();
+    }
+
+    private IceWandConfig getIceWandConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).iceWand();
+    }
+    //endregion
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        return this.rechargeFromSource(wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), STRAY_EXTRACTION_RADIUS, EntityType.STRAY);
+        return this.rechargeFromSource(level, wandStack, () -> {
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getIceWandConfig(level).strayExtractionRadius(), EntityType.STRAY);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.STRAY).getDescription());
         });
     }
@@ -74,7 +87,6 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
     //endregion
 
     //region Cast Methods
-
     @Override
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         TargetResult target = getTarget(player, WAND_RANGE);

@@ -22,13 +22,12 @@ import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.config.FireballAimAssistPreferenceSync;
 import org.bensam.arcanerelics.config.FireballWandConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
 public class ItemFireballWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.FLAME));
-    private static final int BLAZE_EXTRACTION_RADIUS = 8;
-    private static final int GHAST_EXTRACTION_RADIUS = 20;
     private static final int RECHARGE_METADATA_GHAST_EXTRACTION = 1;
     private static final int RECHARGE_METADATA_BLAZE_EXTRACTION = 2;
     private static final double TARGET_MOTION_RETENTION_FACTOR = 0.8;
@@ -43,6 +42,17 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
     public List<WandEnchantingSource> getEnchantingSources() {
         return ENCHANTING_SOURCES;
     }
+
+    //region Config Accessors
+    @Override
+    protected WandBalanceConfig getBalanceConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).fireballWand().balance();
+    }
+
+    private FireballWandConfig getFireballConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).fireballWand();
+    }
+    //endregion
 
     //region Recharge Methods
     @Override
@@ -171,52 +181,6 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         }
     }
 
-    @Override
-    protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {
-        level.playSound(
-                null,
-                player.blockPosition(),
-                SoundEvents.GHAST_SHOOT,
-                SoundSource.PLAYERS,
-                1.0f, // volume
-                1.0f // pitch
-        );
-    }
-
-    @Override
-    public int getMaxCharges(Level level) {
-        return this.getFireballConfig(level).balance().maxCharges();
-    }
-
-    @Override
-    protected int getInitialCharges(Level level) {
-        return this.getFireballConfig(level).balance().initialCharges();
-    }
-
-    @Override
-    protected int getFullPowerCastCost(Level level) {
-        return this.getFireballConfig(level).balance().fullPowerCastCost();
-    }
-
-    @Override
-    protected int getFullPowerTicks(Level level) {
-        return this.getFireballConfig(level).balance().fullPowerTicks();
-    }
-
-    @Override
-    protected int getNormalCastCost(Level level) {
-        return this.getFireballConfig(level).balance().normalCastCost();
-    }
-
-    @Override
-    protected int getRechargeAmount(Level level) {
-        return this.getFireballConfig(level).balance().rechargeAmount();
-    }
-
-    private FireballWandConfig getFireballConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).fireballWand();
-    }
-
     private boolean shouldUseAimAssist(ServerLevel level, Player player) {
         if (!this.getFireballConfig(level).allowAimAssist()) {
             return false;
@@ -227,6 +191,18 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         }
 
         return true;
+    }
+
+    @Override
+    protected void playCastSuccessEffects(ServerLevel level, Player player, ItemStack stack) {
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.GHAST_SHOOT,
+                SoundSource.PLAYERS,
+                1.0f, // volume
+                1.0f // pitch
+        );
     }
     //endregion
 }

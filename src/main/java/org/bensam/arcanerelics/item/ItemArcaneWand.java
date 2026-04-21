@@ -25,7 +25,7 @@ public class ItemArcaneWand extends AbstractChargedWandItem {
     }
 
     @Override
-    public boolean isFullyCharged(ItemStack stack) {
+    public boolean isFullyCharged(Level level, ItemStack stack) {
         return false;
     }
 

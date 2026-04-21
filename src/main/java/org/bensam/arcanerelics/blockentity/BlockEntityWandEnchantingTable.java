@@ -3,12 +3,14 @@ package org.bensam.arcanerelics.blockentity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -51,7 +53,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         for (int i = 0; i < INVENTORY_SIZE; i++) {
             this.items.add(ItemStack.EMPTY);
         }
-        this.recomputeState();
+        this.recomputeState(true);
     }
 
     @Override
@@ -85,7 +87,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     public @NonNull ItemStack removeItem(int slotIndex, int amount) {
         ItemStack result = ContainerHelper.removeItem(this.items, slotIndex, amount);
         if (!result.isEmpty()) {
-            this.recomputeState();
+            this.recomputeState(true);
         }
         return result;
     }
@@ -93,7 +95,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     @Override
     public @NonNull ItemStack removeItemNoUpdate(int slotIndex) {
         ItemStack result = ContainerHelper.takeItem(this.items, slotIndex);
-        this.recomputeState();
+        this.recomputeState(true);
         return result;
     }
 
@@ -105,7 +107,16 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
             itemStack.setCount(this.getMaxStackSize());
         }
 
-        this.recomputeState();
+        this.recomputeState(true);
+    }
+
+    @Override
+    public void setLevel(@NonNull Level level) {
+        super.setLevel(level);
+
+        if (level instanceof ServerLevel) {
+            this.recomputeState(false);
+        }
     }
 
     @Override
@@ -114,7 +125,17 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     }
     //endregion
 
-    public void recomputeState() {
+    public void recomputeState(boolean canMarkChanged) {
+        if (!(this.level instanceof ServerLevel)) {
+            return;
+        }
+
+        // Save current state.
+        ItemStack previousOutput = this.items.get(WAND_OUTPUT_SLOT).copy();
+        int previousXpCost = this.xpCost;
+        boolean previousHasValidRecipe = this.hasValidRecipe;
+
+        // Recompute based on current input slots.
         ItemStack wandStack = getItem(WAND_INPUT_SLOT);
         ItemStack arcaneStack = getItem(ARCANE_ITEM_SLOT);
         ItemStack lapisStack = getItem(LAPIS_INPUT_SLOT);
@@ -126,7 +147,14 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         this.recomputeWandOutput();
         this.recomputeContainerData();
 
-        setChanged();
+        // Compare previous state with recomputed state to see if anything has changed.
+        boolean changed = !ItemStack.isSameItemSameComponents(previousOutput, this.items.get(WAND_OUTPUT_SLOT))
+                || previousXpCost != this.xpCost
+                || previousHasValidRecipe != this.hasValidRecipe;
+
+        if (canMarkChanged && changed) {
+            setChanged();
+        }
     }
 
     private void recomputeContainerData() {
@@ -166,23 +194,14 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
                         newOutputWand.set(DataComponents.CUSTOM_NAME, inputWand.getCustomName());
                     }
 
-                    if (this.level != null) {
-                        newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand, this.level), this.level);
-                        newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(this.level, arcaneItemLevel), this.level);
-                    } else {
-                        newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand));
-                        newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(arcaneItemLevel));
-                    }
+                    newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand, this.level), this.level);
+                    newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(this.level, arcaneItemLevel), this.level);
 
                     this.xpCost = newOutputWandItem.getRechargeXpCost();
                 }
                 // Otherwise, calculate and set the initial number of charges for the new wand.
                 else {
-                    if (this.level != null) {
-                        newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(this.level, arcaneItemLevel), this.level);
-                    } else {
-                        newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(arcaneItemLevel));
-                    }
+                    newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(this.level, arcaneItemLevel), this.level);
                     this.xpCost = newOutputWandItem.getNewWandXpCost();
                 }
             }
@@ -199,14 +218,18 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
     protected void loadAdditional(@NonNull ValueInput valueInput) {
         super.loadAdditional(valueInput);
         ContainerHelper.loadAllItems(valueInput, this.items);
-
-        this.recomputeState();
     }
 
     @Override
     protected void saveAdditional(@NonNull ValueOutput valueOutput) {
         super.saveAdditional(valueOutput);
-        ContainerHelper.saveAllItems(valueOutput, this.items);
+
+        // Only persist the input slots. The output slot is always computed.
+        NonNullList<ItemStack> inputItems = NonNullList.withSize(WAND_OUTPUT_SLOT, ItemStack.EMPTY);
+        for (int i = 0; i < WAND_OUTPUT_SLOT; i++) {
+            inputItems.set(i, this.items.get(i));
+        }
+        ContainerHelper.saveAllItems(valueOutput, inputItems);
     }
     //endregion
 }

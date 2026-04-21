@@ -9,6 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
@@ -27,10 +29,23 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
         return ENCHANTING_SOURCES;
     }
 
+    //region Config Accessors
+    // Step 2:
+    // Set up configuration for this new wand by doing the following:
+    // a) Create a new Config record in the .config package (you can use an existing config such as FangWandConfig as a template.
+    // b) Add that new Config to ModServerConfig.
+    // c) Add its defaults to ModServerConfigDefaults.
+    // d) Uncomment this override and update the return to use the new wand accessor in place of templateWand().
+    //@Override
+    //protected WandBalanceConfig getBalanceConfig(Level level) {
+    //    return ModServerConfigManager.getConfig(level).templateWand().balance();
+    //}
+    //endregion
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        // Step 2:
+        // Step 3:
         // Define how this wand can be recharged from an alternate source, outside the wand enchanting table, typically
         // from a mob registered in EntityType, within a radius defined by a constant.
         // Typical pattern:
@@ -41,7 +56,7 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
         return new RechargeContext(false, 0, null, null);
     }
 
-    // Step 3:
+    // Step 4:
     // a) Choose an appropriate sound event to play when the recharge from an alternate source is successful.
     // b) Determine if there's a more appropriate particle effect to use in a trail between the alternate source and the player's wand.
     // c) Determine if you want to override the default playRechargeFailEffects() that's called when the recharge fails.
@@ -78,7 +93,7 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
     //endregion
 
     //region Cast Methods
-    // Step 4:
+    // Step 5:
     // Implement the casting logic. Return true if successful so that the parent class lifecycle can consume charges.
     // See Javadoc for performCast() for more info.
     @Override
@@ -86,7 +101,7 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
         return false;
     }
 
-    // Step 5:
+    // Step 6:
     // Typically, pick a sound to play with a successful cast.
     // Optional: override default effects in playCastFailEffects().
     @Override

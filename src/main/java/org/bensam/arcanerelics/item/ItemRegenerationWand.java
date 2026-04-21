@@ -16,6 +16,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.RegenerationWandConfig;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
@@ -27,7 +30,6 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
             new PotionSource(Potions.STRONG_REGENERATION),
             new PotionSource(Potions.LONG_REGENERATION)
     );
-    private static final int GHAST_EXTRACTION_RADIUS = 20;
     private static final int WAND_RANGE = 50;
 
     public ItemRegenerationWand(Properties properties, WandDefinition definition) {
@@ -39,11 +41,22 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
         return ENCHANTING_SOURCES;
     }
 
+    //region Config Accessors
+    @Override
+    protected WandBalanceConfig getBalanceConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).regenerationWand().balance();
+    }
+
+    private RegenerationWandConfig getRegenerationWandConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).regenerationWand();
+    }
+    //endregion
+
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        return this.rechargeFromSource(wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), GHAST_EXTRACTION_RADIUS, EntityType.HAPPY_GHAST);
+        return this.rechargeFromSource(level, wandStack, () -> {
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getRegenerationWandConfig(level).ghastExtractionRadius(), EntityType.HAPPY_GHAST);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.HAPPY_GHAST).getDescription());
         });
     }

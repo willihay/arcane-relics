@@ -18,6 +18,9 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
+import org.bensam.arcanerelics.config.LightningWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -25,7 +28,6 @@ import java.util.List;
 public class ItemLightningWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.CHANNELING));
     private static final int WAND_RANGE = 50;
-    private static final int LIGHTNING_ROD_RECHARGE_RADIUS = 12;
     private static final int RECHARGE_METADATA_NO_THUNDER = 1;
     private static final int RECHARGE_METADATA_NO_LIGHTNING_ROD = 2;
     private static final float BASE_EXPLOSION_POWER = 0.75f;
@@ -40,16 +42,27 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
         return ENCHANTING_SOURCES;
     }
 
+    //region Config Accessors
+    @Override
+    protected WandBalanceConfig getBalanceConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).lightningWand().balance();
+    }
+
+    private LightningWandConfig getLightningWandConfig(Level level) {
+        return ModServerConfigManager.getConfig(level).lightningWand();
+    }
+    //endregion
+
     @Override
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
-        return level.isThundering() ? this.getNormalCastCost() : super.getPowerUpCost(level, player, stack, chargeTicks, fullyPowered);
+        return level.isThundering() ? this.getNormalCastCost(level) : super.getPowerUpCost(level, player, stack, chargeTicks, fullyPowered);
     }
 
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        return this.rechargeFromSource(wandStack, () -> {
-            BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition());
+        return this.rechargeFromSource(level, wandStack, () -> {
+            BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition(), this.getLightningWandConfig(level).lightningRodExtractionRadius());
             if (lightningRodPos != null) {
                 if (level.isThundering()) {
                     return new RechargeContext(true, 0, lightningRodPos, (Items.LIGHTNING_ROD).getName());
@@ -63,10 +76,9 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
         });
     }
 
-    protected static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center) {
+    protected static @Nullable BlockPos findNearbyLightningRod(Level level, BlockPos center, int radius) {
         BlockPos closestRod = null;
         double closestDistanceSq = Double.MAX_VALUE;
-        int radius = LIGHTNING_ROD_RECHARGE_RADIUS;
 
         for (BlockPos pos : BlockPos.betweenClosed(
                 center.offset(-radius, -radius, -radius),

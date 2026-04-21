@@ -38,6 +38,7 @@ import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModComponents;
 import org.bensam.arcanerelics.ModStats;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 import org.bensam.arcanerelics.network.WandBeginCastS2CPayload;
 import org.bensam.arcanerelics.network.WandSucceedCastS2CPayload;
 import org.jspecify.annotations.NonNull;
@@ -73,6 +74,19 @@ public abstract class AbstractChargedWandItem extends Item {
         this.definition = definition;
     }
 
+    //region Config Accessor
+    protected WandBalanceConfig getBalanceConfig(Level level) {
+        return new WandBalanceConfig(
+                this.definition.initialCharges(),
+                this.definition.maxCharges(),
+                this.definition.normalCastCost(),
+                this.definition.fullPowerCastCost(),
+                this.definition.fullPowerTicks(),
+                this.definition.rechargeAmount()
+        );
+    }
+    //endregion
+
     //region Enchanting Methods
     protected static @NonNull List<ItemStack> getAllEnchantedBooks(RegistryAccess registryAccess, ResourceKey<Enchantment> enchantmentKey) {
         List<ItemStack> books = new ArrayList<>();
@@ -97,13 +111,6 @@ public abstract class AbstractChargedWandItem extends Item {
         return items;
     }
 
-    public int getNewWandCharges(int enchantmentLevel) {
-        int rechargeMultiplier = enchantmentLevel > 0 ? enchantmentLevel - 1 : 0;
-        return Math.min(
-                this.definition.initialCharges() + (this.getRechargeChargeAmount(enchantmentLevel) * rechargeMultiplier),
-                this.getMaxCharges());
-    }
-
     public int getNewWandCharges(Level level, int enchantmentLevel) {
         int rechargeMultiplier = enchantmentLevel > 0 ? enchantmentLevel - 1 : 0;
         return Math.min(
@@ -112,11 +119,6 @@ public abstract class AbstractChargedWandItem extends Item {
     }
 
     public int getNewWandXpCost() { return 2; }
-
-    public int getRechargeChargeAmount(int enchantmentLevel) {
-        int baseRechargeAmount = this.definition.rechargeAmount();
-        return Math.min(baseRechargeAmount * enchantmentLevel, this.getMaxCharges());
-    }
 
     public int getRechargeChargeAmount(Level level, int enchantmentLevel) {
         int baseRechargeAmount = this.getRechargeAmount(level);
@@ -149,18 +151,9 @@ public abstract class AbstractChargedWandItem extends Item {
     //endregion
 
     //region Charge Helper Methods
-    public final void addCharges(ItemStack stack, int amount) {
-        int newCharges = this.getCharges(stack) + amount;
-        this.setCharges(stack, newCharges);
-    }
-
     public final void addCharges(ItemStack stack, int amount, Level level) {
         int newCharges = this.getCharges(stack, level) + amount;
         this.setCharges(stack, newCharges, level);
-    }
-
-    public final void consumeCharges(ItemStack stack, int amount) {
-        this.setCharges(stack, this.getCharges(stack) - amount);
     }
 
     public final void consumeCharges(ItemStack stack, int amount, Level level) {
@@ -170,7 +163,7 @@ public abstract class AbstractChargedWandItem extends Item {
     public final int getCharges(ItemStack stack) {
         return stack.getOrDefault(
                 ModComponents.WAND_CHARGES_COMPONENT,
-                new ModComponents.WandChargesComponent(this.definition.initialCharges())
+                new ModComponents.WandChargesComponent(this.getInitialCharges())
         ).charges();
     }
 
@@ -181,39 +174,29 @@ public abstract class AbstractChargedWandItem extends Item {
         ).charges();
     }
 
-    public final int getMaxCharges() {
-        return this.definition.maxCharges();
+    public final int getMaxCharges(Level level) {
+        return this.getBalanceConfig(level).maxCharges();
     }
 
-    public int getMaxCharges(Level level) {
-        return this.getMaxCharges();
-    }
-
-    protected int getInitialCharges(Level level) {
+    // for client use
+    protected final int getInitialCharges() {
         return this.definition.initialCharges();
     }
 
-    protected final boolean hasAtLeastCharges(ItemStack stack, int amount) {
-        return this.getCharges(stack) >= amount;
+    protected final int getInitialCharges(Level level) {
+        return this.getBalanceConfig(level).initialCharges();
     }
 
-    protected final boolean hasEnoughChargesForCast(ItemStack stack, int chargeCost) {
-        return chargeCost <= 0 || this.hasAtLeastCharges(stack, chargeCost);
+    protected final boolean hasAtLeastCharges(ItemStack stack, int amount, Level level) {
+        return this.getCharges(stack, level) >= amount;
     }
 
-    public boolean isFullyCharged(ItemStack stack) {
-        return this.getCharges(stack) >= this.getMaxCharges();
+    protected final boolean hasEnoughChargesForCast(ItemStack stack, int chargeCost, Level level) {
+        return chargeCost <= 0 || this.hasAtLeastCharges(stack, chargeCost, level);
     }
 
     public boolean isFullyCharged(Level level, ItemStack stack) {
         return this.getCharges(stack, level) >= this.getMaxCharges(level);
-    }
-
-    public void setCharges(ItemStack stack, int charges) {
-        stack.set(
-                ModComponents.WAND_CHARGES_COMPONENT,
-                new ModComponents.WandChargesComponent(Math.clamp(charges, 0, this.getMaxCharges()))
-        );
     }
 
     public void setCharges(ItemStack stack, int charges, Level level) {
@@ -440,29 +423,32 @@ public abstract class AbstractChargedWandItem extends Item {
         return Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.cast.no_charges");
     }
 
-    protected final int getFullPowerCastCost() { return this.definition.fullPowerCastCost(); }
+    protected final int getFullPowerCastCost(Level level) {
+        return this.getBalanceConfig(level).fullPowerCastCost();
+    }
 
-    protected int getFullPowerCastCost(Level level) { return this.getFullPowerCastCost(); }
+    // for client use
+    protected final int getFullPowerTicks() {
+        return this.definition.fullPowerTicks();
+    }
 
-    protected final int getFullPowerTicks() { return this.definition.fullPowerTicks(); }
+    protected final int getFullPowerTicks(Level level) {
+        return this.getBalanceConfig(level).fullPowerTicks();
+    }
 
-    protected int getFullPowerTicks(Level level) { return this.getFullPowerTicks(); }
+    protected final int getNormalCastCost(Level level) {
+        return this.getBalanceConfig(level).normalCastCost();
+    }
 
-    protected final int getNormalCastCost() { return this.definition.normalCastCost(); }
-
-    protected int getNormalCastCost(Level level) { return this.getNormalCastCost(); }
-
-    protected int getRechargeAmount(Level level) { return this.definition.rechargeAmount(); }
+    protected final int getRechargeAmount(Level level) {
+        return this.getBalanceConfig(level).rechargeAmount();
+    }
 
     protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
         return fullyPowered ? this.getFullPowerCastCost(level) : this.getNormalCastCost(level);
     }
 
-    protected final float getPowerUpPercentage(int elapsedTicks) {
-        return Mth.clamp((float) elapsedTicks / this.getFullPowerTicks(), 0.0f, 1.0f);
-    }
-
-    protected float getPowerUpPercentage(Level level, int elapsedTicks) {
+    protected final float getPowerUpPercentage(Level level, int elapsedTicks) {
         return Mth.clamp((float) elapsedTicks / this.getFullPowerTicks(level), 0.0f, 1.0f);
     }
 
@@ -494,11 +480,7 @@ public abstract class AbstractChargedWandItem extends Item {
                 .add(right.scale(sideOffset)); // left/right hand offset
     }
 
-    protected final boolean isFullyPoweredUp(int elapsedTicks) {
-        return elapsedTicks >= this.getFullPowerTicks();
-    }
-
-    protected boolean isFullyPoweredUp(Level level, int elapsedTicks) {
+    protected final boolean isFullyPoweredUp(Level level, int elapsedTicks) {
         return elapsedTicks >= this.getFullPowerTicks(level);
     }
 
@@ -548,27 +530,29 @@ public abstract class AbstractChargedWandItem extends Item {
     public void onUseTick(@NonNull Level level, @NonNull LivingEntity entity, @NonNull ItemStack stack, int remainingUseDuration) {
         super.onUseTick(level, entity, stack, remainingUseDuration);
 
-        int elapsedTicks = this.getElapsedTicks(stack, entity, remainingUseDuration);
-        if (this.isFullyPoweredUp(elapsedTicks)) {
-            stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
-        } else {
-            stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
+        if (level.isClientSide()) {
+            int elapsedTicks = this.getElapsedTicks(stack, entity, remainingUseDuration);
+            if (elapsedTicks >= this.getFullPowerTicks()) {
+                stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+            } else {
+                stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
+            }
         }
     }
 
     @Override
-    public final boolean releaseUsing(ItemStack stack, @NonNull Level level, @NonNull LivingEntity entity, int timeLeft) {
-        stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
-
-        // The remaining logic is for server-side only.
-        if (!(level instanceof ServerLevel serverLevel)) {
+    public final boolean releaseUsing(@NonNull ItemStack stack, @NonNull Level level, @NonNull LivingEntity entity, int timeLeft) {
+        if (level.isClientSide()) {
+            stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
             return true;
         }
 
-        // Players are the only entities who will use an arcane wand.
+        // Players are the only entities who will use a wand.
         if (!(entity instanceof Player player)) {
             return false;
         }
+
+        ServerLevel serverLevel = (ServerLevel) level;
 
         // Determine power-up status.
         int elapsedTicks = this.getElapsedTicks(stack, entity, timeLeft);
@@ -579,7 +563,7 @@ public abstract class AbstractChargedWandItem extends Item {
         int chargeCost = this.getPowerUpCost(level, player, stack, elapsedTicks, isFullyPowered);
 
         // Check if wand has enough charges remaining to complete the cast.
-        if (!this.hasEnoughChargesForCast(stack, chargeCost)) {
+        if (!this.hasEnoughChargesForCast(stack, chargeCost, level)) {
             this.playCastFailEffects(serverLevel, player);
             player.displayClientMessage(this.getNoChargesMessage(), true);
             return true;
@@ -621,9 +605,9 @@ public abstract class AbstractChargedWandItem extends Item {
      * attempt completes.
      * <p>
      * Implementations also should not mutate the wand's charges directly when using
-     * {@link #rechargeFromSource(ItemStack, RechargeAttempt)} or {@link #rechargeFromSource(Level, ItemStack, RechargeAttempt)}.
-     * Those helpers apply the successful recharge to the
-     * wand stack after the subclass reports success. If a subclass intentionally bypasses that helper, it should
+     * {@link #rechargeFromSource(Level, ItemStack, RechargeAttempt)}.
+     * This helper applies the successful recharge to the wand stack after the subclass reports success.
+     * If a subclass intentionally bypasses that helper, it should
      * still preserve the same contract and avoid duplicating charge mutation unless there is a wand-specific reason.
      */
     protected abstract RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack);
@@ -631,16 +615,6 @@ public abstract class AbstractChargedWandItem extends Item {
     @FunctionalInterface
     protected interface RechargeAttempt {
         RechargeContext run();
-    }
-
-    protected final RechargeContext rechargeFromSource(ItemStack wandStack, RechargeAttempt rechargeAttempt) {
-        RechargeContext rechargeContext = rechargeAttempt.run();
-
-        if (rechargeContext.succeeded()) {
-            this.setCharges(wandStack, this.getMaxCharges());
-        }
-
-        return rechargeContext;
     }
 
     protected final RechargeContext rechargeFromSource(Level level, ItemStack wandStack, RechargeAttempt rechargeAttempt) {

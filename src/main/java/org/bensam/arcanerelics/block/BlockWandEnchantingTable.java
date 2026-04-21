@@ -41,7 +41,6 @@ public class BlockWandEnchantingTable extends BaseEntityBlock {
     protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState blockState, Level level, @NonNull BlockPos blockPos, @NonNull Player player, @NonNull BlockHitResult blockHitResult) {
         if (!level.isClientSide()) {
             player.openMenu(blockState.getMenuProvider(level, blockPos));
-            //player.awardStat(Stats.INTERACT_WITH_CRAFTING_TABLE); // TODO: create stat for wand enchanting table
         }
 
         return InteractionResult.SUCCESS;
