@@ -27,6 +27,9 @@
     ],
     "jei_mod_plugin": [
       "org.bensam.arcanerelics.integration.jei.JEIPlugin"
+    ],
+    "modmenu": [
+      "org.bensam.arcanerelics.integration.modmenu.ModMenuIntegration"
     ]
   },
   "mixins": [
@@ -41,5 +44,10 @@
     "minecraft": "~1.21.11",
     "java": ">=21",
     "fabric-api": "*"
+  },
+  "suggests": {
+    "jei": ">=27.4.0.22",
+    "modmenu": ">=17.0.0",
+    "yet_another_config_lib_v3": ">=3.8.1"
   }
 }
