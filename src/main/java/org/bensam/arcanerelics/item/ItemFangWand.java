@@ -19,6 +19,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.bensam.arcanerelics.config.FangWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.WandBalanceConfig;
 
@@ -45,6 +46,11 @@ public class ItemFangWand extends AbstractChargedWandItem implements WandEnchant
 
     private FangWandConfig getFangWandConfig(Level level) {
         return ModServerConfigManager.getConfig(level).fangWand();
+    }
+
+    @Override
+    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+        return config.fangWand().balance();
     }
     //endregion
 

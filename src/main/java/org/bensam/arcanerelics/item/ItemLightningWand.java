@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.config.LightningWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.WandBalanceConfig;
 import org.jspecify.annotations.Nullable;
@@ -50,6 +51,11 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
 
     private LightningWandConfig getLightningWandConfig(Level level) {
         return ModServerConfigManager.getConfig(level).lightningWand();
+    }
+
+    @Override
+    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+        return config.lightningWand().balance();
     }
     //endregion
 

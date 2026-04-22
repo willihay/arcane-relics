@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.config.IceWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.WandBalanceConfig;
 
@@ -46,6 +47,11 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
 
     private IceWandConfig getIceWandConfig(Level level) {
         return ModServerConfigManager.getConfig(level).iceWand();
+    }
+
+    @Override
+    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+        return config.iceWand().balance();
     }
     //endregion
 

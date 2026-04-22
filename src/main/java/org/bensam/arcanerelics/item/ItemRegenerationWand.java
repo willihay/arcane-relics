@@ -16,6 +16,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.RegenerationWandConfig;
 import org.bensam.arcanerelics.config.WandBalanceConfig;
@@ -49,6 +50,11 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
 
     private RegenerationWandConfig getRegenerationWandConfig(Level level) {
         return ModServerConfigManager.getConfig(level).regenerationWand();
+    }
+
+    @Override
+    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+        return config.regenerationWand().balance();
     }
     //endregion
 

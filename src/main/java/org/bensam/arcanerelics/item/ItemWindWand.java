@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.WandBalanceConfig;
 import org.bensam.arcanerelics.config.WindWandConfig;
@@ -56,6 +57,11 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
 
     private WindWandConfig getWindWandConfig(Level level) {
         return ModServerConfigManager.getConfig(level).windWand();
+    }
+
+    @Override
+    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+        return config.windWand().balance();
     }
     //endregion
 

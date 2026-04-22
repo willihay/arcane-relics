@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.WandBalanceConfig;
 
@@ -35,10 +36,20 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
     // a) Create a new Config record in the .config package (you can use an existing config such as FangWandConfig as a template.
     // b) Add that new Config to ModServerConfig.
     // c) Add its defaults to ModServerConfigDefaults.
-    // d) Uncomment this override and update the return to use the new wand accessor in place of templateWand().
+    // d) Uncomment the following 3 methods and update them to use this wand's accessor and config record
+    //    in place of templateWand() and TemplateWandConfig.
     //@Override
     //protected WandBalanceConfig getBalanceConfig(Level level) {
     //    return ModServerConfigManager.getConfig(level).templateWand().balance();
+    //}
+
+    //private TemplateWandConfig getTemplateWandConfig(Level level) {
+    //    return ModServerConfigManager.getConfig(level).templateWand();
+    //}
+
+    //@Override
+    //public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+    //    return config.templateWand().balance();
     //}
     //endregion
 

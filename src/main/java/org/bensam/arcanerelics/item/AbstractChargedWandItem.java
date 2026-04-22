@@ -1,6 +1,7 @@
 package org.bensam.arcanerelics.item;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -28,6 +29,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
@@ -38,6 +40,8 @@ import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModComponents;
 import org.bensam.arcanerelics.ModStats;
+import org.bensam.arcanerelics.config.ClientTooltipBridge;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.config.WandBalanceConfig;
 import org.bensam.arcanerelics.network.WandBeginCastS2CPayload;
 import org.bensam.arcanerelics.network.WandSucceedCastS2CPayload;
@@ -46,6 +50,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class AbstractChargedWandItem extends Item {
     private final WandDefinition definition;
@@ -74,8 +79,21 @@ public abstract class AbstractChargedWandItem extends Item {
         this.definition = definition;
     }
 
-    //region Config Accessor
+    //region Config Accessors
+    // for server-side access to the gameplay balance config data
     protected WandBalanceConfig getBalanceConfig(Level level) {
+        return new WandBalanceConfig(
+                this.definition.initialCharges(),
+                this.definition.maxCharges(),
+                this.definition.normalCastCost(),
+                this.definition.fullPowerCastCost(),
+                this.definition.fullPowerTicks(),
+                this.definition.rechargeAmount()
+        );
+    }
+
+    // for client-side access to the gameplay balance config data
+    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
         return new WandBalanceConfig(
                 this.definition.initialCharges(),
                 this.definition.maxCharges(),
@@ -160,6 +178,7 @@ public abstract class AbstractChargedWandItem extends Item {
         this.setCharges(stack, this.getCharges(stack, level) - amount, level);
     }
 
+    // for client use
     public final int getCharges(ItemStack stack) {
         return stack.getOrDefault(
                 ModComponents.WAND_CHARGES_COMPONENT,
@@ -167,11 +186,13 @@ public abstract class AbstractChargedWandItem extends Item {
         ).charges();
     }
 
+    // authoritative, for server use, with return value clamped to current maximum
     public final int getCharges(ItemStack stack, Level level) {
-        return stack.getOrDefault(
+        int storedCharges = stack.getOrDefault(
                 ModComponents.WAND_CHARGES_COMPONENT,
                 new ModComponents.WandChargesComponent(this.getInitialCharges(level))
         ).charges();
+        return Math.clamp(storedCharges, 0, this.getMaxCharges(level));
     }
 
     public final int getMaxCharges(Level level) {
@@ -183,6 +204,7 @@ public abstract class AbstractChargedWandItem extends Item {
         return this.definition.initialCharges();
     }
 
+    // authoritative, for server use
     protected final int getInitialCharges(Level level) {
         return this.getBalanceConfig(level).initialCharges();
     }
@@ -197,6 +219,18 @@ public abstract class AbstractChargedWandItem extends Item {
 
     public boolean isFullyCharged(Level level, ItemStack stack) {
         return this.getCharges(stack, level) >= this.getMaxCharges(level);
+    }
+
+    public void normalizeCharges(ItemStack stack, Level level) {
+        int storedCharges = stack.getOrDefault(
+                ModComponents.WAND_CHARGES_COMPONENT,
+                new ModComponents.WandChargesComponent(this.getInitialCharges(level))
+        ).charges();
+        int clampedCharges = Math.clamp(storedCharges, 0, this.getMaxCharges(level));
+
+        if (clampedCharges != storedCharges) {
+            this.setCharges(stack, clampedCharges, level);
+        }
     }
 
     public void setCharges(ItemStack stack, int charges, Level level) {
@@ -415,6 +449,47 @@ public abstract class AbstractChargedWandItem extends Item {
     //endregion
 
     //region Wand Usage Lifecycle
+
+    // Wand tooltips need runtime-config-aware tooltip text to display current and max charges, therefore we must use the
+    // deprecated (but still functional) appendHoverText() method instead of the component-based tooltip path.
+    @SuppressWarnings("deprecation")
+    @Override
+    public void appendHoverText(
+            @NonNull ItemStack itemStack,
+            @NonNull TooltipContext tooltipContext,
+            @NonNull TooltipDisplay tooltipDisplay,
+            @NonNull Consumer<Component> consumer,
+            @NonNull TooltipFlag tooltipFlag
+    ) {
+        WandBalanceConfig tooltipConfig = ClientTooltipBridge.getWandBalanceConfig(this);
+        int maxCharges = tooltipConfig != null ? tooltipConfig.maxCharges() : this.definition.maxCharges();
+
+        consumer.accept(
+                Component.translatable(
+                        "item." + ArcaneRelics.MOD_ID + ".wand.charges",
+                                this.getCharges(itemStack),
+                                maxCharges
+                        )
+                        .withStyle(ChatFormatting.GOLD)
+        );
+
+        if (!ClientTooltipBridge.verboseTooltips()) {
+            return;
+        }
+
+        ModComponents.WandTooltipComponent wandTooltip = itemStack.get(ModComponents.WAND_TOOLTIP_COMPONENT);
+        if (wandTooltip == null) {
+            return;
+        }
+
+        for (int line = 1; line <= wandTooltip.lineCount(); line++) {
+            consumer.accept(
+                    Component.translatable(wandTooltip.translationKeyPrefix() + "." + line)
+                            .withStyle(ChatFormatting.GRAY)
+            );
+        }
+    }
+
     protected final int getElapsedTicks(ItemStack stack, LivingEntity entity, int remainingUseDuration) {
         return this.getUseDuration(stack, entity) - remainingUseDuration;
     }
@@ -491,6 +566,7 @@ public abstract class AbstractChargedWandItem extends Item {
         // If sneaking, try to recharge.
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
+                this.normalizeCharges(stack, level);
                 if (this.isFullyCharged(level, stack)) {
                     this.playRechargeFailEffects((ServerLevel) level, player, hand);
                     player.displayClientMessage(
@@ -561,6 +637,9 @@ public abstract class AbstractChargedWandItem extends Item {
 
         // Calculate charge cost.
         int chargeCost = this.getPowerUpCost(level, player, stack, elapsedTicks, isFullyPowered);
+
+        // Validate current wand charges are within config-defined parameters.
+        this.normalizeCharges(stack, level);
 
         // Check if wand has enough charges remaining to complete the cast.
         if (!this.hasEnoughChargesForCast(stack, chargeCost, level)) {

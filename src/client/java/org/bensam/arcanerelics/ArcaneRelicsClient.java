@@ -3,7 +3,10 @@ package org.bensam.arcanerelics;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.gui.screens.MenuScreens;
+import org.bensam.arcanerelics.config.ClientTooltipBridge;
 import org.bensam.arcanerelics.config.ModClientConfigManager;
+import org.bensam.arcanerelics.config.ModServerConfig;
+import org.bensam.arcanerelics.config.SyncedServerConfig;
 import org.bensam.arcanerelics.network.ConfigClientPackets;
 import org.bensam.arcanerelics.network.WandClientPackets;
 import org.bensam.arcanerelics.renderer.WandClientState;
@@ -17,6 +20,15 @@ public class ArcaneRelicsClient implements ClientModInitializer {
 
         // Initialize client config manager.
         ModClientConfigManager.initialize();
+
+        // Initialize bridge that provides access to tooltip-related config in wand tooltip (hover text) append method.
+        ClientTooltipBridge.initialize(
+                wandItem -> {
+                    ModServerConfig config = SyncedServerConfig.get();
+                    return config != null ? wandItem.getTooltipConfig(config) : null;
+                },
+                () -> ModClientConfigManager.getConfig().verboseTooltips()
+        );
 
         // Register packet receivers.
         ConfigClientPackets.registerClientReceivers();

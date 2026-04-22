@@ -53,27 +53,17 @@ public final class ModComponents {
                 TooltipFlag type,
                 DataComponentGetter components
         ) {
-            Integer maxCharges = components.get(WAND_MAX_CHARGES_COMPONENT);
-            if (maxCharges == null) {
-                ArcaneRelics.LOGGER.warn("Missing wand_max_charges component for tooltip rendering");
-                textConsumer.accept(
-                        Component.translatable(
-                                "item." + ArcaneRelics.MOD_ID + ".wand.charges.remaining",
-                                        this.charges
-                                )
-                                .withStyle(ChatFormatting.GOLD)
-                );
-                return;
-            }
-
-            textConsumer.accept(
-                    Component.translatable(
-                            "item." + ArcaneRelics.MOD_ID + ".wand.charges",
-                                this.charges,
-                                maxCharges
-                            )
-                            .withStyle(ChatFormatting.GOLD)
-            );
+            // Wand charge text is now rendered from AbstractChargedWandItem.appendHoverText()
+            // so it can use runtime server-config values instead of persisted defaults.
+//            Integer maxCharges = components.get(WAND_MAX_CHARGES_COMPONENT);
+//            textConsumer.accept(
+//                    Component.translatable(
+//                            "item." + ArcaneRelics.MOD_ID + ".wand.charges",
+//                                this.charges,
+//                                maxCharges
+//                            )
+//                            .withStyle(ChatFormatting.GOLD)
+//            );
         }
     }
 
@@ -90,12 +80,8 @@ public final class ModComponents {
                 TooltipFlag type,
                 DataComponentGetter components
         ) {
-            for (int line = 1; line <= this.lineCount; line++) {
-                textConsumer.accept(
-                        Component.translatable(this.translationKeyPrefix + "." + line)
-                                .withStyle(ChatFormatting.GRAY)
-                );
-            }
+            // Wand flavor text is rendered from AbstractChargedWandItem.appendHoverText()
+            // so it can respect the client tooltip verbosity setting.
         }
     }
 

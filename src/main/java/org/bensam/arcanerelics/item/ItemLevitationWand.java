@@ -18,6 +18,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.config.LevitationWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.WandBalanceConfig;
 
@@ -44,6 +45,11 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
 
     private LevitationWandConfig getLevitationWandConfig(Level level) {
         return ModServerConfigManager.getConfig(level).levitationWand();
+    }
+
+    @Override
+    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+        return config.levitationWand().balance();
     }
     //endregion
 

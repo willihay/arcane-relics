@@ -169,6 +169,11 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         ItemStack newOutputWand = ItemStack.EMPTY;
         this.xpCost = 0;
 
+        // Validate current input wand charges are within config-defined parameters.
+        if (isArcaneWand(inputWand)) {
+            ((AbstractChargedWandItem) inputWand.getItem()).normalizeCharges(inputWand, this.level);
+        }
+
         if (this.hasValidRecipe) {
             ItemStack arcaneItem = getItem(ARCANE_ITEM_SLOT);
             ItemStack recipeWand = ModItems.getWandEnchantmentOutput(arcaneItem);

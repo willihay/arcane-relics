@@ -19,10 +19,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
-import org.bensam.arcanerelics.config.FireballAimAssistPreferenceSync;
-import org.bensam.arcanerelics.config.FireballWandConfig;
-import org.bensam.arcanerelics.config.ModServerConfigManager;
-import org.bensam.arcanerelics.config.WandBalanceConfig;
+import org.bensam.arcanerelics.config.*;
 
 import java.util.List;
 
@@ -51,6 +48,11 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
 
     private FireballWandConfig getFireballConfig(Level level) {
         return ModServerConfigManager.getConfig(level).fireballWand();
+    }
+
+    @Override
+    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+        return config.fireballWand().balance();
     }
     //endregion
 
