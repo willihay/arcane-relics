@@ -46,6 +46,8 @@ public class ArcaneRelics implements ModInitializer {
 		});
 		ModServerConfigSync.initialize();
 
+		ModCommands.initialize();
+
 		LOGGER.info("onInitialize complete");
 	}
 }
