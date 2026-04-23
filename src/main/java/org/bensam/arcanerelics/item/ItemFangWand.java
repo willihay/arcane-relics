@@ -18,10 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.bensam.arcanerelics.config.FangWandConfig;
-import org.bensam.arcanerelics.config.ModServerConfig;
-import org.bensam.arcanerelics.config.ModServerConfigManager;
-import org.bensam.arcanerelics.config.WandBalanceConfig;
+import org.bensam.arcanerelics.config.*;
 
 import java.util.List;
 

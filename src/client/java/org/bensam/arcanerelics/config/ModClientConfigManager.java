@@ -13,7 +13,7 @@ import java.nio.file.Path;
 
 public final class ModClientConfigManager {
     private static final Path CONFIG_PATH =
-            FabricLoader.getInstance().getConfigDir().resolve(ArcaneRelics.MOD_ID + "-client.json5");
+            FabricLoader.getInstance().getConfigDir().resolve(ArcaneRelics.MOD_ID + "-client-config.json5");
 
     private static final Jankson JANKSON = Jankson.builder().build();
 
@@ -59,7 +59,6 @@ public final class ModClientConfigManager {
                 // Call into a ModClientConfigMigrator.migrate(loaded) method...
                 // save();
             }
-
             config = loaded;
         } catch (IOException | SyntaxError e) {
             ArcaneRelics.LOGGER.error("Failed to load client config, using defaults", e);

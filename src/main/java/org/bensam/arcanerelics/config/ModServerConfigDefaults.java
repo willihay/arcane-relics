@@ -5,6 +5,7 @@ public final class ModServerConfigDefaults {
 
     public static ModServerConfig create() {
         return new ModServerConfig(
+                ModServerConfig.CURRENT_VERSION,
                 new WandEnchantingTableConfig(true, true),
                 new FangWandConfig(new WandBalanceConfig(20, 40, 1, 1, 20, 20), 8),
                 new FireballWandConfig(new WandBalanceConfig(20, 40, 1, 2, 40, 20), 8, 20, true),

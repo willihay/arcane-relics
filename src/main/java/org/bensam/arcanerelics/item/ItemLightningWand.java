@@ -18,10 +18,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.bensam.arcanerelics.ArcaneRelics;
-import org.bensam.arcanerelics.config.LightningWandConfig;
-import org.bensam.arcanerelics.config.ModServerConfig;
-import org.bensam.arcanerelics.config.ModServerConfigManager;
-import org.bensam.arcanerelics.config.WandBalanceConfig;
+import org.bensam.arcanerelics.config.*;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;

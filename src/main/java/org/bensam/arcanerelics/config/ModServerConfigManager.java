@@ -1,19 +1,195 @@
 package org.bensam.arcanerelics.config;
 
-import net.minecraft.server.level.ServerLevel;
+import blue.endless.jankson.Jankson;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.api.SyntaxError;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.LevelResource;
+import org.bensam.arcanerelics.ArcaneRelics;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public final class ModServerConfigManager {
+    private static final Jankson JANKSON = Jankson.builder().build();
+
+    private static ModServerConfig config = ModServerConfig.defaults();
+    private static Path configPath;
+
     private ModServerConfigManager() {}
 
-    public static ModServerConfig getConfig(ServerLevel level) {
-        return ModServerConfigState.get(level).config();
+    public static void initialize(MinecraftServer server) {
+        configPath = getConfigPath(server);
+        load();
     }
 
+    public static ModServerConfig getConfig() {
+        return config;
+    }
+
+    // temp method during changeover to JSON server config
     public static ModServerConfig getConfig(Level level) {
-        if (!(level instanceof ServerLevel serverLevel)) {
-            throw new IllegalStateException("Server config requested from non-server level");
+        return config;
+    }
+
+    private static Path getConfigPath(MinecraftServer server) {
+        return server.getWorldPath(LevelResource.ROOT)
+                .resolve("data")
+                .resolve(ArcaneRelics.MOD_ID)
+                .resolve("server-config.json5")
+                .normalize();
+    }
+
+    public static void setConfig(ModServerConfig newConfig) {
+        config = newConfig;
+        save();
+    }
+
+    public static void load() {
+        Path loadPath = requireConfigPath();
+        ArcaneRelics.LOGGER.info("[load] configPath is: {}", loadPath);
+
+        if (!Files.exists(loadPath)) {
+            ArcaneRelics.LOGGER.info("[load] Setting server config to defaults");
+            config = ModServerConfig.defaults();
+            save();
+            return;
         }
-        return getConfig(serverLevel);
+
+        try {
+            String raw = Files.readString(loadPath);
+            JsonObject json = JANKSON.load(raw);
+            ModServerConfig loaded = JANKSON.fromJson(json, ModServerConfig.class);
+            if (loaded == null) {
+                throw new IOException("[load] Jankson returned null while deserializing ModServerConfig");
+            }
+
+            normalizeConfig(loaded);
+
+            // Add migration logic here when we increment past version 1...
+            if (loaded.version() < ModServerConfig.CURRENT_VERSION) {
+                // Call into a ModServerConfigMigrator.migrate(loaded) method...
+                // save();
+            }
+            config = loaded;
+        } catch (IOException | SyntaxError e) {
+            ArcaneRelics.LOGGER.error("[load] Failed to load server config, loading defaults into memory", e);
+            config = ModServerConfig.defaults();
+            // Implementation note: don't save here. Leave the bad config untouched and give the user a chance to fix the error.
+        }
+    }
+
+    public static void reload() {
+        load();
+    }
+
+    public static void save() {
+        Path savePath = requireConfigPath();
+
+        try {
+            JsonObject json = (JsonObject) JANKSON.toJson(config);
+            String pretty = json.toJson(true, true);
+
+            ArcaneRelics.LOGGER.info("[save] configPath is: {}", savePath);
+            Files.createDirectories(savePath.getParent());
+            Files.writeString(savePath, pretty);
+        } catch (IOException e) {
+            ArcaneRelics.LOGGER.error("[save] Failed to save server config", e);
+        }
+    }
+
+    private static Path requireConfigPath() {
+        if (configPath == null) {
+            throw new IllegalStateException("Server config path requested before ModServerConfigManager.initialize(server)");
+        }
+        return configPath;
+    }
+
+    private static void normalizeConfig(ModServerConfig loaded) {
+        ModServerConfig defaults = ModServerConfig.defaults();
+
+        if (loaded.wandEnchantingTable == null) {
+            loaded.wandEnchantingTable = defaults.wandEnchantingTable();
+        }
+
+        loaded.fangWand = normalizeFangWandConfig(loaded.fangWand, defaults.fangWand());
+        loaded.fireballWand = normalizeFireballWandConfig(loaded.fireballWand, defaults.fireballWand());
+        loaded.iceWand = normalizeIceWandConfig(loaded.iceWand, defaults.iceWand());
+        loaded.levitationWand = normalizeLevitationWandConfig(loaded.levitationWand, defaults.levitationWand());
+        loaded.lightningWand = normalizeLightningWandConfig(loaded.lightningWand, defaults.lightningWand());
+        loaded.regenerationWand = normalizeRegenerationWandConfig(loaded.regenerationWand, defaults.regenerationWand());
+        loaded.windWand = normalizeWindWandConfig(loaded.windWand, defaults.windWand());
+    }
+
+    private static FangWandConfig normalizeFangWandConfig(FangWandConfig loaded, FangWandConfig defaults) {
+        if (loaded == null) {
+            return defaults;
+        }
+        if (loaded.balance == null) {
+            loaded.balance = defaults.balance();
+        }
+        return loaded;
+    }
+
+    private static FireballWandConfig normalizeFireballWandConfig(FireballWandConfig loaded, FireballWandConfig defaults) {
+        if (loaded == null) {
+            return defaults;
+        }
+        if (loaded.balance == null) {
+            loaded.balance = defaults.balance();
+        }
+        return loaded;
+    }
+
+    private static IceWandConfig normalizeIceWandConfig(IceWandConfig loaded, IceWandConfig defaults) {
+        if (loaded == null) {
+            return defaults;
+        }
+        if (loaded.balance == null) {
+            loaded.balance = defaults.balance();
+        }
+        return loaded;
+    }
+
+    private static LevitationWandConfig normalizeLevitationWandConfig(LevitationWandConfig loaded, LevitationWandConfig defaults) {
+        if (loaded == null) {
+            return defaults;
+        }
+        if (loaded.balance == null) {
+            loaded.balance = defaults.balance();
+        }
+        return loaded;
+    }
+
+    private static LightningWandConfig normalizeLightningWandConfig(LightningWandConfig loaded, LightningWandConfig defaults) {
+        if (loaded == null) {
+            return defaults;
+        }
+        if (loaded.balance == null) {
+            loaded.balance = defaults.balance();
+        }
+        return loaded;
+    }
+
+    private static RegenerationWandConfig normalizeRegenerationWandConfig(RegenerationWandConfig loaded, RegenerationWandConfig defaults) {
+        if (loaded == null) {
+            return defaults;
+        }
+        if (loaded.balance == null) {
+            loaded.balance = defaults.balance();
+        }
+        return loaded;
+    }
+
+    private static WindWandConfig normalizeWindWandConfig(WindWandConfig loaded, WindWandConfig defaults) {
+        if (loaded == null) {
+            return defaults;
+        }
+        if (loaded.balance == null) {
+            loaded.balance = defaults.balance();
+        }
+        return loaded;
     }
 }

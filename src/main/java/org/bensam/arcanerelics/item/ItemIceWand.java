@@ -16,10 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import org.bensam.arcanerelics.config.IceWandConfig;
-import org.bensam.arcanerelics.config.ModServerConfig;
-import org.bensam.arcanerelics.config.ModServerConfigManager;
-import org.bensam.arcanerelics.config.WandBalanceConfig;
+import org.bensam.arcanerelics.config.*;
 
 import java.util.List;
 

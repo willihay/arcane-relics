@@ -17,10 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.bensam.arcanerelics.config.LevitationWandConfig;
-import org.bensam.arcanerelics.config.ModServerConfig;
-import org.bensam.arcanerelics.config.ModServerConfigManager;
-import org.bensam.arcanerelics.config.WandBalanceConfig;
+import org.bensam.arcanerelics.config.*;
 
 import java.util.List;
 
