@@ -18,12 +18,13 @@ public final class ConfigClientPackets {
     }
 
     public static void sendClientPreferences() {
-        if (!ClientPlayNetworking.canSend(SyncFireballAimAssistPreferenceC2SPayload.TYPE)) {
+        if (!ClientPlayNetworking.canSend(SyncClientConfigC2SPayload.TYPE)) {
             return;
         }
 
-        ClientPlayNetworking.send(new SyncFireballAimAssistPreferenceC2SPayload(
-                ModClientConfigManager.getConfig().fireballWand().aimAssistEnabled()
+        ClientPlayNetworking.send(new SyncClientConfigC2SPayload(
+                ModClientConfigManager.getConfig().fireballWand().aimAssistEnabled(),
+                ModClientConfigManager.getConfig().lightningWand().blockBreakingExplosionEnabled()
         ));
     }
 }

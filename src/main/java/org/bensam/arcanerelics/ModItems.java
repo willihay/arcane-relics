@@ -7,6 +7,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.item.*;
 import org.jspecify.annotations.NonNull;
 
@@ -40,77 +41,95 @@ public final class ModItems {
     public static final Supplier<ItemWindWand> WIND_WAND = () -> windWandInternal;
 
     private static final WandDefinition ARCANE_WAND_DEFINITION =
-            new WandDefinition(0, 0, 1, 1, Integer.MAX_VALUE, 0, 2, false);
+            new WandDefinition(
+                    "item." + ArcaneRelics.MOD_ID + ".arcane_wand.info",
+                    2);
 
     private static final WandDefinition FANG_WAND_DEFINITION =
-            new WandDefinition(20, 40, 1, 1, 20, 20, 4, true);
+            new WandDefinition(
+                    "item." + ArcaneRelics.MOD_ID + ".fang_wand.info",
+                    4);
 
     private static final WandDefinition FIREBALL_WAND_DEFINITION =
-            new WandDefinition(20, 40, 1, 2, 40, 20, 3, true);
+            new WandDefinition(
+                    "item." + ArcaneRelics.MOD_ID + ".fireball_wand.info",
+                    3);
 
     private static final WandDefinition ICE_WAND_DEFINITION =
-            new WandDefinition(30, 60, 1, 1, 40, 30, 3, true);
+            new WandDefinition(
+                    "item." + ArcaneRelics.MOD_ID + ".ice_wand.info",
+                    3);
 
     private static final WandDefinition LEVITATION_WAND_DEFINITION =
-            new WandDefinition(20, 40, 1, 1, 60, 20, 3, true);
+            new WandDefinition(
+                    "item." + ArcaneRelics.MOD_ID + ".levitation_wand.info",
+                    3);
 
     private static final WandDefinition LIGHTNING_WAND_DEFINITION =
-            new WandDefinition(15, 30, 1, 2, 60, 15, 4, true);
+            new WandDefinition(
+                    "item." + ArcaneRelics.MOD_ID + ".lightning_wand.info",
+                    4);
 
     private static final WandDefinition REGENERATION_WAND_DEFINITION =
-            new WandDefinition(10, 30, 1, 1, 40, 10, 3, true);
+            new WandDefinition(
+                    "item." + ArcaneRelics.MOD_ID + ".regen_wand.info",
+                    3);
 
     private static final WandDefinition WIND_WAND_DEFINITION =
-            new WandDefinition(30, 60, 1, 1, 20, 30, 3, true);
+            new WandDefinition(
+                    "item." + ArcaneRelics.MOD_ID + ".wind_wand.info",
+                    3);
 
     public static void initialize() {
+        ModServerConfig defaults = ModServerConfig.defaults();
+
         // Register mod items.
         arcaneWandInternal = register(
                 "arcane_wand",
                 props -> new ItemArcaneWand(props, ARCANE_WAND_DEFINITION),
-                ARCANE_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".arcane_wand.info")
+                ARCANE_WAND_DEFINITION.createProperties(ItemArcaneWand.INITIAL_CHARGES, false)
         );
 
         fangWandInternal = register(
                 "fang_wand",
                 props -> new ItemFangWand(props, FANG_WAND_DEFINITION),
-                FANG_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".fang_wand.info")
+                FANG_WAND_DEFINITION.createProperties(defaults.fangWand().balance().initialCharges(), true)
         );
 
         fireballWandInternal = register(
                 "fireball_wand",
                 props -> new ItemFireballWand(props, FIREBALL_WAND_DEFINITION),
-                FIREBALL_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".fireball_wand.info")
+                FIREBALL_WAND_DEFINITION.createProperties(defaults.fireballWand().balance().initialCharges(), true)
         );
 
         iceWandInternal = register(
                 "ice_wand",
                 props -> new ItemIceWand(props, ICE_WAND_DEFINITION),
-                ICE_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".ice_wand.info")
+                ICE_WAND_DEFINITION.createProperties(defaults.iceWand().balance().initialCharges(), true)
         );
 
         levitationWandInternal = register(
                 "levitation_wand",
                 props -> new ItemLevitationWand(props, LEVITATION_WAND_DEFINITION),
-                LEVITATION_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".levitation_wand.info")
+                LEVITATION_WAND_DEFINITION.createProperties(defaults.levitationWand().balance().initialCharges(), true)
         );
 
         lightningWandInternal = register(
                 "lightning_wand",
                 props -> new ItemLightningWand(props, LIGHTNING_WAND_DEFINITION),
-                LIGHTNING_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".lightning_wand.info")
+                LIGHTNING_WAND_DEFINITION.createProperties(defaults.lightningWand().balance().initialCharges(), true)
         );
 
         regenerationWandInternal = register(
                 "regen_wand",
                 props -> new ItemRegenerationWand(props, REGENERATION_WAND_DEFINITION),
-                REGENERATION_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".regen_wand.info")
+                REGENERATION_WAND_DEFINITION.createProperties(defaults.regenerationWand().balance().initialCharges(), true)
         );
 
         windWandInternal = register(
                 "wind_wand",
                 props -> new ItemWindWand(props, WIND_WAND_DEFINITION),
-                WIND_WAND_DEFINITION.createProperties("item." + ArcaneRelics.MOD_ID + ".wind_wand.info")
+                WIND_WAND_DEFINITION.createProperties(defaults.windWand().balance().initialCharges(), true)
         );
     }
 

@@ -31,7 +31,7 @@ public class MinecraftClientMixin {
                 Component.translatable(
                         "message." + ArcaneRelics.MOD_ID + ".wand.charges.remaining",
                         stack.getHoverName(),
-                        wand.getCharges(stack)
+                        wand.getSyncedCharges(stack)
                 ),
                 true
         );

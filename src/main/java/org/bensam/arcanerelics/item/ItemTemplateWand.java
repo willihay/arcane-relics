@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.bensam.arcanerelics.config.*;
 
 import java.util.List;
 
@@ -30,24 +31,20 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
     //region Config Accessors
     // Step 2:
     // Set up configuration for this new wand by doing the following:
-    // a) Create a new Config class in the .config package (you can use an existing config such as FangWandConfig as a template.
+    // a) Create a new Config class in the .config package (using FangWandConfig as a template).
     // b) Add that new Config to ModServerConfig.
     // c) Add its defaults to ModServerConfigDefaults.
     // d) Add it to the normalizeConfig() method in ModServerConfigManager.
-    // e) Uncomment the following 3 methods and update them to use this wand's accessor and config record
-    //    in place of templateWand() and TemplateWandConfig.
-    //@Override
-    //protected WandBalanceConfig getBalanceConfig(Level level) {
-    //    return ModServerConfigManager.getConfig(level).templateWand().balance();
-    //}
+    // e) Uncomment the following getTemplateWandConfig() method and update both getters to use this wand's accessor
+    //    and config class in place of templateWand() and TemplateWandConfig.
+    @Override
+    public WandBalanceConfig getBalanceConfig(ModServerConfig config) {
+        return new WandBalanceConfig(); // delete this line and update the following line
+        //return config.templateWand().balance();
+    }
 
-    //private TemplateWandConfig getTemplateWandConfig(Level level) {
-    //    return ModServerConfigManager.getConfig(level).templateWand();
-    //}
-
-    //@Override
-    //public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
-    //    return config.templateWand().balance();
+    //private TemplateWandConfig getTemplateWandConfig() {
+    //    return ModServerConfigManager.getConfig().templateWand();
     //}
     //endregion
 
@@ -56,10 +53,10 @@ public class ItemTemplateWand extends AbstractChargedWandItem implements WandEnc
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         // Step 3:
         // Define how this wand can be recharged from an alternate source, outside the wand enchanting table, typically
-        // from a mob registered in EntityType, within a radius defined by a constant.
+        // from a mob registered in EntityType, within an extraction radius defined in the config.
         // Typical pattern:
         // return this.rechargeFromSource(wandStack, () -> {
-        //     BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), MOB_EXTRACTION_RADIUS, EntityType.MOB);
+        //     BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getTemplateWandConfig().mobExtractionRadius(), EntityType.MOB);
         //     return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.MOB).getDescription());
         // });
         return new RechargeContext(false, 0, null, null);

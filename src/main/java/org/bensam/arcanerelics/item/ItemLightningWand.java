@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -42,30 +43,30 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
 
     //region Config Accessors
     @Override
-    protected WandBalanceConfig getBalanceConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).lightningWand().balance();
-    }
-
-    private LightningWandConfig getLightningWandConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).lightningWand();
-    }
-
-    @Override
-    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+    public WandBalanceConfig getBalanceConfig(ModServerConfig config) {
         return config.lightningWand().balance();
+    }
+
+    private LightningWandConfig getLightningWandConfig() {
+        return ModServerConfigManager.getConfig().lightningWand();
     }
     //endregion
 
     @Override
-    protected int getPowerUpCost(Level level, Player player, ItemStack stack, int chargeTicks, boolean fullyPowered) {
-        return level.isThundering() ? this.getNormalCastCost(level) : super.getPowerUpCost(level, player, stack, chargeTicks, fullyPowered);
+    protected int getFullPowerCastCost(Player player) {
+        return this.blockBreakEnabled(player) ? super.getFullPowerCastCost(player) : getNormalCastCost();
+    }
+
+    @Override
+    protected int getPowerUpCost(Level level, Player player, boolean fullyPowered) {
+        return level.isThundering() ? this.getNormalCastCost() : super.getPowerUpCost(level, player, fullyPowered);
     }
 
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition(), this.getLightningWandConfig(level).lightningRodExtractionRadius());
+            BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition(), this.getLightningWandConfig().lightningRodExtractionRadius());
             if (lightningRodPos != null) {
                 if (level.isThundering()) {
                     return new RechargeContext(true, 0, lightningRodPos, (Items.LIGHTNING_ROD).getName());
@@ -165,7 +166,20 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
         }
 
         float explosionPower = Mth.lerp(powerUpPercentage, BASE_EXPLOSION_POWER, MAX_EXPLOSION_POWER);
-        return this.summonChargedLightning(level, player, explosionPower, isFullyPowered);
+        boolean withBlockBreak = isFullyPowered && this.blockBreakEnabled(player);
+        return this.summonChargedLightning(level, player, explosionPower, withBlockBreak);
+    }
+
+    private boolean blockBreakEnabled(Player player) {
+        if (!this.getLightningWandConfig().allowBlockBreakingExplosion()) {
+            return false;
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            return SyncedClientConfig.isLightningBlockBreakEnabled(serverPlayer);
+        }
+
+        return true;
     }
 
     protected boolean summonChargedLightning(Level level, Player player, float explosionPower, boolean withBlockBreak) {

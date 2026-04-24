@@ -4,31 +4,17 @@ import net.minecraft.world.item.Item;
 import org.bensam.arcanerelics.ModComponents;
 
 public record WandDefinition(
-        int initialCharges,
-        int maxCharges,
-        int normalCastCost,
-        int fullPowerCastCost,
-        int fullPowerTicks,
-        int rechargeAmount,
-        int tooltipLineCount,
-        boolean stackToOne
+        String tooltipTranslationKeyPrefix,
+        int tooltipLineCount
 ) {
-    public Item.Properties createProperties(String tooltipKeyPrefix) {
+    public Item.Properties createProperties(int initialCharges, boolean stackToOne) {
         Item.Properties properties = new Item.Properties()
                 .component(
                         ModComponents.WAND_CHARGES_COMPONENT,
-                        new ModComponents.WandChargesComponent(this.initialCharges)
-                )
-                .component(
-                        ModComponents.WAND_MAX_CHARGES_COMPONENT,
-                        this.maxCharges
-                )
-                .component(
-                        ModComponents.WAND_TOOLTIP_COMPONENT,
-                        new ModComponents.WandTooltipComponent(tooltipKeyPrefix, this.tooltipLineCount)
+                        initialCharges
                 );
 
-        if (this.stackToOne) {
+        if (stackToOne) {
             properties = properties.stacksTo(1);
         }
 

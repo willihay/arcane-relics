@@ -3,6 +3,7 @@ package org.bensam.arcanerelics.integration.jei.recipe;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.ItemStack;
 import org.bensam.arcanerelics.ModItems;
+import org.bensam.arcanerelics.config.SyncedServerConfig;
 import org.bensam.arcanerelics.item.AbstractChargedWandItem;
 import org.bensam.arcanerelics.item.WandEnchantingTableOutput;
 
@@ -21,7 +22,7 @@ public final class WandEnchantingRecipeBuilder {
                         recipes,
                         wandOutput.getEnchantmentItems(registryAccess),
                         new ItemStack(wand),
-                        wand.getNewWandXpCost()
+                        SyncedServerConfig.get().wandEnchantingTable().enableEnchantWandXpCost() ? wand.getNewWandXpCost() : 0
                 );
             }
         }

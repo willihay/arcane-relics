@@ -15,7 +15,7 @@ public final class ModServerConfigSync {
     }
 
     public static void syncToPlayer(ServerPlayer player) {
-        ModServerConfig config = ModServerConfigManager.getConfig(player.level());
+        ModServerConfig config = ModServerConfigManager.getConfig();
         ServerPlayNetworking.send(player, new SyncServerConfigS2CPayload(config));
     }
 }

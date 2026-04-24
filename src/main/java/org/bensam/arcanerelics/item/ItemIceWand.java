@@ -38,17 +38,12 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
 
     //region Config Accessors
     @Override
-    protected WandBalanceConfig getBalanceConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).iceWand().balance();
-    }
-
-    private IceWandConfig getIceWandConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).iceWand();
-    }
-
-    @Override
-    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+    public WandBalanceConfig getBalanceConfig(ModServerConfig config) {
         return config.iceWand().balance();
+    }
+
+    private IceWandConfig getIceWandConfig() {
+        return ModServerConfigManager.getConfig().iceWand();
     }
     //endregion
 
@@ -56,7 +51,7 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getIceWandConfig(level).strayExtractionRadius(), EntityType.STRAY);
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getIceWandConfig().strayExtractionRadius(), EntityType.STRAY);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.STRAY).getDescription());
         });
     }

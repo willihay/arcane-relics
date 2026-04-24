@@ -48,17 +48,12 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
 
     //region Config Accessors
     @Override
-    protected WandBalanceConfig getBalanceConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).windWand().balance();
-    }
-
-    private WindWandConfig getWindWandConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).windWand();
-    }
-
-    @Override
-    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+    public WandBalanceConfig getBalanceConfig(ModServerConfig config) {
         return config.windWand().balance();
+    }
+
+    private WindWandConfig getWindWandConfig() {
+        return ModServerConfigManager.getConfig().windWand();
     }
     //endregion
 
@@ -66,7 +61,7 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getWindWandConfig(level).breezeExtractionRadius(), EntityType.BREEZE);
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getWindWandConfig().breezeExtractionRadius(), EntityType.BREEZE);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.BREEZE).getDescription());
         });
     }

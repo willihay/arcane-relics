@@ -36,17 +36,12 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
 
     //region Config Accessors
     @Override
-    protected WandBalanceConfig getBalanceConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).levitationWand().balance();
-    }
-
-    private LevitationWandConfig getLevitationWandConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).levitationWand();
-    }
-
-    @Override
-    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+    public WandBalanceConfig getBalanceConfig(ModServerConfig config) {
         return config.levitationWand().balance();
+    }
+
+    private LevitationWandConfig getLevitationWandConfig() {
+        return ModServerConfigManager.getConfig().levitationWand();
     }
     //endregion
 
@@ -54,7 +49,7 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getLevitationWandConfig(level).shulkerExtractionRadius(), EntityType.SHULKER);
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getLevitationWandConfig().shulkerExtractionRadius(), EntityType.SHULKER);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.SHULKER).getDescription());
         });
     }

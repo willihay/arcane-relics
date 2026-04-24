@@ -2,9 +2,7 @@ package org.bensam.arcanerelics;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
-import net.fabricmc.fabric.api.item.v1.ComponentTooltipAppenderRegistry;
-import net.minecraft.core.component.DataComponents;
-import org.bensam.arcanerelics.config.FireballAimAssistPreferenceSync;
+import org.bensam.arcanerelics.config.SyncedClientConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.ModServerConfigSync;
 import org.slf4j.Logger;
@@ -23,7 +21,7 @@ public class ArcaneRelics implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
-		LOGGER.info("onInitialize start");
+		LOGGER.debug("onInitialize start");
 
 		ModStats.initialize();
 		ModComponents.initialize();
@@ -32,11 +30,7 @@ public class ArcaneRelics implements ModInitializer {
 		ModBlockEntities.initialize();
 		ModMenus.initialize();
 		ModNetworks.initialize();
-		FireballAimAssistPreferenceSync.initialize();
-
-		ComponentTooltipAppenderRegistry.addAfter(DataComponents.DAMAGE, ModComponents.WAND_CHARGES_COMPONENT);
-		ComponentTooltipAppenderRegistry.addAfter(ModComponents.WAND_CHARGES_COMPONENT, ModComponents.WAND_TOOLTIP_COMPONENT);
-
+		SyncedClientConfig.initialize();
 		ModCreativeTab.initialize();
 
 		ServerWorldEvents.LOAD.register((server, world) -> {
@@ -48,6 +42,6 @@ public class ArcaneRelics implements ModInitializer {
 
 		ModCommands.initialize();
 
-		LOGGER.info("onInitialize complete");
+		LOGGER.debug("onInitialize complete");
 	}
 }

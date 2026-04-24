@@ -13,7 +13,7 @@ import java.nio.file.Path;
 
 public final class ModClientConfigManager {
     private static final Path CONFIG_PATH =
-            FabricLoader.getInstance().getConfigDir().resolve(ArcaneRelics.MOD_ID + "-client-config.json5");
+            FabricLoader.getInstance().getConfigDir().resolve(ArcaneRelics.MOD_ID + "-client-config.json5").normalize();
 
     private static final Jankson JANKSON = Jankson.builder().build();
 
@@ -36,7 +36,10 @@ public final class ModClientConfigManager {
     }
 
     public static void load() {
+        ArcaneRelics.LOGGER.debug("[load] Client config path is: {}", CONFIG_PATH);
+
         if (!Files.exists(CONFIG_PATH)) {
+            ArcaneRelics.LOGGER.info("[load] Client config file not found, setting to defaults");
             config = ModClientConfig.defaults();
             save();
             return;
@@ -47,11 +50,15 @@ public final class ModClientConfigManager {
             JsonObject json = JANKSON.load(raw);
             ModClientConfig loaded = JANKSON.fromJson(json, ModClientConfig.class);
             if (loaded == null) {
-                throw new IOException("Jankson returned null while deserializing ModClientConfig");
+                throw new IOException("[load] Jankson returned null while deserializing ModClientConfig");
             }
 
             if (loaded.fireballWand() == null) {
                 loaded.fireballWand = new FireballWandClientConfig();
+            }
+
+            if (loaded.lightningWand() == null) {
+                loaded.lightningWand = new LightningWandClientConfig();
             }
 
             // Add migration logic here when we increment past version 1...
@@ -59,23 +66,27 @@ public final class ModClientConfigManager {
                 // Call into a ModClientConfigMigrator.migrate(loaded) method...
                 // save();
             }
+
             config = loaded;
+            ArcaneRelics.LOGGER.debug("[load] Client config loaded");
         } catch (IOException | SyntaxError e) {
-            ArcaneRelics.LOGGER.error("Failed to load client config, using defaults", e);
+            ArcaneRelics.LOGGER.error("[load] Failed to load client config from disk, using defaults", e);
             config = ModClientConfig.defaults();
-            // Implementation note: don't save here. Leave the bad config untouched and give the user a chance to fix the error.
+            // Implementation note: don't save here. Leave the bad config untouched and give the player a chance to fix the error.
         }
     }
 
     public static void save() {
         try {
+            ArcaneRelics.LOGGER.debug("[save] Client config path is: {}", CONFIG_PATH);
             JsonObject json = (JsonObject) JANKSON.toJson(config);
             String pretty = json.toJson(true, true);
 
             Files.createDirectories(CONFIG_PATH.getParent());
             Files.writeString(CONFIG_PATH, pretty);
+            ArcaneRelics.LOGGER.info("[save] Successfully saved client config to disk");
         } catch (IOException e) {
-            ArcaneRelics.LOGGER.error("Failed to save client config", e);
+            ArcaneRelics.LOGGER.error("[save] Failed to save client config to disk", e);
         }
     }
 }

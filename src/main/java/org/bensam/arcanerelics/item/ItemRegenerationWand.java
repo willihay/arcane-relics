@@ -41,17 +41,12 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
 
     //region Config Accessors
     @Override
-    protected WandBalanceConfig getBalanceConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).regenerationWand().balance();
-    }
-
-    private RegenerationWandConfig getRegenerationWandConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).regenerationWand();
-    }
-
-    @Override
-    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+    public WandBalanceConfig getBalanceConfig(ModServerConfig config) {
         return config.regenerationWand().balance();
+    }
+
+    private RegenerationWandConfig getRegenerationWandConfig() {
+        return ModServerConfigManager.getConfig().regenerationWand();
     }
     //endregion
 
@@ -59,7 +54,7 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getRegenerationWandConfig(level).ghastExtractionRadius(), EntityType.HAPPY_GHAST);
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getRegenerationWandConfig().ghastExtractionRadius(), EntityType.HAPPY_GHAST);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.HAPPY_GHAST).getDescription());
         });
     }

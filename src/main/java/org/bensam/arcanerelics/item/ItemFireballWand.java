@@ -42,24 +42,19 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
 
     //region Config Accessors
     @Override
-    protected WandBalanceConfig getBalanceConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).fireballWand().balance();
-    }
-
-    private FireballWandConfig getFireballConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).fireballWand();
-    }
-
-    @Override
-    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+    public WandBalanceConfig getBalanceConfig(ModServerConfig config) {
         return config.fireballWand().balance();
+    }
+
+    private FireballWandConfig getFireballConfig() {
+        return ModServerConfigManager.getConfig().fireballWand();
     }
     //endregion
 
     //region Recharge Methods
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
-        FireballWandConfig fireballConfig = this.getFireballConfig(level);
+        FireballWandConfig fireballConfig = this.getFireballConfig();
         return this.rechargeFromSource(level, wandStack, () -> findNearbyMobFuel(
                 level,
                 player.blockPosition(),
@@ -155,7 +150,7 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         Vec3 fireballTargetVec = player.getLookAngle().normalize();
         Vec3 fireballPos = player.getEyePosition().add(fireballTargetVec);
 
-        if (this.shouldUseAimAssist(level, player)) {
+        if (this.shouldUseAimAssist(player)) {
             LivingEntity targetEntity = getBestLivingTargetInArcAngle(level, player, 60, 9.0);
             if (targetEntity != null) {
                 Vec3 targetEntityCenter = targetEntity.getBoundingBox().getCenter();
@@ -183,13 +178,13 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         }
     }
 
-    private boolean shouldUseAimAssist(ServerLevel level, Player player) {
-        if (!this.getFireballConfig(level).allowAimAssist()) {
+    private boolean shouldUseAimAssist(Player player) {
+        if (!this.getFireballConfig().allowAimAssist()) {
             return false;
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
-            return FireballAimAssistPreferenceSync.isAimAssistEnabled(serverPlayer);
+            return SyncedClientConfig.isFireballAimAssistEnabled(serverPlayer);
         }
 
         return true;

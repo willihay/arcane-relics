@@ -1,5 +1,6 @@
 package org.bensam.arcanerelics.config;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public final class SyncedServerConfig {
@@ -7,7 +8,13 @@ public final class SyncedServerConfig {
 
     private SyncedServerConfig() {}
 
-    public static @Nullable ModServerConfig get() {
+    // returns synced server config, or defaults if no server config packets have been received yet
+    public static @NonNull ModServerConfig get() {
+        return current != null ? current : ModServerConfig.defaults();
+    }
+
+    // returns ONLY config that's synced from the server, never default values
+    public static @Nullable ModServerConfig getNullable() {
         return current;
     }
 

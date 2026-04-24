@@ -4,7 +4,6 @@ import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import org.bensam.arcanerelics.ArcaneRelics;
 
@@ -29,11 +28,6 @@ public final class ModServerConfigManager {
         return config;
     }
 
-    // temp method during changeover to JSON server config
-    public static ModServerConfig getConfig(Level level) {
-        return config;
-    }
-
     private static Path getConfigPath(MinecraftServer server) {
         return server.getWorldPath(LevelResource.ROOT)
                 .resolve("data")
@@ -49,11 +43,11 @@ public final class ModServerConfigManager {
 
     public static boolean load(boolean resetOnError) {
         Path loadPath = requireConfigPath();
-        ArcaneRelics.LOGGER.debug("[load] configPath is: {}", loadPath);
+        ArcaneRelics.LOGGER.debug("[load] Server config path is: {}", loadPath);
 
         if (!Files.exists(loadPath)) {
             if (resetOnError) {
-                ArcaneRelics.LOGGER.info("[load] Server config file not found, setting server config to defaults");
+                ArcaneRelics.LOGGER.info("[load] Server config file not found, setting to defaults");
                 config = ModServerConfig.defaults();
                 save();
                 return true;
@@ -77,12 +71,14 @@ public final class ModServerConfigManager {
                 // Call into a ModServerConfigMigrator.migrate(loaded) method...
                 // save();
             }
+
             config = loaded;
+            ArcaneRelics.LOGGER.debug("[load] Server config loaded");
         } catch (IOException | SyntaxError e) {
             if (resetOnError) {
-                ArcaneRelics.LOGGER.error("[load] Failed to load server config from disk, loading defaults into memory", e);
+                ArcaneRelics.LOGGER.error("[load] Failed to load server config from disk, using defaults", e);
                 config = ModServerConfig.defaults();
-                // Implementation note: don't save here. Leave the bad config untouched and give the user a chance to fix the error.
+                // Implementation note: don't save here. Leave the bad config untouched and give the admin a chance to fix the error.
             } else {
                 ArcaneRelics.LOGGER.error("[load] Failed to load server config from disk, configuration in memory unchanged", e);
             }
@@ -103,12 +99,12 @@ public final class ModServerConfigManager {
 
     public static void save() {
         Path savePath = requireConfigPath();
+        ArcaneRelics.LOGGER.debug("[save] Server config path is: {}", savePath);
 
         try {
             JsonObject json = (JsonObject) JANKSON.toJson(config);
             String pretty = json.toJson(true, true);
 
-            ArcaneRelics.LOGGER.debug("[save] configPath is: {}", savePath);
             Files.createDirectories(savePath.getParent());
             Files.writeString(savePath, pretty);
             ArcaneRelics.LOGGER.info("[save] Successfully saved server config to disk");

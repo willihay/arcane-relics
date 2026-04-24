@@ -17,6 +17,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.bensam.arcanerelics.ModBlockEntities;
 import org.bensam.arcanerelics.ModItems;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.item.AbstractChargedWandItem;
 import org.bensam.arcanerelics.item.WandEnchantingTableOutput;
 import org.bensam.arcanerelics.menu.WandEnchantingContainerData;
@@ -171,7 +172,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
 
         // Validate current input wand charges are within config-defined parameters.
         if (isArcaneWand(inputWand)) {
-            ((AbstractChargedWandItem) inputWand.getItem()).normalizeCharges(inputWand, this.level);
+            ((AbstractChargedWandItem) inputWand.getItem()).normalizeCharges(inputWand);
         }
 
         if (this.hasValidRecipe) {
@@ -199,15 +200,15 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
                         newOutputWand.set(DataComponents.CUSTOM_NAME, inputWand.getCustomName());
                     }
 
-                    newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand, this.level), this.level);
-                    newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(this.level, arcaneItemLevel), this.level);
+                    newOutputWandItem.setCharges(newOutputWand, inputWandItem.getCharges(inputWand));
+                    newOutputWandItem.addCharges(newOutputWand, newOutputWandItem.getRechargeChargeAmount(arcaneItemLevel));
 
-                    this.xpCost = newOutputWandItem.getRechargeXpCost();
+                    this.xpCost = ModServerConfigManager.getConfig().wandEnchantingTable().enableRechargeWandXpCost() ? newOutputWandItem.getRechargeXpCost() : 0;
                 }
                 // Otherwise, calculate and set the initial number of charges for the new wand.
                 else {
-                    newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(this.level, arcaneItemLevel), this.level);
-                    this.xpCost = newOutputWandItem.getNewWandXpCost();
+                    newOutputWandItem.setCharges(newOutputWand, newOutputWandItem.getNewWandCharges(arcaneItemLevel));
+                    this.xpCost = ModServerConfigManager.getConfig().wandEnchantingTable().enableEnchantWandXpCost() ? newOutputWandItem.getNewWandXpCost() : 0;
                 }
             }
         }

@@ -18,6 +18,7 @@ import net.minecraft.world.item.Items;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.ModBlocks;
 import org.bensam.arcanerelics.ModItems;
+import org.bensam.arcanerelics.config.SyncedServerConfig;
 import org.bensam.arcanerelics.integration.jei.recipe.WandEnchantingRecipe;
 import org.bensam.arcanerelics.item.AbstractChargedWandItem;
 import org.jspecify.annotations.NonNull;
@@ -116,8 +117,12 @@ public class WandEnchantingCategory implements IRecipeCategory<WandEnchantingRec
             var inputItem = inputStack.get().getItem();
             var outputItem = outputStack.get().getItem();
 
-            if (inputItem.equals(outputItem) && outputItem instanceof AbstractChargedWandItem wand) {
-                return wand.getRechargeXpCost();
+            if (outputItem instanceof AbstractChargedWandItem wand) {
+                if (inputItem.equals(outputItem)) {
+                    return SyncedServerConfig.get().wandEnchantingTable().enableRechargeWandXpCost() ? wand.getRechargeXpCost() : 0;
+                } else {
+                    return SyncedServerConfig.get().wandEnchantingTable().enableEnchantWandXpCost() ? wand.getNewWandXpCost() : 0;
+                }
             }
         }
 

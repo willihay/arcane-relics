@@ -39,6 +39,17 @@ public class YACLConfigScreen {
                                 .controller(BooleanControllerBuilder::create)
                                 .build()
                         )
+                        .option(Option.<Boolean>createBuilder()
+                                .name(Component.literal("Lightning wand can break blocks"))
+                                .description(OptionDescription.of(Component.literal("Lightning from a lightning wand breaks blocks at full power (if server permits).")))
+                                .binding(
+                                        true,
+                                        () -> ModClientConfigManager.getConfig().lightningWand().blockBreakingExplosionEnabled(),
+                                        newValue -> ModClientConfigManager.getConfig().lightningWand().blockBreakingExplosionEnabled = newValue
+                                )
+                                .controller(BooleanControllerBuilder::create)
+                                .build()
+                        )
                         .build()
                 )
                 .build()

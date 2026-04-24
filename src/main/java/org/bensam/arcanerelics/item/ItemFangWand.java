@@ -37,17 +37,12 @@ public class ItemFangWand extends AbstractChargedWandItem implements WandEnchant
 
     //region Config Accessors
     @Override
-    protected WandBalanceConfig getBalanceConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).fangWand().balance();
-    }
-
-    private FangWandConfig getFangWandConfig(Level level) {
-        return ModServerConfigManager.getConfig(level).fangWand();
-    }
-
-    @Override
-    public WandBalanceConfig getTooltipConfig(ModServerConfig config) {
+    public WandBalanceConfig getBalanceConfig(ModServerConfig config) {
         return config.fangWand().balance();
+    }
+
+    private FangWandConfig getFangWandConfig() {
+        return ModServerConfigManager.getConfig().fangWand();
     }
     //endregion
 
@@ -55,7 +50,7 @@ public class ItemFangWand extends AbstractChargedWandItem implements WandEnchant
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getFangWandConfig(level).evokerExtractionRadius(), EntityType.EVOKER);
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getFangWandConfig().evokerExtractionRadius(), EntityType.EVOKER);
             return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.EVOKER).getDescription());
         });
     }
