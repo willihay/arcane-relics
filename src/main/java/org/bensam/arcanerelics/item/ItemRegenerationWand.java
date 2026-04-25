@@ -28,7 +28,6 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
             new PotionSource(Potions.STRONG_REGENERATION),
             new PotionSource(Potions.LONG_REGENERATION)
     );
-    private static final int WAND_RANGE = 50;
 
     public ItemRegenerationWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
@@ -92,7 +91,7 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         int durationTicks = 900 + (int) (powerUpPercentage * 900);
 
-        TargetResult target = getTarget(player, WAND_RANGE);
+        TargetResult target = getTarget(player, this.getRegenerationWandConfig().range());
         if (target != null && target.entity() instanceof LivingEntity livingEntity) {
             livingEntity.addEffect(new MobEffectInstance(MobEffects.REGENERATION, durationTicks));
         } else {

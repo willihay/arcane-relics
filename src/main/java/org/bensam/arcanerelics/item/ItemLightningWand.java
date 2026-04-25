@@ -26,7 +26,6 @@ import java.util.List;
 
 public class ItemLightningWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.CHANNELING));
-    private static final int WAND_RANGE = 50;
     private static final int RECHARGE_METADATA_NO_THUNDER = 1;
     private static final int RECHARGE_METADATA_NO_LIGHTNING_ROD = 2;
     private static final float BASE_EXPLOSION_POWER = 0.75f;
@@ -183,7 +182,7 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     }
 
     protected boolean summonChargedLightning(Level level, Player player, float explosionPower, boolean withBlockBreak) {
-        TargetResult target = getTarget(player, WAND_RANGE);
+        TargetResult target = getTarget(player, this.getLightningWandConfig().range());
         if (target == null) {
             return false;
         }

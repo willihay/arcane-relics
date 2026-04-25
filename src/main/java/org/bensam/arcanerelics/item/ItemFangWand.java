@@ -24,7 +24,6 @@ import java.util.List;
 
 public class ItemFangWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new FixedItemSource(Items.TOTEM_OF_UNDYING));
-    private static final int WAND_RANGE = 40;
 
     public ItemFangWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
@@ -86,7 +85,7 @@ public class ItemFangWand extends AbstractChargedWandItem implements WandEnchant
     //region Cast Methods
     @Override
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
-        TargetResult target = getTarget(player, WAND_RANGE);
+        TargetResult target = getTarget(player, this.getFangWandConfig().range());
         if (target == null) {
             return false;
         }

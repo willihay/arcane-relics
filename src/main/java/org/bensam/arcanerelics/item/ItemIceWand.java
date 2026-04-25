@@ -22,7 +22,6 @@ import java.util.List;
 
 public class ItemIceWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new EnchantedBookSource(Enchantments.FROST_WALKER));
-    private static final int WAND_RANGE = 50;
     private static final float POWER_LEVEL_1 = 0.30f;
     private static final float POWER_LEVEL_2 = 0.50f;
     private static final float POWER_LEVEL_3 = 0.80f;
@@ -87,7 +86,7 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
     //region Cast Methods
     @Override
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
-        TargetResult target = getTarget(player, WAND_RANGE);
+        TargetResult target = getTarget(player, this.getIceWandConfig().range());
         if (target == null) {
             return false;
         }

@@ -23,7 +23,6 @@ import java.util.List;
 
 public class ItemLevitationWand extends AbstractChargedWandItem implements WandEnchantingTableOutput {
     private static final List<WandEnchantingSource> ENCHANTING_SOURCES = List.of(new FixedItemSource(Items.SHULKER_SHELL));
-    private static final int WAND_RANGE = 50;
 
     public ItemLevitationWand(Properties properties, WandDefinition definition) {
         super(properties, definition);
@@ -85,7 +84,7 @@ public class ItemLevitationWand extends AbstractChargedWandItem implements WandE
     //region Cast Methods
     @Override
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
-        TargetResult target = getTarget(player, WAND_RANGE);
+        TargetResult target = getTarget(player, this.getLevitationWandConfig().range());
         if (target == null) {
             return false;
         }

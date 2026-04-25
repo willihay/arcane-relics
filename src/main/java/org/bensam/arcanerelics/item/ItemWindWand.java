@@ -30,7 +30,6 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
             new EnchantedBookSource(Enchantments.WIND_BURST),
             new PotionSource(Potions.WIND_CHARGED)
     );
-    private static final double WIND_RANGE = 24.0D;
     private static final double WIND_STEP = 0.55D;
     private static final double WIND_HALF_ANGLE_RADIANS = Math.toRadians(32.0D);
 
@@ -113,9 +112,10 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
         Vec3 up = right.cross(forward).normalize();
 
         double power = Mth.clamp(powerUpPercentage, 0.0D, 1.0D);
+        double windRange = this.getWindWandConfig().windRange();
 
         // Baseline strength knobs.
-        double coneRadiusAtEnd = Math.tan(WIND_HALF_ANGLE_RADIANS) * WIND_RANGE;
+        double coneRadiusAtEnd = Math.tan(WIND_HALF_ANGLE_RADIANS) * windRange;
         double baseForwardPush = isFullyPowered ? 6.0D : 3.0D + (power * 3.0D);
         double baseUpPush = isFullyPowered ? 0.60D : 0.38D + (power * 0.22D);
 
@@ -124,8 +124,8 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
 
         // Move along the player’s forward look direction in small increments,
         // treating each position as a cross-section of a cone.
-        for (double traveled = 0.0D; traveled <= WIND_RANGE; traveled += WIND_STEP) {
-            double t = traveled / WIND_RANGE;
+        for (double traveled = 0.0D; traveled <= windRange; traveled += WIND_STEP) {
+            double t = traveled / windRange;
 
             // Get the center of the cone at this point, and the current radius of the cone.
             Vec3 center = start.add(forward.scale(traveled));
@@ -151,7 +151,7 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
 
             // Find entities inside the cone of wind to affect, pushing them away from the player and slightly upward.
             for (Entity entity : level.getEntities(player, searchBox, e -> e.isAlive() && e != player)) {
-                if (!isInsideCone(start, forward, entity.position(), WIND_HALF_ANGLE_RADIANS, WIND_RANGE)) {
+                if (!isInsideCone(start, forward, entity.position(), WIND_HALF_ANGLE_RADIANS, windRange)) {
                     continue;
                 }
 
@@ -186,7 +186,7 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
                     continue;
                 }
 
-                if (!isInsideCone(start, forward, Vec3.atCenterOf(pos), WIND_HALF_ANGLE_RADIANS, WIND_RANGE)) {
+                if (!isInsideCone(start, forward, Vec3.atCenterOf(pos), WIND_HALF_ANGLE_RADIANS, windRange)) {
                     continue;
                 }
 
