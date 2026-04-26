@@ -1,0 +1,35 @@
+{
+  "parent": "arcane-relics:relics/fang_wand",
+  "criteria": {
+    "recharge_fang_wand_from_mob": {
+      "conditions": {
+        "alternate_source": true,
+        "wand": "arcane-relics:fang_wand"
+      },
+      "trigger": "arcane-relics:recharge_wand"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.arcane-relics.fang_wand_alt_recharge.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:fang_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.fang_wand_alt_recharge.title"
+    }
+  },
+  "requirements": [
+    [
+      "recharge_fang_wand_from_mob"
+    ]
+  ],
+  "rewards": {
+    "experience": 40
+  },
+  "sends_telemetry_event": true
+}

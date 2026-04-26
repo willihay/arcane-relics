@@ -1,0 +1,30 @@
+{
+  "parent": "arcane-relics:relics/wand_enchanting_table",
+  "criteria": {
+    "recharged_any_wand": {
+      "conditions": {
+        "alternate_source": false
+      },
+      "trigger": "arcane-relics:recharge_wand"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.arcane-relics.first_wand_recharge.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:arcane_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.first_wand_recharge.title"
+    }
+  },
+  "requirements": [
+    [
+      "recharged_any_wand"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

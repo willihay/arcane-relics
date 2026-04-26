@@ -185,6 +185,9 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
         // Award stats and trigger advancements.
         if (ItemStack.isSameItem(stack, this.getSlot(WAND_INPUT_SLOT).getItem())) {
             player.awardStat(ModStats.getWandsRechargedStat());
+            if (player instanceof ServerPlayer serverPlayer) {
+                ModAdvancements.RECHARGE_WAND_TRIGGER.get().trigger(serverPlayer, stack, false);
+            }
         } else {
             player.awardStat(ModStats.getWandsEnchantedStat());
             if (player instanceof ServerPlayer serverPlayer) {

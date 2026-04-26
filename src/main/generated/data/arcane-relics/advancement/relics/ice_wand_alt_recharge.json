@@ -1,0 +1,35 @@
+{
+  "parent": "arcane-relics:relics/ice_wand",
+  "criteria": {
+    "recharge_ice_wand_from_mob": {
+      "conditions": {
+        "alternate_source": true,
+        "wand": "arcane-relics:ice_wand"
+      },
+      "trigger": "arcane-relics:recharge_wand"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.arcane-relics.ice_wand_alt_recharge.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:ice_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.ice_wand_alt_recharge.title"
+    }
+  },
+  "requirements": [
+    [
+      "recharge_ice_wand_from_mob"
+    ]
+  ],
+  "rewards": {
+    "experience": 40
+  },
+  "sends_telemetry_event": true
+}

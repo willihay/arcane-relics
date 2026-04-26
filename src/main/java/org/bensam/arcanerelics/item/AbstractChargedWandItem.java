@@ -38,6 +38,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import org.bensam.arcanerelics.ArcaneRelics;
+import org.bensam.arcanerelics.ModAdvancements;
 import org.bensam.arcanerelics.ModComponents;
 import org.bensam.arcanerelics.ModStats;
 import org.bensam.arcanerelics.config.ConfigBridgeForClient;
@@ -553,6 +554,9 @@ public abstract class AbstractChargedWandItem extends Item {
                     if (rechargeContext.succeeded()) {
                         this.playRechargeSuccessEffects((ServerLevel) level, player, hand, stack, rechargeContext);
                         player.awardStat(ModStats.getWandsRechargedStat());
+                        if (player instanceof ServerPlayer serverPlayer) {
+                            ModAdvancements.RECHARGE_WAND_TRIGGER.get().trigger(serverPlayer, stack, true);
+                        }
                     } else {
                         this.playRechargeFailEffects((ServerLevel) level, player, hand);
                     }

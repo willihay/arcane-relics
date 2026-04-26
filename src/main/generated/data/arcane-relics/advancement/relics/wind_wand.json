@@ -1,0 +1,30 @@
+{
+  "parent": "arcane-relics:relics/first_wand",
+  "criteria": {
+    "enchanted_wind_wand": {
+      "conditions": {
+        "wand": "arcane-relics:wind_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.arcane-relics.wind_wand.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:wind_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.wind_wand.title"
+    }
+  },
+  "requirements": [
+    [
+      "enchanted_wind_wand"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

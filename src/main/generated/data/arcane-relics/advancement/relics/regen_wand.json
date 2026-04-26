@@ -1,0 +1,30 @@
+{
+  "parent": "arcane-relics:relics/first_wand",
+  "criteria": {
+    "enchanted_regen_wand": {
+      "conditions": {
+        "wand": "arcane-relics:regen_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.arcane-relics.regen_wand.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:regen_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.regen_wand.title"
+    }
+  },
+  "requirements": [
+    [
+      "enchanted_regen_wand"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

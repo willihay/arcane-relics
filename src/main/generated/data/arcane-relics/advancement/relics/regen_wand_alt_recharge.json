@@ -1,0 +1,35 @@
+{
+  "parent": "arcane-relics:relics/regen_wand",
+  "criteria": {
+    "recharge_regen_wand_from_mob": {
+      "conditions": {
+        "alternate_source": true,
+        "wand": "arcane-relics:regen_wand"
+      },
+      "trigger": "arcane-relics:recharge_wand"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.arcane-relics.regen_wand_alt_recharge.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:regen_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.regen_wand_alt_recharge.title"
+    }
+  },
+  "requirements": [
+    [
+      "recharge_regen_wand_from_mob"
+    ]
+  ],
+  "rewards": {
+    "experience": 40
+  },
+  "sends_telemetry_event": true
+}

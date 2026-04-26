@@ -12,6 +12,36 @@
         "wand": "arcane-relics:fireball_wand"
       },
       "trigger": "arcane-relics:enchant_wand"
+    },
+    "enchanted_ice_wand": {
+      "conditions": {
+        "wand": "arcane-relics:ice_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    },
+    "enchanted_levitation_wand": {
+      "conditions": {
+        "wand": "arcane-relics:levitation_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    },
+    "enchanted_lightning_wand": {
+      "conditions": {
+        "wand": "arcane-relics:lightning_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    },
+    "enchanted_regen_wand": {
+      "conditions": {
+        "wand": "arcane-relics:regen_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    },
+    "enchanted_wind_wand": {
+      "conditions": {
+        "wand": "arcane-relics:wind_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
     }
   },
   "display": {
@@ -33,6 +63,21 @@
     ],
     [
       "enchanted_fireball_wand"
+    ],
+    [
+      "enchanted_ice_wand"
+    ],
+    [
+      "enchanted_levitation_wand"
+    ],
+    [
+      "enchanted_lightning_wand"
+    ],
+    [
+      "enchanted_regen_wand"
+    ],
+    [
+      "enchanted_wind_wand"
     ]
   ],
   "rewards": {

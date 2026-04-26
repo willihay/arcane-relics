@@ -13,12 +13,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import org.bensam.arcanerelics.ModAdvancements;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Optional;
 
 public class WandEnchantTrigger extends SimpleCriterionTrigger<WandEnchantTrigger.TriggerInstance> {
     @Override
-    public Codec<WandEnchantTrigger.TriggerInstance> codec() {
+    public @NonNull Codec<WandEnchantTrigger.TriggerInstance> codec() {
         return TriggerInstance.CODEC;
     }
 
