@@ -1,0 +1,30 @@
+{
+  "parent": "arcane-relics:relics/first_wand",
+  "criteria": {
+    "enchanted_fireball_wand": {
+      "conditions": {
+        "wand": "arcane-relics:fireball_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.arcane-relics.fireball_wand.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:fireball_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.fireball_wand.title"
+    }
+  },
+  "requirements": [
+    [
+      "enchanted_fireball_wand"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

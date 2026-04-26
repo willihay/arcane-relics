@@ -71,9 +71,9 @@ public abstract class AbstractChargedWandItem extends Item {
      *     <li>{@code messageContext} is an optional translated message argument used by the default feedback path.</li>
      * </ul>
      */
-    public record RechargeContext(boolean succeeded, int rechargeMetadata, @Nullable BlockPos sourcePos, @Nullable Component messageContext) {}
+    protected record RechargeContext(boolean succeeded, int rechargeMetadata, @Nullable BlockPos sourcePos, @Nullable Component messageContext) {}
 
-    public record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
+    protected record TargetResult(BlockPos blockPos, @Nullable Entity entity) {}
 
     public AbstractChargedWandItem(Properties properties, WandDefinition definition) {
         super(properties);

@@ -23,6 +23,7 @@ public class ArcaneRelics implements ModInitializer {
 		// Proceed with mild caution.
 		LOGGER.debug("onInitialize start");
 
+		ModAdvancements.initialize();
 		ModStats.initialize();
 		ModComponents.initialize();
 		ModItems.initialize();

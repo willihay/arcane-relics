@@ -1,5 +1,6 @@
 package org.bensam.arcanerelics.menu;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -8,10 +9,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
-import org.bensam.arcanerelics.ModBlocks;
-import org.bensam.arcanerelics.ModItems;
-import org.bensam.arcanerelics.ModMenus;
-import org.bensam.arcanerelics.ModStats;
+import org.bensam.arcanerelics.*;
 import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
 import org.jspecify.annotations.NonNull;
 
@@ -184,10 +182,14 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
     protected void onResultTake(Player player, ItemStack stack) {
         stack.onCraftedBy(player, stack.getCount());
 
+        // Award stats and trigger advancements.
         if (ItemStack.isSameItem(stack, this.getSlot(WAND_INPUT_SLOT).getItem())) {
             player.awardStat(ModStats.getWandsRechargedStat());
         } else {
             player.awardStat(ModStats.getWandsEnchantedStat());
+            if (player instanceof ServerPlayer serverPlayer) {
+                ModAdvancements.ENCHANT_WAND_TRIGGER.get().trigger(serverPlayer, stack);
+            }
         }
 
         // Consume player XP.

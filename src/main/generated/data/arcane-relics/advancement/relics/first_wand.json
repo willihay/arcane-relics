@@ -1,0 +1,31 @@
+{
+  "parent": "arcane-relics:relics/wand_enchanting_table",
+  "criteria": {
+    "enchanted_any_wand": {
+      "trigger": "arcane-relics:enchant_wand"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.arcane-relics.first_wand.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:arcane_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.first_wand.title"
+    }
+  },
+  "requirements": [
+    [
+      "enchanted_any_wand"
+    ]
+  ],
+  "rewards": {
+    "experience": 50
+  },
+  "sends_telemetry_event": true
+}

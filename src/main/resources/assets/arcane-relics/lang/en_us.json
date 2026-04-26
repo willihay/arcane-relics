@@ -1,4 +1,17 @@
 {
+  "advancement.arcane-relics.root.title": "Arcane Relics",
+  "advancement.arcane-relics.root.description": "Unlocked powerful relics from crafty wizards",
+  "advancement.arcane-relics.all_wands.title": "Enchantastic!",
+  "advancement.arcane-relics.all_wands.description": "Enchant every Arcane Relics wand",
+  "advancement.arcane-relics.first_wand.title": "First One's Free",
+  "advancement.arcane-relics.first_wand.description": "Enchant your first Arcane Relics wand",
+  "advancement.arcane-relics.fang_wand.title": "Fang Wand",
+  "advancement.arcane-relics.fang_wand.description": "Craft a Fang Wand",
+  "advancement.arcane-relics.fireball_wand.title": "Fireball Wand",
+  "advancement.arcane-relics.fireball_wand.description": "Craft a Fireball Wand",
+  "advancement.arcane-relics.wand_enchanting_table.title": "Some Enchanted Evening",
+  "advancement.arcane-relics.wand_enchanting_table.description": "Craft a Wand Enchanting Table",
+  
   "block.arcane-relics.wand_enchanting_table": "Wand Enchanting Table",
 
   "container.arcane-relics.wand_enchanting.title": "Wand Enchanting",

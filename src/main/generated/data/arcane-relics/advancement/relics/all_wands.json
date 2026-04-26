@@ -1,0 +1,42 @@
+{
+  "parent": "arcane-relics:relics/wand_enchanting_table",
+  "criteria": {
+    "enchanted_fang_wand": {
+      "conditions": {
+        "wand": "arcane-relics:fang_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    },
+    "enchanted_fireball_wand": {
+      "conditions": {
+        "wand": "arcane-relics:fireball_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.arcane-relics.all_wands.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:wand_enchanting_table"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.all_wands.title"
+    }
+  },
+  "requirements": [
+    [
+      "enchanted_fang_wand"
+    ],
+    [
+      "enchanted_fireball_wand"
+    ]
+  ],
+  "rewards": {
+    "experience": 500
+  },
+  "sends_telemetry_event": true
+}

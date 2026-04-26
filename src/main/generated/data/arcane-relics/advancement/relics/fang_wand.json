@@ -1,0 +1,30 @@
+{
+  "parent": "arcane-relics:relics/first_wand",
+  "criteria": {
+    "enchanted_fang_wand": {
+      "conditions": {
+        "wand": "arcane-relics:fang_wand"
+      },
+      "trigger": "arcane-relics:enchant_wand"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.arcane-relics.fang_wand.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "arcane-relics:fang_wand"
+    },
+    "title": {
+      "translate": "advancement.arcane-relics.fang_wand.title"
+    }
+  },
+  "requirements": [
+    [
+      "enchanted_fang_wand"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
