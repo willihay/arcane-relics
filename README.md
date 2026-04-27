@@ -10,9 +10,22 @@ At a glance, the mod adds:
 - multiple specialty wands with different casting behavior
 - alternate recharge mechanics for most wands
 
-[screenshot: arcane wand recipe]  
-[screenshot: wand enchanting table recipe]  
-[screenshot: wand enchanting table UI]
+<details>
+<summary>Spoilers: crafting recipes</summary>
+
+**Arcane Wand**
+
+![Arcane Wand crafting recipe](docs/images/recipe_arcane_wand.png)
+
+**Wand Enchanting Table**
+
+![Wand Enchanting Table crafting recipe](docs/images/recipe_wand_enchanting_table.png)
+
+</details>
+
+**Wand Enchanting Table** UI
+
+![Wand Enchanting Table UI](docs/images/enchanting_UI.png)
 
 ## Installation
 
@@ -74,7 +87,12 @@ The table uses:
 
 Some enchantments also cost XP, depending on server config.
 
-[screenshot: enchanting an arcane wand into a specialty wand]
+<details>
+<summary>Spoilers: wand enchanting example</summary>
+
+![Enchanting an arcane wand into a specialty wand](docs/images/enchanting_fireball_wand.png)
+
+</details>
 
 ### 3. Use wand charges
 
@@ -96,6 +114,9 @@ There are two main recharge paths:
 
 ## Wands and alternate recharge sources
 
+<details>
+<summary>Spoilers: table of wands and their alternate recharge source</summary>
+
 | Wand | Main theme | Alternate recharge source |
 | --- | --- | --- |
 | Fang Wand | Evoker-style fangs | Evoker |
@@ -105,6 +126,8 @@ There are two main recharge paths:
 | Lightning Wand | Lightning strike | Lightning Rod during a thunderstorm |
 | Regeneration Wand | Regeneration effect | Happy Ghast |
 | Wind Wand | Gust attack | Breeze |
+
+</details>
 
 ## Notes for players
 
