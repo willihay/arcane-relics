@@ -4,10 +4,11 @@
 # against bad commits.
 
 name: Build Arcane Relics (1.21.11)
-on: [pull_request, push]
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+on:
+  push: 
+    branches: [mc-1.21.11]
+  pull_request: 
+    branches: [mc-1.21.11]
 
 jobs:
   build:
@@ -27,7 +28,7 @@ jobs:
       - name: build
         run: ./gradlew build
       - name: capture build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: arcane-relics-fabric-1.21.11
-          path: build/libs/*.jar
+          path: build/libs/arcane-relics-fabric-1.21.11-*.jar
