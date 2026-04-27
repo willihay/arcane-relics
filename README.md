@@ -117,15 +117,15 @@ There are two main recharge paths:
 <details>
 <summary>Spoilers: table of wands and their alternate recharge source</summary>
 
-| Wand | Main theme | Alternate recharge source |
-| --- | --- | --- |
-| Fang Wand | Evoker-style fangs | Evoker |
-| Fireball Wand | Fireball projectile | Blaze or Ghast |
-| Ice Wand | Ice imprisonment | Stray |
-| Levitation Wand | Shulker projectile and self-lift | Shulker |
+| Wand | Main theme | Alternate recharge source           |
+| --- | --- |-------------------------------------|
+| Fang Wand | Evoker-style fangs | Evoker                              |
+| Fireball Wand | Fireball projectile | Blaze or any type of Ghast          |
+| Ice Wand | Ice imprisonment | Stray                               |
+| Levitation Wand | Shulker projectile and self-lift | Shulker                             |
 | Lightning Wand | Lightning strike | Lightning Rod during a thunderstorm |
-| Regeneration Wand | Regeneration effect | Happy Ghast |
-| Wind Wand | Gust attack | Breeze |
+| Regeneration Wand | Regeneration effect | Happy Ghast                         |
+| Wind Wand | Gust attack | Breeze                              |
 
 </details>
 
@@ -182,6 +182,8 @@ Additional project documentation lives under `docs/`:
 ## Contributing
 
 Issues, suggestions, and pull requests are welcome on the [GitHub repository](https://github.com/willihay/arcane-relics).
+
+This repository uses a branch-per-Minecraft-version workflow. The default branch tracks the current supported version line, and version-specific work should target the matching `mc-*` branch such as `mc-1.21.11`.
 
 Additional translations of the language files into other languages are also very welcome. If you would like to help translate the mod, feel free to submit them through GitHub issues.
 

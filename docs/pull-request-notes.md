@@ -4,6 +4,8 @@ This document is a short guide for contributors and future maintainers. It focus
 
 ## Before making changes
 
+This repository uses a branch-per-Minecraft-version workflow. The default branch is the current supported Minecraft version branch, and pull requests should usually target the matching `mc-*` branch for the version they change.
+
 Start by identifying which layer you are changing:
 
 - common gameplay code in `src/main`
@@ -103,6 +105,7 @@ Good pull requests usually:
 - avoid unrelated cleanup
 - update direct supporting assets and translations
 - keep generated outputs in sync when datagen is involved
+- target the correct Minecraft-version branch for the work, rather than assuming there is a permanent `main` branch
 
 If a change is intentionally incomplete or staged for later work, say so clearly in the PR description.
 
