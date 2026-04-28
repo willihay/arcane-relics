@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "arcane-relics:block/wand_enchanting_table"
+    "has_lapis=false": {
+      "model": "arcane-relics:block/wand_enchanting_table_unlit"
+    },
+    "has_lapis=true": {
+      "model": "arcane-relics:block/wand_enchanting_table_lit"
     }
   }
 }

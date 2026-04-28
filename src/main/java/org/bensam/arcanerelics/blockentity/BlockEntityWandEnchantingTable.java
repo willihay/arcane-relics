@@ -1,8 +1,15 @@
 package org.bensam.arcanerelics.blockentity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -10,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -17,6 +25,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.bensam.arcanerelics.ModBlockEntities;
 import org.bensam.arcanerelics.ModItems;
+import org.bensam.arcanerelics.block.BlockWandEnchantingTable;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.item.AbstractChargedWandItem;
 import org.bensam.arcanerelics.item.WandEnchantingTableOutput;
@@ -71,6 +80,20 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         return this.containerData;
     }
 
+    public @NonNull ItemStack getRenderedWand() {
+        return this.items.get(WAND_INPUT_SLOT);
+    }
+
+    @Override
+    public @NonNull CompoundTag getUpdateTag(HolderLookup.@NonNull Provider provider) {
+        return this.saveCustomOnly(provider);
+    }
+
+    @Override
+    public @NonNull Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
     public static boolean isArcaneWand(ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() instanceof AbstractChargedWandItem;
     }
@@ -98,6 +121,16 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         ItemStack result = ContainerHelper.takeItem(this.items, slotIndex);
         this.recomputeState(true);
         return result;
+    }
+
+    @Override
+    public void setChanged() {
+        super.setChanged();
+
+        if (this.level != null) {
+            // Send update to neighbors AND clients (bitmask = 3) since this block's light level can change.
+            this.level.sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
+        }
     }
 
     @Override
@@ -147,6 +180,7 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
 
         this.recomputeWandOutput();
         this.recomputeContainerData();
+        this.syncLapisBlockState(lapisStack.is(Items.LAPIS_LAZULI) && !lapisStack.isEmpty());
 
         // Compare previous state with recomputed state to see if anything has changed.
         boolean changed = !ItemStack.isSameItemSameComponents(previousOutput, this.items.get(WAND_OUTPUT_SLOT))
@@ -219,10 +253,21 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         }
     }
 
+    private void syncLapisBlockState(boolean hasLapis) {
+        BlockState blockState = this.getBlockState();
+        if (blockState.hasProperty(BlockWandEnchantingTable.HAS_LAPIS)
+                && blockState.getValue(BlockWandEnchantingTable.HAS_LAPIS) != hasLapis) {
+            this.level.setBlock(this.getBlockPos(), blockState.setValue(BlockWandEnchantingTable.HAS_LAPIS, hasLapis), 3);
+        }
+    }
+
     //region Persistence Methods
     @Override
     protected void loadAdditional(@NonNull ValueInput valueInput) {
         super.loadAdditional(valueInput);
+        for (int i = 0; i < INVENTORY_SIZE; i++) {
+            this.items.set(i, ItemStack.EMPTY);
+        }
         ContainerHelper.loadAllItems(valueInput, this.items);
     }
 
@@ -236,6 +281,35 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
             inputItems.set(i, this.items.get(i));
         }
         ContainerHelper.saveAllItems(valueOutput, inputItems);
+    }
+
+    @Override
+    protected void applyImplicitComponents(@NonNull DataComponentGetter dataComponentGetter) {
+        super.applyImplicitComponents(dataComponentGetter);
+        // Restore input slot items when BlockItem is placed as a Block/Block Entity.
+        dataComponentGetter.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY).copyInto(this.items);
+        if (this.level instanceof ServerLevel) {
+            this.recomputeState(false);
+        }
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.@NonNull Builder builder) {
+        super.collectImplicitComponents(builder);
+        // Collect items in input slots to save in components container in BlockItem when block breaks.
+        builder.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(this.items.subList(0, WAND_OUTPUT_SLOT)));
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void removeComponentsFromTag(@NonNull ValueOutput valueOutput) {
+        super.removeComponentsFromTag(valueOutput);
+        valueOutput.discard("Items"); // no need for Items tag when representing this block entity as components
+    }
+
+    @Override
+    public void preRemoveSideEffects(@NonNull BlockPos blockPos, @NonNull BlockState blockState) {
+        // Overriding with an empty method prevents spilling contents on block break.
     }
     //endregion
 }

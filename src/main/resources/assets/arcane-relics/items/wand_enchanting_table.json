@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "arcane-relics:block/wand_enchanting_table"
+    "model": "arcane-relics:block/wand_enchanting_table_unlit"
   }
 }

@@ -3,10 +3,12 @@ package org.bensam.arcanerelics;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import org.bensam.arcanerelics.config.ConfigBridgeForClient;
 import org.bensam.arcanerelics.config.ModClientConfigManager;
 import org.bensam.arcanerelics.config.SyncedServerConfig;
 import org.bensam.arcanerelics.network.ConfigClientPackets;
+import org.bensam.arcanerelics.renderer.WandEnchantingTableRenderer;
 import org.bensam.arcanerelics.network.WandClientPackets;
 import org.bensam.arcanerelics.renderer.WandClientState;
 import org.bensam.arcanerelics.screen.WandEnchantingScreen;
@@ -14,6 +16,9 @@ import org.bensam.arcanerelics.screen.WandEnchantingScreen;
 public class ArcaneRelicsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        // Register custom renderers.
+        BlockEntityRenderers.register(ModBlockEntities.WAND_ENCHANTING_TABLE.get(), WandEnchantingTableRenderer::new);
+
         // Register screens.
         MenuScreens.register(ModMenus.WAND_ENCHANTING_MENU.get(), WandEnchantingScreen::new);
 

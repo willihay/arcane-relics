@@ -6,7 +6,16 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "arcane-relics:wand_enchanting_table"
+          "name": "arcane-relics:wand_enchanting_table",
+          "functions": [
+            {
+              "function": "minecraft:copy_components",
+              "source": "block_entity",
+              "include": [
+                "minecraft:container"
+              ]
+            }
+          ]
         }
       ],
       "conditions": [

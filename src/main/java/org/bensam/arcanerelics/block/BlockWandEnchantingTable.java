@@ -10,8 +10,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.bensam.arcanerelics.ArcaneRelics;
 import org.bensam.arcanerelics.blockentity.BlockEntityWandEnchantingTable;
@@ -21,15 +24,22 @@ import org.jspecify.annotations.Nullable;
 
 public class BlockWandEnchantingTable extends BaseEntityBlock {
     public static final MapCodec<BlockWandEnchantingTable> CODEC = simpleCodec(BlockWandEnchantingTable::new);
+    public static final BooleanProperty HAS_LAPIS = BooleanProperty.create("has_lapis");
     private static final Component CONTAINER_TITLE = Component.translatable("container." + ArcaneRelics.MOD_ID + ".wand_enchanting.title");
 
     public BlockWandEnchantingTable(Properties properties) {
         super(properties);
+        this.registerDefaultState(this.stateDefinition.any().setValue(HAS_LAPIS, false));
     }
 
     @Override
     protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(HAS_LAPIS);
     }
 
     @Override
