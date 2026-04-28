@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+Updates to Wand Enchanting Table:
+- emit light and appear lit only when table contains lapis
+- render input wand on top of table
+- keep contents when broken
+
 ## [1.5.0]
 
 Initial public release of **Arcane Relics** for **Minecraft 1.21.11** on **Fabric**.
