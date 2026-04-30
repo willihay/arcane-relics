@@ -1,4 +1,7 @@
 # Arcane Relics
+
+![Arcane Relics banner](docs/images/ProjectBanner.png)
+
 _A collection of powerful relics from crafty wizards_
 
 **Arcane Relics** is a Fabric mod for Minecraft `1.21.11` that adds charged magic wands, a **Wand Enchanting Table**, and progression built around enchanting and recharging those wands.
@@ -11,7 +14,7 @@ At a glance, the mod adds:
 - alternate recharge mechanics for most wands
 
 <details>
-<summary>Spoilers: crafting recipes</summary>
+<summary>SPOILERS: Crafting Recipes</summary>
 
 **Arcane Wand**
 
@@ -88,9 +91,11 @@ The table uses:
 Some enchantments also cost XP, depending on server config.
 
 <details>
-<summary>Spoilers: wand enchanting example</summary>
+<summary>SPOILERS: Wand Enchanting Example</summary>
 
-![Enchanting an arcane wand into a specialty wand](docs/images/enchanting_fireball_wand.png)
+**Arcane Wand** + **Book of Flame** + **Lapis Lazuli** -> **Fireball Wand**
+
+![Enchanting an arcane wand into a fireball wand](docs/images/enchanting_fireball_wand.png)
 
 </details>
 
@@ -115,17 +120,17 @@ There are two main recharge paths:
 ## Wands and alternate recharge sources
 
 <details>
-<summary>Spoilers: table of wands and their alternate recharge source</summary>
+<summary>SPOILERS: Table of Wands</summary>
 
-| Wand | Main theme | Alternate recharge source           |
-| --- | --- |-------------------------------------|
-| Fang Wand | Evoker-style fangs | Evoker                              |
-| Fireball Wand | Fireball projectile | Blaze or any type of Ghast          |
-| Ice Wand | Ice imprisonment | Stray                               |
-| Levitation Wand | Shulker projectile and self-lift | Shulker                             |
-| Lightning Wand | Lightning strike | Lightning Rod during a thunderstorm |
-| Regeneration Wand | Regeneration effect | Happy Ghast                         |
-| Wind Wand | Gust attack | Breeze                              |
+| Wand | Main theme | Key ingredients                                                                                | Alternate recharge source |
+| --- | --- |------------------------------------------------------------------------------------------------| --- |
+| Fang Wand | Evoker-style fangs | Totem of Undying                                                                               | Evoker |
+| Fireball Wand | Fireball projectile | Book of Flame                                                                                  | Blaze or any type of Ghast |
+| Ice Wand | Ice imprisonment | Book of Frost Walker                                                                           | Stray |
+| Levitation Wand | Shulker projectile and self-lift | Shulker Shell                                                                                  | Shulker |
+| Lightning Wand | Lightning strike | Book of Channeling                                                                             | Lightning Rod during a thunderstorm |
+| Regeneration Wand | Regeneration effect | Golden Apple; Enchanted Golden Apple; Any Potion of Regeneration; Tipped Arrow of Regeneration | Happy Ghast |
+| Wind Wand | Gust attack | Book of Wind Burst; Potion of Wind Charged                                                     | Breeze |
 
 </details>
 
