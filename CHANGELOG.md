@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.6.1]
+
+### Fixed
+
+Fixed crash during chunk load. 
+
 ## [1.6.0]
 
 ### Changed

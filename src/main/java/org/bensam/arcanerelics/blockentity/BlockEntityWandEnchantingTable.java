@@ -18,7 +18,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -142,15 +141,6 @@ public class BlockEntityWandEnchantingTable extends BlockEntity implements Conta
         }
 
         this.recomputeState(true);
-    }
-
-    @Override
-    public void setLevel(@NonNull Level level) {
-        super.setLevel(level);
-
-        if (level instanceof ServerLevel) {
-            this.recomputeState(false);
-        }
     }
 
     @Override
