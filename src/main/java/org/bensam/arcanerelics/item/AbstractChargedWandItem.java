@@ -545,9 +545,8 @@ public abstract class AbstractChargedWandItem extends Item {
                 this.normalizeCharges(stack);
                 if (this.isFullyCharged(stack)) {
                     this.playRechargeFailEffects((ServerLevel) level, player, hand);
-                    player.displayClientMessage(
-                            Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.already_full"),
-                            true
+                    player.sendOverlayMessage(
+                            Component.translatable("message." + ArcaneRelics.MOD_ID + ".wand.recharge.already_full")
                     );
                 } else {
                     RechargeContext rechargeContext = this.tryRecharge(level, player, stack);
@@ -623,7 +622,7 @@ public abstract class AbstractChargedWandItem extends Item {
         // Check if wand has enough charges remaining to complete the cast.
         if (!this.hasEnoughChargesForCast(stack, chargeCost)) {
             this.playCastFailEffects(serverLevel, player);
-            player.displayClientMessage(this.getNoChargesMessage(), true);
+            player.sendOverlayMessage(this.getNoChargesMessage());
             return true;
         }
 
@@ -720,14 +719,12 @@ public abstract class AbstractChargedWandItem extends Item {
 
     private void sendDefaultRechargeFeedback(Player player, String messagePath, @Nullable Component messageParameter) {
         if (messageParameter == null) {
-            player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + "." + messagePath),
-                    true
+            player.sendOverlayMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + "." + messagePath)
             );
         } else {
-            player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + "." + messagePath, messageParameter),
-                    true
+            player.sendOverlayMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + "." + messagePath, messageParameter)
             );
         }
     }

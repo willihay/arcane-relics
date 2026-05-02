@@ -64,9 +64,8 @@ public class ItemArcaneWand extends AbstractChargedWandItem {
 
     @Override
     protected void sendRechargeFeedback(Player player, RechargeContext rechargeContext) {
-        player.displayClientMessage(
-                Component.translatable("message." + ArcaneRelics.MOD_ID + ".arcane_wand.recharge.no_power"),
-                true
+        player.sendOverlayMessage(
+                Component.translatable("message." + ArcaneRelics.MOD_ID + ".arcane_wand.recharge.no_power")
         );
     }
     //endregion

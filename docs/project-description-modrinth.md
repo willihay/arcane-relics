@@ -75,7 +75,7 @@ For players, Arcane Relics adds magical tools that feel earned rather than hande
 | Levitation Wand | Shulker projectile and self-lift | Shulker Shell                                                                                  | Shulker |
 | Lightning Wand | Lightning strike | Book of Channeling                                                                             | Lightning Rod during a thunderstorm |
 | Regeneration Wand | Regeneration effect | Golden Apple; Enchanted Golden Apple; Any Potion of Regeneration; Tipped Arrow of Regeneration | Happy Ghast |
-| Wind Wand | Gust attack | Book of Wind Burst; Potion of Wind Charged                                                     | Breeze |
+| Wind Wand | Gust attack | Book of Wind Burst; Any Potion of Wind Charging; Tipped Arrow of Wind Charging                 | Breeze |
 
 </details>
 

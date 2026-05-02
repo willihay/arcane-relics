@@ -11,9 +11,9 @@ public class ModNetworks {
 
     public static void initialize() {
         // Register packets.
-        PayloadTypeRegistry.playC2S().register(SyncClientConfigC2SPayload.TYPE, SyncClientConfigC2SPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(SyncServerConfigS2CPayload.TYPE, SyncServerConfigS2CPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(WandBeginCastS2CPayload.TYPE, WandBeginCastS2CPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(WandSucceedCastS2CPayload.TYPE, WandSucceedCastS2CPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(SyncClientConfigC2SPayload.TYPE, SyncClientConfigC2SPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(SyncServerConfigS2CPayload.TYPE, SyncServerConfigS2CPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(WandBeginCastS2CPayload.TYPE, WandBeginCastS2CPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(WandSucceedCastS2CPayload.TYPE, WandSucceedCastS2CPayload.CODEC);
     }
 }

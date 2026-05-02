@@ -14,7 +14,6 @@
       "translate": "advancement.arcane-relics.first_wand_recharge.description"
     },
     "icon": {
-      "count": 1,
       "id": "arcane-relics:arcane_wand"
     },
     "title": {

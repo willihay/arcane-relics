@@ -1,12 +1,15 @@
 {
   "required": true,
   "package": "org.bensam.arcanerelics.mixin.client",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "client": [
     "ItemInHandRendererMixin",
     "MinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
   }
 }

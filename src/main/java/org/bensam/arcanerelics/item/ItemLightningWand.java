@@ -68,7 +68,7 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
             BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition(), this.getLightningWandConfig().lightningRodExtractionRadius());
             if (lightningRodPos != null) {
                 if (level.isThundering()) {
-                    return new RechargeContext(true, 0, lightningRodPos, (Items.LIGHTNING_ROD).getName());
+                    return new RechargeContext(true, 0, lightningRodPos, Component.translatable(Items.LIGHTNING_ROD.getDescriptionId()));
                 }
                 else {
                     return new RechargeContext(false, RECHARGE_METADATA_NO_THUNDER, null, null);
@@ -139,14 +139,12 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
         if (rechargeContext.succeeded()) {
             super.sendRechargeFeedback(player, rechargeContext);
         } else if (rechargeContext.rechargeMetadata() == RECHARGE_METADATA_NO_THUNDER) {
-            player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_thunder"),
-                    true
+            player.sendOverlayMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_thunder")
             );
         } else if (rechargeContext.rechargeMetadata() == RECHARGE_METADATA_NO_LIGHTNING_ROD) {
-            player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_lightning_rod"),
-                    true
+            player.sendOverlayMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.recharge.no_lightning_rod")
             );
         }
     }
@@ -157,9 +155,8 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
     protected boolean performCast(ServerLevel level, Player player, ItemStack stack, float powerUpPercentage, boolean isFullyPowered) {
         // Check if dimension has skylight. Can't cast lightning in the nether.
         if (!level.dimensionType().hasSkyLight()) {
-            player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.cast.no_skylight"),
-                    true
+            player.sendOverlayMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.cast.no_skylight")
             );
             return false;
         }
@@ -190,9 +187,8 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
 
         // Check if we can see sky above the target.
         if (!hasSkyAccess(level, target.blockPos().above(), true)) {
-            player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.cast.no_sky_above_target"),
-                    true
+            player.sendOverlayMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".lightning_wand.cast.no_sky_above_target")
             );
             return false;
         }

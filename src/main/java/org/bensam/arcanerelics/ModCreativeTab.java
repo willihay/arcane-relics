@@ -1,6 +1,6 @@
 package org.bensam.arcanerelics;
 
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -25,7 +25,7 @@ public final class ModCreativeTab {
 
     public static void initialize() {
         // Build the custom creative tab.
-        tabInternal = FabricItemGroup.builder()
+        tabInternal = FabricCreativeModeTab.builder()
                 .icon(() -> new ItemStack(ModItems.ARCANE_WAND.get()))
                 .title(Component.translatable("itemGroup." + ArcaneRelics.MOD_ID))
                 .displayItems((params, output) -> {

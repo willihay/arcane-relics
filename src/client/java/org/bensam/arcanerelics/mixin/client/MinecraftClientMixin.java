@@ -27,13 +27,12 @@ public class MinecraftClientMixin {
             return;
         }
 
-        mc.player.displayClientMessage(
+        mc.player.sendOverlayMessage(
                 Component.translatable(
                         "message." + ArcaneRelics.MOD_ID + ".wand.charges.remaining",
                         stack.getHoverName(),
                         wand.getSyncedCharges(stack)
-                ),
-                true
+                )
         );
     }
 }

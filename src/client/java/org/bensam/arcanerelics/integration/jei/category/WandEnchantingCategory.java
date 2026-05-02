@@ -10,7 +10,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -88,7 +88,7 @@ public class WandEnchantingCategory implements IRecipeCategory<WandEnchantingRec
     public void draw(
             WandEnchantingRecipe recipe,
             IRecipeSlotsView recipeSlotsView,
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             double mouseX,
             double mouseY
     ) {
@@ -97,7 +97,7 @@ public class WandEnchantingCategory implements IRecipeCategory<WandEnchantingRec
         // Get the correct XP cost for the displayed recipe. The cost is different when the input and output wands are the same.
         int xpCost = getDisplayedXpCost(recipe, recipeSlotsView);
 
-        guiGraphics.drawString(
+        guiGraphics.text(
                 Minecraft.getInstance().font,
                 Component.translatable("container." + ArcaneRelics.MOD_ID + ".wand_enchanting.cost", xpCost),
                 12,

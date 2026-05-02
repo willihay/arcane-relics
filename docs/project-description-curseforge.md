@@ -121,7 +121,7 @@ alt="Enchanting an arcane wand into a fireball wand" /></p>
        <tr>
          <td>Wind Wand</td>
          <td>Gust attack</td>
-         <td>Book of Wind Burst; Potion of Wind Charged</td>
+         <td>Book of Wind Burst; Any Potion of Wind Charging; Tipped Arrow of Wind Charging</td>
          <td>Breeze</td>
        </tr>
      </tbody>

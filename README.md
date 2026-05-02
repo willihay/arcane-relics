@@ -4,7 +4,7 @@
 
 _A collection of powerful relics from crafty wizards_
 
-**Arcane Relics** is a Fabric mod for Minecraft `1.21.11` that adds charged magic wands, a **Wand Enchanting Table**, and progression built around enchanting and recharging those wands.
+**Arcane Relics** is a Fabric mod for Minecraft `1.21.11` and later that adds charged magic wands, a **Wand Enchanting Table**, and progression built around enchanting and recharging those wands.
 
 At a glance, the mod adds:
 
@@ -38,10 +38,9 @@ Arcane Relics is a [Fabric](https://fabricmc.net/) mod.
 
 Required:
 
-1. Minecraft `1.21.11`
-2. Fabric Loader
-3. Fabric API
-4. The Arcane Relics mod `.jar`
+1. Fabric Loader
+2. Fabric API
+3. The Arcane Relics mod `.jar` for the version of Minecraft you're running
 
 Optional client-side companions:
 
@@ -52,7 +51,7 @@ Optional client-side companions:
 To install:
 
 1. Download the latest release from the [Releases](https://github.com/willihay/arcane-relics/releases) page.
-2. Install Fabric Loader for Minecraft `1.21.11`.
+2. Install Fabric Loader for your version of Minecraft.
 3. Put `Fabric API` and `Arcane Relics` into your `mods` folder.
 4. Optionally add JEI, Mod Menu, and YACL on the client.
 5. Launch the game.
@@ -61,7 +60,7 @@ To install:
 
 For a dedicated server, install:
 
-1. Fabric Loader for `1.21.11`
+1. Fabric Loader
 2. Fabric API
 3. Arcane Relics
 
@@ -130,7 +129,7 @@ There are two main recharge paths:
 | Levitation Wand | Shulker projectile and self-lift | Shulker Shell                                                                                  | Shulker |
 | Lightning Wand | Lightning strike | Book of Channeling                                                                             | Lightning Rod during a thunderstorm |
 | Regeneration Wand | Regeneration effect | Golden Apple; Enchanted Golden Apple; Any Potion of Regeneration; Tipped Arrow of Regeneration | Happy Ghast |
-| Wind Wand | Gust attack | Book of Wind Burst; Potion of Wind Charged                                                     | Breeze |
+| Wind Wand | Gust attack | Book of Wind Burst; Any Potion of Wind Charging; Tipped Arrow of Wind Charging                 | Breeze |
 
 </details>
 

@@ -131,7 +131,7 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
             placeIceIfReplaceable(level, center.south().west());
         }
 
-        int extraBlocks = getExtraIceBlockCount(level.random, powerUpPercentage);
+        int extraBlocks = getExtraIceBlockCount(level.getRandom(), powerUpPercentage);
         if (extraBlocks <= 0) {
             return;
         }
@@ -159,7 +159,7 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
 
         while (placed < extraBlocks && tries++ < 50) {
             int maxIndex = powerUpPercentage <= POWER_LEVEL_2 ? 8 : accentPositions.length;
-            int index = level.random.nextInt(maxIndex);
+            int index = level.getRandom().nextInt(maxIndex);
             if (used[index]) {
                 continue;
             }

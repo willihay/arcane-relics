@@ -195,15 +195,15 @@ public class WandEnchantingMenu extends AbstractContainerMenu {
             }
         }
 
-        // Consume player XP.
+        // Consume player XP (unless in creative mode).
         if (!player.hasInfiniteMaterials()) {
             player.giveExperienceLevels(-this.getXpCost());
-
-            // Consume input wand, enchantment item, and lapis.
-            this.shrinkStackInSlot(WAND_INPUT_SLOT);
-            this.shrinkStackInSlot(ARCANE_ITEM_SLOT);
-            this.shrinkStackInSlot(LAPIS_INPUT_SLOT);
         }
+
+        // Consume input wand, enchantment item, and lapis.
+        this.shrinkStackInSlot(WAND_INPUT_SLOT);
+        this.shrinkStackInSlot(ARCANE_ITEM_SLOT);
+        this.shrinkStackInSlot(LAPIS_INPUT_SLOT);
 
         // Refresh result and synced flags immediately.
         if (this.blockInventory instanceof BlockEntityWandEnchantingTable blockEntity) {

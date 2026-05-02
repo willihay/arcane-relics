@@ -4,7 +4,7 @@ This document is a design and architecture overview for Arcane Relics. It is wri
 
 ## Project shape
 
-Arcane Relics is a Fabric mod for Minecraft `1.21.11`.
+Arcane Relics is a Fabric mod for Minecraft `1.21.11` and later.
 
 The repository uses a branch-per-Minecraft-version workflow. In practice, the default branch is the current supported version branch, and longer-lived work should happen on version branches such as `mc-1.21.11` rather than on a separate evergreen branch.
 

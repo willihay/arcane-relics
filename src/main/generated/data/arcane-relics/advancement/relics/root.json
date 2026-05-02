@@ -17,7 +17,6 @@
       "translate": "advancement.arcane-relics.root.description"
     },
     "icon": {
-      "count": 1,
       "id": "arcane-relics:arcane_wand"
     },
     "title": {

@@ -7,6 +7,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import org.bensam.arcanerelics.config.ModServerConfig;
 import org.bensam.arcanerelics.item.*;
 import org.jspecify.annotations.NonNull;
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
 public final class ModItems {
     private ModItems() {}
 
-    private static final List<ItemStack> WAND_ENCHANTING_TABLE_INPUTS = new ArrayList<>();
+    private static final List<ItemStackTemplate> WAND_ENCHANTING_TABLE_INPUTS = new ArrayList<>();
     private static final List<AbstractChargedWandItem> WAND_ENCHANTING_TABLE_OUTPUTS = new ArrayList<>();
 
     private static ItemArcaneWand arcaneWandInternal;
@@ -151,7 +152,7 @@ public final class ModItems {
         T registered = Registry.register(BuiltInRegistries.ITEM, itemKey, item);
 
         if (registered instanceof AbstractChargedWandItem wandItem) {
-            WAND_ENCHANTING_TABLE_INPUTS.add(new ItemStack(registered));
+            WAND_ENCHANTING_TABLE_INPUTS.add(new ItemStackTemplate(registered));
 
             if (registered instanceof WandEnchantingTableOutput) {
                 WAND_ENCHANTING_TABLE_OUTPUTS.add(wandItem);
@@ -163,7 +164,7 @@ public final class ModItems {
 
     public static List<ItemStack> getAllWands() {
         return WAND_ENCHANTING_TABLE_INPUTS.stream()
-                .map(ItemStack::copy)
+                .map(ItemStackTemplate::create)
                 .toList();
     }
 

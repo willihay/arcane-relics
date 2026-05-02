@@ -1,7 +1,7 @@
 package org.bensam.arcanerelics;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import org.bensam.arcanerelics.config.SyncedClientConfig;
 import org.bensam.arcanerelics.config.ModServerConfigManager;
 import org.bensam.arcanerelics.config.ModServerConfigSync;
@@ -34,7 +34,7 @@ public class ArcaneRelics implements ModInitializer {
 		SyncedClientConfig.initialize();
 		ModCreativeTab.initialize();
 
-		ServerWorldEvents.LOAD.register((server, world) -> {
+		ServerLevelEvents.LOAD.register((server, world) -> {
 			if (world == server.overworld()) {
 				ModServerConfigManager.initialize(server);
 			}

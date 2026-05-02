@@ -130,9 +130,8 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
         if (rechargeContext.succeeded()) {
             super.sendRechargeFeedback(player, rechargeContext);
         } else {
-            player.displayClientMessage(
-                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".fireball_wand.recharge.fail"),
-                    true
+            player.sendOverlayMessage(
+                    Component.translatable("message." + ArcaneRelics.MOD_ID + ".fireball_wand.recharge.fail")
             );
         }
     }
