@@ -6,6 +6,7 @@ on:
   push:
     tags:
       - "v*"
+      - "mc*"
 
 permissions:
   contents: write
@@ -39,21 +40,38 @@ jobs:
           set -euo pipefail
 
           tag_name="${GITHUB_REF_NAME}"
-          version="${tag_name#v}"
           gradle_version="$(grep '^mod_version=' gradle.properties | cut -d= -f2-)"
           archives_base_name="$(grep '^archives_base_name=' gradle.properties | cut -d= -f2-)"
           mod_loader="$(grep '^mod_loader=' gradle.properties | cut -d= -f2-)"
           minecraft_version="$(grep '^minecraft_version=' gradle.properties | cut -d= -f2-)"
-          archive_name="${archives_base_name}-${mod_loader}-${minecraft_version}"
+          tag_minecraft_version=""
 
-          if [[ "${version}" == "${tag_name}" ]]; then
-            echo "Expected a tag beginning with 'v', got '${tag_name}'." >&2
+          if [[ "${tag_name}" =~ (^|[+\\-_/])v([0-9]+(\.[0-9]+)*)($|[+\\-_/]) ]]; then
+            version="${BASH_REMATCH[2]}"
+          else
+            echo "Expected a tag containing a version segment like 'v1.6.2', got '${tag_name}'." >&2
             exit 1
           fi
+
+          if [[ "${tag_name}" =~ (^|[+\\-_/])mc([0-9]+(\.[0-9]+)*)($|[+\\-_/]) ]]; then
+            tag_minecraft_version="${BASH_REMATCH[2]}"
+          fi
+
+          archive_name="${archives_base_name}-${mod_loader}-${minecraft_version}"
 
           if [[ "${version}" != "${gradle_version}" ]]; then
             echo "Tag version '${version}' does not match gradle.properties mod_version '${gradle_version}'." >&2
             exit 1
+          fi
+
+          if [[ -n "${tag_minecraft_version}" && "${tag_minecraft_version}" != "${minecraft_version}" ]]; then
+            echo "Tag Minecraft version '${tag_minecraft_version}' does not match gradle.properties minecraft_version '${minecraft_version}'." >&2
+            exit 1
+          fi
+
+          release_title="Arcane Relics ${version}"
+          if [[ -n "${tag_minecraft_version}" ]]; then
+            release_title="${release_title} for Minecraft ${tag_minecraft_version}"
           fi
 
           {
@@ -61,6 +79,7 @@ jobs:
             echo "version=${version}"
             echo "jar_path=build/libs/${archive_name}-${version}.jar"
             echo "release_notes_path=${RUNNER_TEMP}/release-notes.md"
+            echo "release_title=${release_title}"
           } >> "${GITHUB_ENV}"
 
       - name: extract release notes from changelog
@@ -96,7 +115,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.tag_name }}
-          name: Arcane Relics ${{ env.version }}
+          name: ${{ env.release_title }}
           body_path: ${{ env.release_notes_path }}
           files: ${{ env.jar_path }}
           draft: true
