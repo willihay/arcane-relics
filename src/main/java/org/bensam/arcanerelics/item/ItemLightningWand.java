@@ -10,11 +10,10 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -68,7 +67,7 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
             BlockPos lightningRodPos = findNearbyLightningRod(level, player.blockPosition(), this.getLightningWandConfig().lightningRodExtractionRadius());
             if (lightningRodPos != null) {
                 if (level.isThundering()) {
-                    return new RechargeContext(true, 0, lightningRodPos, Component.translatable(Items.LIGHTNING_ROD.getDescriptionId()));
+                    return new RechargeContext(true, 0, lightningRodPos, Component.translatable("block.minecraft.lightning_rod"));
                 }
                 else {
                     return new RechargeContext(false, RECHARGE_METADATA_NO_THUNDER, null, null);
@@ -194,7 +193,7 @@ public class ItemLightningWand extends AbstractChargedWandItem implements WandEn
         }
 
         // Create the lightning bolt.
-        LightningBolt lightningBolt = new LightningBolt(EntityType.LIGHTNING_BOLT, level);
+        LightningBolt lightningBolt = new LightningBolt(EntityTypes.LIGHTNING_BOLT, level);
         lightningBolt.setPos(strikePos);
         level.addFreshEntity(lightningBolt);
 

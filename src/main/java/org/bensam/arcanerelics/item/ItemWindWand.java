@@ -9,7 +9,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potions;
@@ -19,7 +19,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.bensam.arcanerelics.config.*;
+import org.bensam.arcanerelics.config.ModServerConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
+import org.bensam.arcanerelics.config.WindWandConfig;
 
 import java.util.HashSet;
 import java.util.List;
@@ -60,8 +63,8 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getWindWandConfig().breezeExtractionRadius(), EntityType.BREEZE);
-            return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.BREEZE).getDescription());
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getWindWandConfig().breezeExtractionRadius(), EntityTypes.BREEZE);
+            return new RechargeContext(closestMob != null, 0, closestMob, (EntityTypes.BREEZE).getDescription());
         });
     }
 
@@ -324,7 +327,7 @@ public class ItemWindWand extends AbstractChargedWandItem implements WandEnchant
         if (blockState.is(BlockTags.LEAVES)
                 || blockState.is(BlockTags.FLOWERS)
                 || blockState.is(BlockTags.REPLACEABLE_BY_TREES)
-                || blockState.is(BlockTags.SAPLINGS)) {
+                /*|| blockState.is(BlockTags.SAPLING)*/) { // BlockTags.SAPLING was removed from BlockTags.java in 26.2!
             level.destroyBlock(pos, true);
             return true;
         }

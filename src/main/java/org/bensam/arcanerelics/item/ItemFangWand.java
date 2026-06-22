@@ -8,7 +8,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.EvokerFangs;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +18,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.bensam.arcanerelics.config.*;
+import org.bensam.arcanerelics.config.FangWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
@@ -49,8 +52,8 @@ public class ItemFangWand extends AbstractChargedWandItem implements WandEnchant
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getFangWandConfig().evokerExtractionRadius(), EntityType.EVOKER);
-            return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.EVOKER).getDescription());
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getFangWandConfig().evokerExtractionRadius(), EntityTypes.EVOKER);
+            return new RechargeContext(closestMob != null, 0, closestMob, (EntityTypes.EVOKER).getDescription());
         });
     }
 

@@ -8,7 +8,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -16,7 +16,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.bensam.arcanerelics.config.*;
+import org.bensam.arcanerelics.config.ModServerConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.RegenerationWandConfig;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
@@ -53,8 +56,8 @@ public class ItemRegenerationWand extends AbstractChargedWandItem implements Wan
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getRegenerationWandConfig().ghastExtractionRadius(), EntityType.HAPPY_GHAST);
-            return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.HAPPY_GHAST).getDescription());
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getRegenerationWandConfig().ghastExtractionRadius(), EntityTypes.HAPPY_GHAST);
+            return new RechargeContext(closestMob != null, 0, closestMob, (EntityTypes.HAPPY_GHAST).getDescription());
         });
     }
 

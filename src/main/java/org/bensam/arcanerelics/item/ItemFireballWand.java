@@ -9,7 +9,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.hurtingprojectile.LargeFireball;
@@ -64,31 +64,31 @@ public class ItemFireballWand extends AbstractChargedWandItem implements WandEnc
     }
 
     protected static RechargeContext findNearbyMobFuel(Level level, BlockPos center, int blazeExtractionRadius, int ghastExtractionRadius) {
-        BlockPos closestMob = findClosestMobOfType(level, center, ghastExtractionRadius, EntityType.GHAST);
+        BlockPos closestMob = findClosestMobOfType(level, center, ghastExtractionRadius, EntityTypes.GHAST);
         if (closestMob != null) {
             return new RechargeContext(
                     true,
                     RECHARGE_METADATA_GHAST_EXTRACTION,
                     closestMob,
-                    (EntityType.GHAST).getDescription());
+                    (EntityTypes.GHAST).getDescription());
         }
 
-        closestMob = findClosestMobOfType(level, center, ghastExtractionRadius, EntityType.HAPPY_GHAST);
+        closestMob = findClosestMobOfType(level, center, ghastExtractionRadius, EntityTypes.HAPPY_GHAST);
         if (closestMob != null) {
             return new RechargeContext(
                     true,
                     RECHARGE_METADATA_GHAST_EXTRACTION,
                     closestMob,
-                    (EntityType.HAPPY_GHAST).getDescription());
+                    (EntityTypes.HAPPY_GHAST).getDescription());
         }
 
-        closestMob = findClosestMobOfType(level, center, blazeExtractionRadius, EntityType.BLAZE);
+        closestMob = findClosestMobOfType(level, center, blazeExtractionRadius, EntityTypes.BLAZE);
         if (closestMob != null) {
             return new RechargeContext(
                     true,
                     RECHARGE_METADATA_BLAZE_EXTRACTION,
                     closestMob,
-                    (EntityType.BLAZE).getDescription());
+                    (EntityTypes.BLAZE).getDescription());
         }
 
         return new RechargeContext(

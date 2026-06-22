@@ -8,7 +8,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -16,7 +16,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import org.bensam.arcanerelics.config.*;
+import org.bensam.arcanerelics.config.IceWandConfig;
+import org.bensam.arcanerelics.config.ModServerConfig;
+import org.bensam.arcanerelics.config.ModServerConfigManager;
+import org.bensam.arcanerelics.config.WandBalanceConfig;
 
 import java.util.List;
 
@@ -50,8 +53,8 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
     @Override
     protected RechargeContext tryRecharge(Level level, Player player, ItemStack wandStack) {
         return this.rechargeFromSource(level, wandStack, () -> {
-            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getIceWandConfig().strayExtractionRadius(), EntityType.STRAY);
-            return new RechargeContext(closestMob != null, 0, closestMob, (EntityType.STRAY).getDescription());
+            BlockPos closestMob = findClosestMobOfType(level, player.blockPosition(), this.getIceWandConfig().strayExtractionRadius(), EntityTypes.STRAY);
+            return new RechargeContext(closestMob != null, 0, closestMob, (EntityTypes.STRAY).getDescription());
         });
     }
 
@@ -93,7 +96,7 @@ public class ItemIceWand extends AbstractChargedWandItem implements WandEnchanti
 
         Vec3 look = player.getLookAngle().normalize();
         Vec3 particlePosStart = player.getEyePosition(1.0f).add(look.scale(2));
-        Vec3 particlePosEnd = target.blockPos().getCenter();
+        Vec3 particlePosEnd = Vec3.atCenterOf(target.blockPos());
         spawnParticleTrail(level, ParticleTypes.SNOWFLAKE, particlePosStart, particlePosEnd, 12, 5, 0.04);
 
         BlockPos center = target.entity() != null || level.getBlockState(target.blockPos()).canBeReplaced()

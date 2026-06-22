@@ -10,8 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Ported the mod to Minecraft 26.1.2.
-- Updated the mod to the Java 25 / Fabric 26.1 toolchain.
+- Ported the mod to Minecraft 26.2.
 - No intended gameplay changes.
 
 ### Fixed
